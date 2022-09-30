@@ -1,0 +1,144 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:flutter/material.dart';
+import 'package:logistic_app/global.dart';
+import 'package:logistic_app/data_manager.dart';
+
+class ListOrders extends StatefulWidget{
+  // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  const ListOrders({Key? key}) : super(key: key);
+
+  @override
+  State<ListOrders> createState() => ListOrdersState();
+}
+
+class ListOrdersState extends State<ListOrders>{
+  // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  static List<dynamic> rawData = List<dynamic>.empty(growable: true);
+  static int? getSelectedIndex;
+
+  // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  ButtonState buttonState = ButtonState.disabled;
+  int? _selectedIndex;
+  set selectedIndex(int? value){
+    if(buttonState != ButtonState.loading){
+      buttonState =       (value == null)? ButtonState.disabled : ButtonState.default0;
+      _selectedIndex =    value;
+      getSelectedIndex =  _selectedIndex;
+    }
+  }
+  int? get selectedIndex => _selectedIndex;
+  
+
+  // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  ListOrdersState();
+
+  // ---------- < WidgetBuild > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  @override
+  Widget build(BuildContext context){    
+    return GestureDetector(
+      onTap:  () => setState(() => selectedIndex = null),
+      child:  Scaffold(
+        appBar: AppBar(
+          title:            const Center(child: Padding(padding: EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Rendelések'))),
+          backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+        ),
+        backgroundColor:  Colors.white,
+        body:             LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints viewportConstraints) {
+            return (rawData.isNotEmpty) 
+            ? Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              _drawDataTable,
+              _drawNoConnection,
+              _drawBottomBar
+            ])
+            : const Center(child: Text('Nincs adat'));
+          }
+        )
+      )
+    );
+  }  
+  
+  // ---------- < Widgets [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawDataTable =>  Expanded(child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+    columns:            _generateColumns,
+    rows:               _generateRows,
+    showCheckboxColumn: false,                
+    border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
+  )));
+
+  Widget get _drawNoConnection => Visibility(visible: !DataManager.isServerAvailable, child: Container(height: 20, color: Colors.red, child: Row(
+    mainAxisAlignment:  MainAxisAlignment.center,
+    children:           [Text(DataManager.serverErrorText, style: const TextStyle(color: Color.fromARGB(255, 255, 255, 150)))]
+  )));
+
+  Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(buttonState), child:
+    Row(mainAxisAlignment: MainAxisAlignment.end, children: [        
+      Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          TextButton(
+            onPressed:  () => (buttonState == ButtonState.default0)? _buttonNextPress : null,
+            style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+            child:      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              Visibility(
+                visible:  (buttonState == ButtonState.loading)? true : false,
+                child:    Padding(
+                  padding:  const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                  child:    SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonState)))
+                )
+              ),
+              Icon(
+                Icons.arrow_forward,
+                color: Global.getColorOfIcon(buttonState),
+                size:  30,
+              )
+            ])
+          )
+        ])
+      )
+    ])
+  );
+
+  // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  List<DataColumn> get _generateColumns{
+    List<DataColumn> columns = List<DataColumn>.empty(growable: true);
+    for (var item in rawData[0].keys) {
+      if(item != 'id') columns.add(DataColumn(label: Text(item)));
+    }
+    return columns;
+  }
+
+  List<DataRow> get _generateRows{
+    List<DataRow> rows = List<DataRow>.empty(growable: true);
+    for (var i = 0; i < rawData.length; i++) {
+      rows.add(DataRow(
+        cells:            _getCells(rawData[i]),
+        selected:         (i == selectedIndex),
+        onSelectChanged:  (bool? selected) => setState(() => selectedIndex = i)
+      )); 
+    }
+    return rows;
+  }
+
+  Future get _buttonNextPress async{
+    setState(() => buttonState = ButtonState.loading);
+    DataManager dataManager = DataManager();
+    Global.routeNext =        NextRoute.scanTasks;
+    await dataManager.beginProcess;
+    if(DataManager.isServerAvailable){
+      buttonState = ButtonState.default0;
+      await Navigator.pushNamed(context, '/scanOrders');
+      setState((){});
+    }
+    else {setState(() => buttonState = ButtonState.default0);}
+  }
+
+  // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  List<DataCell> _getCells(Map<String, dynamic> row){
+    List<DataCell> cells = List<DataCell>.empty(growable: true);
+    for (var item in row.keys) {
+      if(item != 'id') cells.add(DataCell(Text(row[item].toString())));
+    }
+    return cells;
+  }
+}
