@@ -346,7 +346,7 @@ class ScanOrdersState extends State<ScanOrders>{
     controller.scannedDataStream.listen((scanData){
       if(isProgressIndicator || buttonNoBarcode == ButtonState.loading) return;      
       setState(() => isProgressIndicator = true);
-      result = scanData.code;    
+      result = scanData.code;      
       _checkResult;
       if(isProgressIndicator) Future.delayed(const Duration(milliseconds: 500), () => setState(() => isProgressIndicator = false));      
     });

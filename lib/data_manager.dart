@@ -136,6 +136,7 @@ class DataManager{
             'customer':     data[0][1]['Ugyfel_id'].toString(),
             'bizonylat_id': data[1][ListOrdersState.getSelectedIndex!]['id']
           };
+          if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_order_items.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(2)] =          await jsonDecode(response.body);          
@@ -147,6 +148,7 @@ class DataManager{
             'customer':         data[0][1]['Ugyfel_id'].toString(),
             'completed_tasks':  json.encode(_cropCompletedTasks),
           };
+          if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}finish_orders.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(3)] =          await jsonDecode(response.body);          
