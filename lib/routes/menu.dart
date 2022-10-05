@@ -33,6 +33,10 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
     _width = MediaQuery.of(context).size.width - 50;
     if(_width > 400) _width = 400;
     return Scaffold(
+      appBar: AppBar(
+        title:            const Center(child: Text('Logistic App')),
+        backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      ),
       backgroundColor:  Colors.white,
       body:             LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {

@@ -84,7 +84,8 @@ class ScanOrdersState extends State<ScanOrders>{
   Widget get _drawAskStorageOrProduct{
     String order = (taskState == TaskState.askStorage)
     ? 'A(z) ${rawData[currentTask!]['tarhely']} számú tárjhely QR kódjának leolvasása.'
-    : 'A(z) ${rawData[currentTask!]['cikkszam']} cikkszámú termék vonalkódjának leolvasása.';
+    :'Kérem olvassa le a vonalkódját az alábbi terméknek:\n${rawData[currentTask!]['cikkszam']}\n${rawData[currentTask!]['megnevezes']}';
+    //: 'A(z) ${rawData[currentTask!]['cikkszam']} cikkszámú termék vonalkódjának leolvasása.';
     return Scaffold(body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
       Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Text(order, style: const TextStyle(fontSize: 16)),
@@ -205,11 +206,11 @@ class ScanOrdersState extends State<ScanOrders>{
 
   Widget get _drawTaskScanProductText => Padding(padding: const EdgeInsets.all(5), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
     Text(
-      'Kérem olvassa be a(z) ${rawData[currentTask!]['cikkszam']} cikkszámú termék vonalkódját.',
+      'Kérem olvassa be a(z) ${rawData[currentTask!]['cikkszam']} cikkszámú termék vonalkódját.\n${rawData[currentTask!]['megnevezes']}',
       style: const TextStyle(color: Colors.white, fontSize: 16),
     ),
     Row(mainAxisAlignment: MainAxisAlignment.center, children: (result != null)      
-      ? (result! == rawData[currentTask!]['cikk_id'] || result! == rawData[currentTask!]['cikkszam'])
+      ? (result! == rawData[currentTask!]['vonalkod'])
         ? [
           const Icon(Icons.check_circle_outline, color: Color.fromARGB(200, 100, 255, 100), size: 30),
           const SizedBox(width: 10),
@@ -447,7 +448,7 @@ class ScanOrdersState extends State<ScanOrders>{
       break;
     
     case TaskState.scanProduct:
-      if(result != null && (result == rawData[currentTask!]['cikk_id'] || result == rawData[currentTask!]['cikkszam'])){        
+      if(result != null && (result == rawData[currentTask!]['vonalkod'])){        
         Future.delayed(const Duration(milliseconds: 500), () => setState(() => isProgressIndicator = false));
         Future.delayed(const Duration(seconds: 1), () {result = null; _goToHandleProduct;});        
       }

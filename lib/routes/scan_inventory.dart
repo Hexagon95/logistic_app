@@ -72,7 +72,11 @@ class ScanInventoryState extends State<ScanInventory>{
   
   // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawQrScanRoute => Scaffold(
-    body: Stack(children: [
+    appBar: AppBar(
+      title:            Center(child: Text((taskState == TaskState.scanStorage)? 'Tárolóhely Azonosítása' : 'Termék Azonosítása')),
+      backgroundColor:  Global.getColorOfButton(ButtonState.default0)
+    ),
+    body:   Stack(children: [
       Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
         Expanded(child: _buildQrView),
         Column(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -490,13 +494,15 @@ Widget get _drawBarcodeManual => Scaffold(
   }}
 
   Future<bool> get _handlePop async{switch(taskState){
-
-    case TaskState.inventory:
-      if(await Global.yesNoDialog(context,
-        title:    '$storageId tárolóhely elhagyása?',
-        content:  'El kívánja hagyni az agkutális tárolóhelyet: $storageId és szkennelni egy másikat?'
-      )) setState(() => taskState = TaskState.scanStorage);      
-      return false;
+    
+    case TaskState.inventory: switch(await customDialog(context,
+      title:    '$storageId tárolóhely elhagyása?',
+      content:  'El kívánja hagyni az agkutális tárolóhelyet: $storageId és szkennelni egy másikat?'
+    )){      
+      case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);  return false;
+      case DialogResult.cancel:                                                     return false;
+      default:                                                                      return true;
+    }
 
     case TaskState.scanProduct:
       setState(() => taskState = TaskState.inventory);
@@ -519,10 +525,7 @@ Widget get _drawBarcodeManual => Scaffold(
 
     default:
       controller?.stopCamera();
-      return await Global.yesNoDialog(context,
-        title:    'Munka elvetése?',
-        content:  'El kívánja vetni az idáigi munkát és visszatér a Főmenübe?'
-      );
+      return true;
   }}
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -569,7 +572,7 @@ Widget get _drawBarcodeManual => Scaffold(
 
     default:break;
   }}  
-
+  
   // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   bool get _checkCikkszam{
     for (var element in rawData) {
@@ -580,5 +583,35 @@ Widget get _drawBarcodeManual => Scaffold(
     }
     currentItem = null;
     return false;
+  }
+
+// ---------- < Dialogs > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future<DialogResult> customDialog(BuildContext context, {String title = '', String content = ''}) async{
+    Widget back = TextButton(
+      child: const Text('Másik Tárolóhely'),
+      onPressed: () => Navigator.pop(context, DialogResult.back)
+    );
+
+    Widget mainMenu = TextButton(
+      child: const Text('Főmenü'),
+      onPressed: () => Navigator.pop(context, DialogResult.mainMenu)
+    );
+
+    Widget cancel = TextButton(
+      child: const Text('Mégsem'),
+      onPressed: () => Navigator.pop(context, DialogResult.cancel)
+    );
+
+    AlertDialog infoRegistry = AlertDialog(
+      title:    Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+      content:  Text(content, style: const TextStyle(fontSize: 12)),
+      actions:  [back, mainMenu, cancel]
+    );
+
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) => infoRegistry,
+      barrierDismissible: false
+    );
   }
 }

@@ -54,9 +54,9 @@ class LogInMenuState extends State<LogInMenuFrame>{
         padding:  EdgeInsets.fromLTRB(0, 0, 0, 20),
         child:    Text('LogisticApp', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Color.fromRGBO(0, 180, 125, 1.0)), textAlign: TextAlign.center)
       ),
-      const Padding(
-        padding:  EdgeInsets.all(10),
-        child:    Text('v1.3.0', style: TextStyle(fontSize: 14))
+      Padding(
+        padding:  const EdgeInsets.all(10),
+        child:    Text(DataManager.versionNumber, style: const TextStyle(fontSize: 14))
       ),
       Padding(
         padding:  const EdgeInsets.fromLTRB(20, 40, 20, 40),

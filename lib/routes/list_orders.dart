@@ -20,18 +20,13 @@ class ListOrdersState extends State<ListOrders>{
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonState = ButtonState.disabled;
   int? _selectedIndex;
-  set selectedIndex(int? value){
-    if(buttonState != ButtonState.loading){
-      buttonState =       (value == null)? ButtonState.disabled : ButtonState.default0;
-      _selectedIndex =    value;
-      getSelectedIndex =  _selectedIndex;
-    }
-  }
-  int? get selectedIndex => _selectedIndex;
-  
+  set selectedIndex(int? value) {if(buttonState != ButtonState.loading){
+    if(value == null) {buttonState = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    else if(rawData[value]['kesz'].toString() != '1') {buttonState = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+  }}
+  int? get selectedIndex => _selectedIndex;  
 
-  // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  ListOrdersState();
+  // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
 
   // ---------- < WidgetBuild > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
@@ -102,9 +97,12 @@ class ListOrdersState extends State<ListOrders>{
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   List<DataColumn> get _generateColumns{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
-    for (var item in rawData[0].keys) {
-      if(item != 'id') columns.add(DataColumn(label: Text(item)));
-    }
+    for (var item in rawData[0].keys) {switch(item){
+      case 'sorszam': columns.add(const DataColumn(label: Text('Rendelés Sorszáma')));  break;
+      case 'vevo':    columns.add(const DataColumn(label: Text('Vevő Megnevezése')));   break;
+      case 'kesz':    columns.add(const DataColumn(label: Text('')));                   break;
+      default:                                                                          break;
+    }}
     return columns;
   }
 
@@ -136,9 +134,14 @@ class ListOrdersState extends State<ListOrders>{
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   List<DataCell> _getCells(Map<String, dynamic> row){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
-    for (var item in row.keys) {
-      if(item != 'id') cells.add(DataCell(Text(row[item].toString())));
-    }
+    for (var item in row.keys) {switch(item){
+      case 'sorszam':
+      case 'vevo':    cells.add(DataCell(Text(row[item].toString())));  break;
+      case 'kesz':    cells.add(DataCell((row[item].toString() == '1')
+        ? Icon(Icons.check_circle, color: Global.getColorOfButton(ButtonState.default0), size: 30)
+        : Container()));                                                break;
+      default:                                                          break;
+    }}
     return cells;
   }
 }

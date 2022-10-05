@@ -8,6 +8,7 @@ enum NextRoute    {logIn, menu, listOrders, inventory, scanTasks, finishTasks, d
 enum ButtonState  {hidden,  loading,  disabled, error, default0}
 enum TaskState    {askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, itemData, wrongItem, handleProduct, default0}
 enum InterMission {askBarcode, deleteItem, saveInventory}
+enum DialogResult {cancel, back, mainMenu}
 
 class Global{
   // ---------- < Variables [Static] > - ---------- ---------- ----------
@@ -73,7 +74,7 @@ class Global{
       builder: (BuildContext context) => infoRegistry,
       barrierDismissible: false
     );
-  }
+  } 
 
   // ---------- < Global Methods > ----- ---------- ---------- ----------
   static Color getColorOfButton(ButtonState buttonState){    
