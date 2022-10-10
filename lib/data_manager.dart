@@ -13,12 +13,12 @@ import 'package:logistic_app/routes/scan_orders.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                 'v1.4.0';
+  static String versionNumber =                 'v1.6.0';
   static List<List<dynamic>> data =             List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataInterMission = List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =               true;
-  static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';
-  //static const String urlPath =                 'http://app.mosaic.hu:81/android/logistic_app/';
+  //static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
+  static const String urlPath =                 'http://app.mosaic.hu:81/android/logistic_app/';  // Test
   static String get serverErrorText =>          (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static Identity? identity;  
 
