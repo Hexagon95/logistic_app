@@ -501,7 +501,7 @@ Widget get _drawBarcodeManual => Scaffold(
     )){      
       case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);  return false;
       case DialogResult.cancel:                                                     return false;
-      default:                                                                      return true;
+      default: Global.routeBack;                                                    return true;
     }
 
     case TaskState.scanProduct:

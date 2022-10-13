@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
-enum NextRoute    {logIn, menu, listOrders, inventory, scanTasks, finishTasks, default0}
+enum NextRoute    {logIn, menu, listOrders, pickUpList, inventory, pickUpData, pickUpDataFinish, scanTasks, finishTasks, default0}
 enum ButtonState  {hidden,  loading,  disabled, error, default0}
 enum TaskState    {askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, itemData, wrongItem, handleProduct, default0}
 enum InterMission {askBarcode, deleteItem, saveInventory}
@@ -18,12 +18,15 @@ class Global{
   static set routeNext (NextRoute value){
     int check(int i)  {while(_routes.length > i){_routes.removeLast();} while(_routes.length <= i){_routes.add(NextRoute.default0);} return i; }
     switch (value) {
-      case NextRoute.logIn:           _routes[check(0)] =   value;  break;
-      case NextRoute.menu:            _routes[check(1)] =   value;  break;
-      case NextRoute.listOrders:      _routes[check(2)] =   value;  break;
-      case NextRoute.inventory:       _routes[check(2)] =   value;  break;
-      case NextRoute.scanTasks:       _routes[check(3)] =   value;  break;
-      case NextRoute.finishTasks:     _routes[check(3)] =   value;  break;
+      case NextRoute.logIn:             _routes[check(0)] =   value;  break;
+      case NextRoute.menu:              _routes[check(1)] =   value;  break;
+      case NextRoute.listOrders:        _routes[check(2)] =   value;  break;
+      case NextRoute.pickUpList:        _routes[check(2)] =   value;  break;
+      case NextRoute.inventory:         _routes[check(2)] =   value;  break;
+      case NextRoute.pickUpData:        _routes[check(3)] =   value;  break;
+      case NextRoute.scanTasks:         _routes[check(3)] =   value;  break;
+      case NextRoute.finishTasks:       _routes[check(3)] =   value;  break;
+      case NextRoute.pickUpDataFinish:  _routes[check(4)] =   value;  break;
       default:  throw Exception('Default rout has been thrown!!!!');
     }
     _printRoutes;
@@ -80,7 +83,7 @@ class Global{
   static Color getColorOfButton(ButtonState buttonState){    
     switch(buttonState){
       case ButtonState.default0:  return const Color.fromRGBO(0, 180, 125, 1.0);
-      case ButtonState.disabled:  return const Color.fromRGBO(0, 180, 125, 1.0);
+      case ButtonState.disabled:  return const Color.fromRGBO(75, 255, 200, 1.0);
       case ButtonState.loading:   return const Color.fromRGBO(0, 225, 0, 1.0);
       case ButtonState.hidden:    return Colors.transparent;
       default:                    return Colors.red;
@@ -90,7 +93,7 @@ class Global{
   static Color getColorOfIcon(ButtonState buttonState){    
     switch(buttonState){
       case ButtonState.default0:  return Colors.white;
-      case ButtonState.disabled:  return const Color.fromRGBO(20, 200, 145, 1.0);
+      case ButtonState.disabled:  return const Color.fromRGBO(255, 255, 255, 0.3);
       case ButtonState.loading:   return const Color.fromRGBO(0, 80, 0, 1.0);
       case ButtonState.hidden:    return Colors.transparent;
       default:                    return Colors.red;

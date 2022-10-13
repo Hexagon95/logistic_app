@@ -428,7 +428,7 @@ class ScanOrdersState extends State<ScanOrders>{
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
     if(DataManager.isServerAvailable){
-      Global.routeNext = NextRoute.listOrders;
+      Global.routeBack;
       dataManager.beginProcess;
       Navigator.popUntil(context, ModalRoute.withName('/listOrders'));
       await Navigator.pushReplacementNamed(context, '/listOrders');

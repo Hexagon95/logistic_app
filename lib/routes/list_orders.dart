@@ -24,6 +24,11 @@ class ListOrdersState extends State<ListOrders>{
     if(value == null) {buttonState = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
     else if(rawData[value]['kesz'].toString() != '1') {buttonState = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
   }}
+  String get title {switch(Global.currentRoute){
+    case NextRoute.pickUpList:  return 'Kiszedési lista';
+    case NextRoute.listOrders:
+    default:                    return 'Rendelések';
+  }}
   int? get selectedIndex => _selectedIndex;  
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
@@ -35,7 +40,7 @@ class ListOrdersState extends State<ListOrders>{
       onTap:  () => setState(() => selectedIndex = null),
       child:  Scaffold(
         appBar: AppBar(
-          title:            const Center(child: Padding(padding: EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Rendelések'))),
+          title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text(title))),
           backgroundColor:  Global.getColorOfButton(ButtonState.default0),
         ),
         backgroundColor:  Colors.white,
@@ -67,7 +72,7 @@ class ListOrdersState extends State<ListOrders>{
     children:           [Text(DataManager.serverErrorText, style: const TextStyle(color: Color.fromARGB(255, 255, 255, 150)))]
   )));
 
-  Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(buttonState), child:
+  Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
     Row(mainAxisAlignment: MainAxisAlignment.end, children: [        
       Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
         Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -118,18 +123,36 @@ class ListOrdersState extends State<ListOrders>{
     return rows;
   }
 
-  Future get _buttonNextPress async{
-    setState(() => buttonState = ButtonState.loading);
-    DataManager dataManager = DataManager();
-    Global.routeNext =        NextRoute.scanTasks;
-    await dataManager.beginProcess;
-    if(DataManager.isServerAvailable){
-      buttonState = ButtonState.default0;
-      await Navigator.pushNamed(context, '/scanOrders');
-      setState((){});
-    }
-    else {setState(() => buttonState = ButtonState.default0);}
-  }
+  Future get _buttonNextPress async {switch(Global.currentRoute){
+
+    case NextRoute.pickUpList:
+      setState(() => buttonState = ButtonState.loading);
+      DataManager dataManager = DataManager();
+      Global.routeNext =        NextRoute.pickUpData;
+      await dataManager.beginProcess;
+      if(DataManager.isServerAvailable){
+        buttonState = ButtonState.default0;
+        await Navigator.pushNamed(context, '/listPickUpDetails');
+        setState((){});
+      }
+      else {setState(() => buttonState = ButtonState.default0);}
+      break;
+
+    case NextRoute.listOrders:
+      setState(() => buttonState = ButtonState.loading);
+      DataManager dataManager = DataManager();
+      Global.routeNext =        NextRoute.scanTasks;
+      await dataManager.beginProcess;
+      if(DataManager.isServerAvailable){
+        buttonState = ButtonState.default0;
+        await Navigator.pushNamed(context, '/scanOrders');
+        setState((){});
+      }
+      else {setState(() => buttonState = ButtonState.default0);}
+      break;
+
+    default:break;
+  }}
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   List<DataCell> _getCells(Map<String, dynamic> row){

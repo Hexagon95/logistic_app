@@ -17,8 +17,9 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
   static String errorMessageBottomLine =  '';  
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  ButtonState buttonPickUpList =  ButtonState.default0;
   ButtonState buttonListOrders =  ButtonState.default0;
-  ButtonState buttonRevenue =     ButtonState.default0;
+  ButtonState buttonRevenue =     ButtonState.disabled;
   ButtonState buttonInventory =   ButtonState.default0;
   late double _width;
 
@@ -41,7 +42,8 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
       body:             LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
           return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            _drawButtonListOrders,
+            _drawButtonPickUpList,
+            Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonListOrders),
             _drawButtonRevenue,
             _drawButtonInventory,
           ]));
@@ -51,6 +53,21 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
   }
 
   // ---------- < WidgetBuild [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawButtonPickUpList => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonPickUpList))),
+      onPressed:  (buttonPickUpList == ButtonState.default0)? () => _buttonPickUpListPressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonPickUpList == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonPickUpList))))
+        ),
+        Text((buttonPickUpList == ButtonState.loading)? 'Betöltés...' : 'Kiszedési lista', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonPickUpList)))
+      ])
+    ))
+  );
+
   Widget get _drawButtonListOrders => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
@@ -61,7 +78,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
           visible:  (buttonListOrders == ButtonState.loading)? true : false,
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonListOrders))))
         ),
-        Text((buttonListOrders == ButtonState.loading)? 'Betöltés...' : 'Rendelések', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonListOrders)))
+        Text((buttonListOrders == ButtonState.loading)? 'Betöltés...' : 'Rendelések összeszedése', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonListOrders)))
       ])
     ))
   );
@@ -97,6 +114,16 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
   );
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future get _buttonPickUpListPressed async{
+    setState(() => buttonPickUpList = ButtonState.loading);
+    Global.routeNext =        NextRoute.pickUpList;
+    DataManager dataManager = DataManager();
+    await dataManager.beginProcess;
+    buttonPickUpList =        ButtonState.default0;
+    await Navigator.pushNamed(context, '/listOrders');
+    setState((){});
+  }
+
   Future get _buttonListOrdersPressed async{
     setState(() => buttonListOrders = ButtonState.loading);
     Global.routeNext =        NextRoute.listOrders;
@@ -107,7 +134,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
     setState((){});
   }
 
-  void get _buttonRevenuePressed{}
+  void get _buttonRevenuePressed {}  
 
   void get _buttonInventoryPressed{
     setState(() => buttonInventory = ButtonState.loading);
