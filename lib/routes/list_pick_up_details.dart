@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
@@ -13,13 +14,16 @@ class ListPickUpDetails extends StatefulWidget{
 }
 
 class ListPickUpDetailsState extends State<ListPickUpDetails>{
+  // Feladat: cikkszám-ra vizsgálni, hogy mikor kijelölök egy rekordot, a mennyiség összege nem haladhatja meg a cikkszámhoz tartozó készletet!
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static List<dynamic> rawData =  List<dynamic>.empty(growable: true);
-  static List<bool> selections =  List<bool>.empty(growable: true);
+  static List<dynamic> rawData =  List<dynamic>.empty(growable: true);  
+  static List<bool> selections =  List<bool>.empty(growable: true);  
   static String orderNumber =     '';
 
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  ButtonState buttonOk = ButtonState.disabled;  
+  List<int> originalAmounts =  List<int>.empty(growable: true);
+  ButtonState buttonOk =          ButtonState.disabled;  
+  late List<TextEditingController> amountTextEditinControllers;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
 
@@ -91,15 +95,18 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
   void initState(){    
-    selections = List<bool>.generate(rawData.length, (int index) => false); 
     super.initState();
+    originalAmounts = List<int>.generate(rawData.length, (int index) => int.parse(rawData[index]['mennyiseg'].toString()));
+    selections =      List<bool>.generate(rawData.length, (int index) => (rawData[index]['pipa'].toString() == '1'));
+    amountTextEditinControllers = List<TextEditingController>.generate(rawData.length, (index) => TextEditingController(text: originalAmounts[index].toString()));
   }
 
   List<DataColumn> get _generateColumns{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
     for (var item in rawData[0].keys) {switch(item){
       case 'tetel_id':
-      case 'cikk_id':                                               break;
+      case 'cikk_id':
+      case 'pipa':                                                  break;
       default:          columns.add(DataColumn(label: Text(item))); break;
     }}
     return columns;
@@ -108,11 +115,11 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
   List<DataRow> get _generateRows{
     List<DataRow> rows = List<DataRow>.empty(growable: true);
     for (var i = 0; i < rawData.length; i++) {rows.add(DataRow(
-      cells:            _getCells(rawData[i]),
+      cells:            _getCells(rawData[i], i),
       selected:         selections[i],
       onSelectChanged:  (bool? value) {if(buttonOk != ButtonState.loading) {setState(() {
         selections[i] = value!;
-        _setButtonOk;          
+        _setButtonOk;
       });}}
     ));}
     return rows;
@@ -141,17 +148,32 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
     default:  buttonOk = ButtonState.default0;  break;
   }}
 
-  List<DataCell> _getCells(Map<String, dynamic> row){
+  List<DataCell> _getCells(Map<String, dynamic> row, int index){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
     for (var item in row.keys) {switch(item){
       case 'tetel_id':
-      case 'cikk_id':                                             break;
-      default:  cells.add(DataCell(Text(row[item].toString())));  break;
+      case 'cikk_id':
+      case 'pipa':                                                        break;
+      case 'mennyiseg': cells.add(DataCell(TextFormField(
+        controller:   amountTextEditinControllers[index],
+        onChanged:    (value) => setAmount(value, index),
+        enabled:      (selections[index]),
+        keyboardType: TextInputType.number,
+      )));                                                                break;
+      default:          cells.add(DataCell(Text(row[item].toString())));  break;
     }}
     return cells;
   }
 
   // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  void setAmount(String value, int index){
+    try {
+      if(int.parse(value) <= originalAmounts[index] && int.parse(value) > 0) {rawData[index]['mennyiseg'] = value;}
+      else {amountTextEditinControllers[index].text = originalAmounts[index].toString();}
+    }
+    catch(e) {if(kDebugMode)print(e);}
+  }
+
   int get _numberOfSelectedItems{
     int varInt = 0;
     for (bool isTrue in selections) {

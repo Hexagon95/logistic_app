@@ -256,16 +256,16 @@ class DataManager{
 
         case NextRoute.inventory:        
           var varJson =                 jsonDecode(data[1][0]['keszlet']);
-          ScanInventoryState.rawData =  varJson[0]['tetelek'];
+          ScanInventoryState.rawData =  (varJson[0]['tetelek'] != null)? varJson[0]['tetelek'] : <dynamic>[];
           break;
 
         case NextRoute.pickUpData:
-          ListPickUpDetailsState.rawData =      jsonDecode(data[2][0]['tetelek']);
+          ListPickUpDetailsState.rawData =      (data[2][0]['tetelek'] != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
           ListPickUpDetailsState.orderNumber =  data[1][ListOrdersState.getSelectedIndex!]['sorszam'];
           break;
 
         case NextRoute.scanTasks:
-          ScanOrdersState.rawData =          jsonDecode(data[2][0]['tetelek']);
+          ScanOrdersState.rawData =          (jsonDecode(data[2][0]['tetelek']) != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
           ScanOrdersState.progressOfTasks =  List<bool>.empty(growable: true);
           Iterator iterator = ScanOrdersState.rawData.iterator; while(iterator.moveNext()){
             ScanOrdersState.progressOfTasks.add(false);
