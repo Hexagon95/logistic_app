@@ -17,13 +17,14 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
   // Feladat: cikkszám-ra vizsgálni, hogy mikor kijelölök egy rekordot, a mennyiség összege nem haladhatja meg a cikkszámhoz tartozó készletet!
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   static List<dynamic> rawData =  List<dynamic>.empty(growable: true);  
-  static List<bool> selections =  List<bool>.empty(growable: true);  
+  static List<bool> selections =  List<bool>.empty(growable: true);
   static String orderNumber =     '';
 
-  // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  List<int> originalAmounts =  List<int>.empty(growable: true);
-  ButtonState buttonOk =          ButtonState.disabled;  
-  late List<TextEditingController> amountTextEditinControllers;
+  // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
+  List<int> originalAmounts = List<int>.empty(growable: true);
+  ButtonState buttonOk =      ButtonState.disabled;
+  int? currentlyEditingIndex;
+  late List<TextEditingController> amountTextEditingControllers;  
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
 
@@ -59,7 +60,7 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
       columns:            _generateColumns,
       rows:               _generateRows,
       showCheckboxColumn: true,
-      border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
+      border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),
     ))
   ));
 
@@ -69,7 +70,7 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
   )));
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-    Row(mainAxisAlignment: MainAxisAlignment.end, children: [        
+    Row(mainAxisAlignment: MainAxisAlignment.end, children: [
       Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
         Row(mainAxisAlignment: MainAxisAlignment.end, children: [_drawButtonOk])
       )
@@ -81,7 +82,7 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
     padding:  const EdgeInsets.symmetric(vertical: 5),
     child:    TextButton(          
       style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(ButtonState.default0))),
-      onPressed:  (buttonOk == ButtonState.default0)? () => _buttonOkPressed : null,          
+      onPressed:  (buttonOk == ButtonState.default0)? () => _buttonOkPressed : null,
       child:      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
           visible:  (buttonOk == ButtonState.loading)? true : false,
@@ -93,12 +94,14 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
   );
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future<bool> get _handlePop async {Global.routeBack; return true;}
+
   @override
   void initState(){    
-    super.initState();
-    originalAmounts = List<int>.generate(rawData.length, (int index) => int.parse(rawData[index]['mennyiseg'].toString()));
-    selections =      List<bool>.generate(rawData.length, (int index) => (rawData[index]['pipa'].toString() == '1'));
-    amountTextEditinControllers = List<TextEditingController>.generate(rawData.length, (index) => TextEditingController(text: originalAmounts[index].toString()));
+    super.initState();    
+    originalAmounts =               List<int>.generate(rawData.length, (int index) => int.parse(rawData[index]['mennyiseg'].toString()));
+    selections =                    List<bool>.generate(rawData.length, (int index) => (rawData[index]['pipa'].toString() == '1'));
+    amountTextEditingControllers =  List<TextEditingController>.generate(rawData.length, (index) => TextEditingController(text: originalAmounts[index].toString()));
   }
 
   List<DataColumn> get _generateColumns{
@@ -120,6 +123,8 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
       onSelectChanged:  (bool? value) {if(buttonOk != ButtonState.loading) {setState(() {
         selections[i] = value!;
         _setButtonOk;
+        if(value) {_setAmount(amountTextEditingControllers[i].text, i);}
+        else      {_handleDeselect(i);}
       });}}
     ));}
     return rows;
@@ -140,9 +145,9 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
     else {setState(() => _setButtonOk);}
   }
 
-  Future<bool> get _handlePop async {Global.routeBack; return true;}
-
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  void _handleDeselect(int index) {amountTextEditingControllers[index].text = originalAmounts[index].toString();}
+
   void get _setButtonOk {switch(_numberOfSelectedItems){
     case 0:   buttonOk = ButtonState.disabled;  break;
     default:  buttonOk = ButtonState.default0;  break;
@@ -155,8 +160,8 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
       case 'cikk_id':
       case 'pipa':                                                        break;
       case 'mennyiseg': cells.add(DataCell(TextFormField(
-        controller:   amountTextEditinControllers[index],
-        onChanged:    (value) => setAmount(value, index),
+        controller:   amountTextEditingControllers[index],
+        onChanged:    (value) => _setAmount(value, index),
         enabled:      (selections[index]),
         keyboardType: TextInputType.number,
       )));                                                                break;
@@ -166,13 +171,32 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
   }
 
   // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  void setAmount(String value, int index){
-    try {
-      if(int.parse(value) <= originalAmounts[index] && int.parse(value) > 0) {rawData[index]['mennyiseg'] = value;}
-      else {amountTextEditinControllers[index].text = originalAmounts[index].toString();}
+  void _setAmount(String value, int index){
+    try {int valueInt = int.parse(value);
+      if(valueInt <= originalAmounts[index] && valueInt >= 0 && valueInt <= getStock(rawData[index]['cikkszam'], index)){
+        rawData[index]['mennyiseg'] = value;
+      }
+      else {
+        if(originalAmounts[index] <= getStock(rawData[index]['cikkszam'], index)){
+          amountTextEditingControllers[index].text =  originalAmounts[index].toString();
+          rawData[index]['mennyiseg'] =               originalAmounts[index].toString();
+        }
+        else{
+          int varAmount = getStock(rawData[index]['cikkszam'], index);
+          amountTextEditingControllers[index].text = varAmount.toString();
+          rawData[index]['mennyiseg'] =              varAmount;
+        }
+      }
     }
     catch(e) {if(kDebugMode)print(e);}
   }
+  /*void setAmount(String value, int index){
+    try {
+      if(int.parse(value) <= originalAmounts[index] && int.parse(value) > 0) {rawData[index]['mennyiseg'] = value;}
+      else {amountTextEditingControllers[index].text = originalAmounts[index].toString();}
+    }
+    catch(e) {if(kDebugMode)print(e);}
+  }*/
 
   int get _numberOfSelectedItems{
     int varInt = 0;
@@ -180,5 +204,17 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
       if(isTrue) varInt++;
     }
     return varInt;
+  }
+
+  // ---------- < Methods [4] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  int getStock(String cikkszam, int index){
+    if(kDebugMode)print('Cikkszám: $cikkszam\nIdnex: $index\n\n');    
+    int? stock;
+    for (int i = 0; i < rawData.length; i++) {if(rawData[i]['cikkszam'] == cikkszam){
+      stock ??= int.parse(rawData[i]['keszlet'].toString());
+      if(i != index && selections[i]) stock -= int.parse(rawData[i]['mennyiseg'].toString());
+    }}
+    if(kDebugMode)print(stock);
+    return (stock != null)? stock : 0;
   }
 }

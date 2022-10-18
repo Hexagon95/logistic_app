@@ -86,18 +86,22 @@ class ScanOrdersState extends State<ScanOrders>{
     ? 'A(z) ${rawData[currentTask!]['tarhely']} számú tárjhely QR kódjának leolvasása.'
     :'Kérem olvassa le a vonalkódját az alábbi terméknek:\n${rawData[currentTask!]['cikkszam']}\n${rawData[currentTask!]['megnevezes']}';
     //: 'A(z) ${rawData[currentTask!]['cikkszam']} cikkszámú termék vonalkódjának leolvasása.';
-    return Scaffold(body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-      Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(order, style: const TextStyle(fontSize: 16)),
-        _drawButtonAskOk
-      ])),
-      _drawErrorMessaggeBottomline
-    ])));
+    return Scaffold(
+      appBar: AppBar(title: const Text('Rendelések Összeszedése'), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
+      body:   Center(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+        Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(order, style: const TextStyle(fontSize: 16)),
+          _drawButtonAskOk
+        ])),
+        _drawErrorMessaggeBottomline
+      ]))
+    );
   }
   
 
   Widget get _drawQrScanRoute => Scaffold(
-    body: Stack(children: [
+    appBar: AppBar(title: const Text('Rendelések Összeszedése'), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
+    body:   Stack(children: [
       Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
         Expanded(child: _buildQrView),
         Column(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -369,12 +373,13 @@ class ScanOrdersState extends State<ScanOrders>{
       for (var i = 0; i < progressOfTasks.length; i++){
         if(progressOfTasks[i]) varString += '${rawData[i]['cikkszam']}\tMennyiség: ${rawData[i]['mennyiseg']}\tTárhely: ${rawData[i]['tarhely']}\n';
       }
-      if(varString.isEmpty) {return true;}
+      if(varString.isEmpty) {Global.routeBack; return true;}
       else{
-        return await Global.showAlertDialog( context,
+        if( await Global.showAlertDialog(context,
           title:    'Termékek visszahelyezése',
           content:  'Kérem helyezze vissza az alábbi termékeket a helyükre:\n$varString'
-        );  
+        )) {Global.routeBack; return true;}
+        return false;
       }
     }
     else {

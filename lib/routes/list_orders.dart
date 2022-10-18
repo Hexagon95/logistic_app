@@ -60,12 +60,14 @@ class ListOrdersState extends State<ListOrders>{
   }  
   
   // ---------- < Widgets [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawDataTable =>  Expanded(child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
-    columns:            _generateColumns,
-    rows:               _generateRows,
-    showCheckboxColumn: false,                
-    border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
-  )));
+  Widget get _drawDataTable =>  Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child: 
+    SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+      columns:            _generateColumns,
+      rows:               _generateRows,
+      showCheckboxColumn: false,                
+      border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
+    ))
+  ));
 
   Widget get _drawNoConnection => Visibility(visible: !DataManager.isServerAvailable, child: Container(height: 20, color: Colors.red, child: Row(
     mainAxisAlignment:  MainAxisAlignment.center,
@@ -135,7 +137,7 @@ class ListOrdersState extends State<ListOrders>{
         await Navigator.pushNamed(context, '/listPickUpDetails');
         setState((){});
       }
-      else {setState(() => buttonState = ButtonState.default0);}
+      else {setState(() {buttonState = ButtonState.default0; Global.routeNext = NextRoute.pickUpList;});}
       break;
 
     case NextRoute.listOrders:
@@ -148,7 +150,7 @@ class ListOrdersState extends State<ListOrders>{
         await Navigator.pushNamed(context, '/scanOrders');
         setState((){});
       }
-      else {setState(() => buttonState = ButtonState.default0);}
+      else {setState(() {buttonState = ButtonState.default0; Global.routeNext = NextRoute.listOrders;});}
       break;
 
     default:break;

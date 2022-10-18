@@ -14,12 +14,12 @@ import 'package:logistic_app/routes/scan_orders.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                 'v1.6.0';
+  static String versionNumber =                 'v1.7.0';
   static List<List<dynamic>> data =             List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataInterMission = List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =               true;
-  //static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
-  static const String urlPath =                 'http://app.mosaic.hu:81/android/logistic_app/';  // Test
+  static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
+  //static const String urlPath =                 'http://app.mosaic.hu:81/android/logistic_app/';  // Test
   static String get serverErrorText =>          (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static Identity? identity;  
 
@@ -118,6 +118,7 @@ class DataManager{
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_pick_ups.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(response.body);
           data[check(1)] =          await jsonDecode(response.body);
           if(kDebugMode)print(data[1]);
           break;
@@ -184,7 +185,10 @@ class DataManager{
         case NextRoute.finishTasks:
           var queryParameters = {
             'customer':         data[0][1]['Ugyfel_id'].toString(),
-            'completed_tasks':  json.encode(_cropCompletedTasks)
+            'completed_tasks':  json.encode({
+              'id':       data[1][ListOrdersState.getSelectedIndex!]['id'],
+              'tetelek':  _cropCompletedTasks
+            })
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}finish_orders.php');
@@ -261,7 +265,7 @@ class DataManager{
 
         case NextRoute.pickUpData:
           ListPickUpDetailsState.rawData =      (data[2][0]['tetelek'] != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
-          ListPickUpDetailsState.orderNumber =  data[1][ListOrdersState.getSelectedIndex!]['sorszam'];
+          ListPickUpDetailsState.orderNumber =  data[1][ListOrdersState.getSelectedIndex!]['sorszam'];          
           break;
 
         case NextRoute.scanTasks:
