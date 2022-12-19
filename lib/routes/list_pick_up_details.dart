@@ -13,8 +13,7 @@ class ListPickUpDetails extends StatefulWidget{
   State<ListPickUpDetails> createState() => ListPickUpDetailsState();
 }
 
-class ListPickUpDetailsState extends State<ListPickUpDetails>{
-  // Feladat: cikkszám-ra vizsgálni, hogy mikor kijelölök egy rekordot, a mennyiség összege nem haladhatja meg a cikkszámhoz tartozó készletet!
+class ListPickUpDetailsState extends State<ListPickUpDetails>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   static List<dynamic> rawData =  List<dynamic>.empty(growable: true);  
   static List<bool> selections =  List<bool>.empty(growable: true);
@@ -99,9 +98,13 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
   @override
   void initState(){    
     super.initState();    
-    originalAmounts =               List<int>.generate(rawData.length, (int index) => int.parse(rawData[index]['mennyiseg'].toString()));
+    originalAmounts =               List<int>.generate(rawData.length, (int index) => double.parse(rawData[index]['mennyiseg'].toString()).toInt());
     selections =                    List<bool>.generate(rawData.length, (int index) => (rawData[index]['pipa'].toString() == '1'));
-    amountTextEditingControllers =  List<TextEditingController>.generate(rawData.length, (index) => TextEditingController(text: originalAmounts[index].toString()));
+    amountTextEditingControllers =  List<TextEditingController>.generate(rawData.length, (index) => TextEditingController(text: (rawData[index]['pipa'].toString() == '1')
+      ? double.parse(rawData[index]['mennyiseg_kiszedni'].toString()).toInt().toString()
+      : originalAmounts[index].toString()
+    ));
+    for(var item in rawData) {if(item['pipa'].toString() == '1') item['mennyiseg'] = item['mennyiseg_kiszedni'];}
   }
 
   List<DataColumn> get _generateColumns{
@@ -109,6 +112,7 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
     for (var item in rawData[0].keys) {switch(item){
       case 'tetel_id':
       case 'cikk_id':
+      case 'mennyiseg_kiszedni':
       case 'pipa':                                                  break;
       default:          columns.add(DataColumn(label: Text(item))); break;
     }}
@@ -158,6 +162,7 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
     for (var item in row.keys) {switch(item){
       case 'tetel_id':
       case 'cikk_id':
+      case 'mennyiseg_kiszedni':
       case 'pipa':                                                        break;
       case 'mennyiseg': cells.add(DataCell(TextFormField(
         controller:   amountTextEditingControllers[index],
@@ -172,7 +177,7 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
 
   // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   void _setAmount(String value, int index){
-    try {int valueInt = int.parse(value);
+    try {int valueInt = double.parse(value).toInt();
       if(valueInt <= originalAmounts[index] && valueInt >= 0 && valueInt <= getStock(rawData[index]['cikkszam'], index)){
         rawData[index]['mennyiseg'] = value;
       }
@@ -190,13 +195,6 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
     }
     catch(e) {if(kDebugMode)print(e);}
   }
-  /*void setAmount(String value, int index){
-    try {
-      if(int.parse(value) <= originalAmounts[index] && int.parse(value) > 0) {rawData[index]['mennyiseg'] = value;}
-      else {amountTextEditingControllers[index].text = originalAmounts[index].toString();}
-    }
-    catch(e) {if(kDebugMode)print(e);}
-  }*/
 
   int get _numberOfSelectedItems{
     int varInt = 0;
@@ -211,8 +209,8 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
     if(kDebugMode)print('Cikkszám: $cikkszam\nIdnex: $index\n\n');    
     int? stock;
     for (int i = 0; i < rawData.length; i++) {if(rawData[i]['cikkszam'] == cikkszam){
-      stock ??= int.parse(rawData[i]['keszlet'].toString());
-      if(i != index && selections[i]) stock -= int.parse(rawData[i]['mennyiseg'].toString());
+      stock ??= double.parse(rawData[i]['keszlet'].toString()).toInt();
+      if(i != index && selections[i]) stock -= double.parse(rawData[i]['mennyiseg'].toString()).toInt();
     }}
     if(kDebugMode)print(stock);
     return (stock != null)? stock : 0;

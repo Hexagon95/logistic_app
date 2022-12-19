@@ -26,21 +26,19 @@ class LogInMenuState extends State<LogInMenuFrame>{
 
   // ---------- < WidgetBuild [1] > ------ ---------- ---------- ---------- ---------- ---------- ----------
   @override
-   Widget build(BuildContext context){        
+  Widget build(BuildContext context){        
     return WillPopScope(
       onWillPop:  () async => false,
       child:      Scaffold(
         backgroundColor:  Colors.white,
         body:             LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints viewportConstraints) {
-            return Column(children: [
-              Expanded(child: _logInMenu()),
-              Visibility(visible: !DataManager.isServerAvailable, child: Container(height: 20, color: Colors.red, child: Row(
-                mainAxisAlignment:  MainAxisAlignment.center,
-                children:           [Text(DataManager.serverErrorText, style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)))]
-              )))
-            ]);
-          }
+          builder: (BuildContext context, BoxConstraints viewportConstraints) => Column(children: [
+            Expanded(child: _logInMenu()),
+            Visibility(visible: !DataManager.isServerAvailable, child: Container(height: 20, color: Colors.red, child: Row(
+              mainAxisAlignment:  MainAxisAlignment.center,
+              children:           [Text(DataManager.serverErrorText, style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)))]
+            )))
+          ])          
         )
       )
     );

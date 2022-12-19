@@ -136,13 +136,27 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
 
   void get _buttonRevenuePressed {}  
 
-  void get _buttonInventoryPressed{
+  Future get _buttonInventoryPressed async{
     setState(() => buttonInventory = ButtonState.loading);
-    Global.routeNext =  NextRoute.inventory;
-    buttonInventory =   ButtonState.default0;
-    Navigator.pushNamed(context, '/scanInventory');
-    setState((){});
+    if(await _isInventoryDate){
+      Global.routeNext =  NextRoute.inventory;
+      buttonInventory =   ButtonState.default0;
+      Navigator.pushNamed(context, '/scanInventory');
+      setState((){});
+    }
+    else{
+      setState(() => buttonInventory = ButtonState.default0);
+      await Global.showAlertDialog(context,
+        title:    "Leltár hiba",
+        content:  "A main napra nincs kiírva leltár."
+      );
+    }
   }
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future<bool> get _isInventoryDate async{
+    DataManager dataManager = DataManager(interMission: InterMission.askInventoryDate);
+    await dataManager.beginInterMission;
+    return (DataManager.dataInterMission[3][0]['leltar_van'] != null);
+  }
 }

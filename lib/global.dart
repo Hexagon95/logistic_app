@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 enum NextRoute    {logIn, menu, listOrders, pickUpList, inventory, pickUpData, pickUpDataFinish, scanTasks, finishTasks, default0}
 enum ButtonState  {hidden,  loading,  disabled, error, default0}
 enum TaskState    {askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, itemData, wrongItem, handleProduct, default0}
-enum InterMission {askBarcode, deleteItem, saveInventory}
+enum InterMission {askBarcode, deleteItem, saveInventory, askInventoryDate}
 enum DialogResult {cancel, back, mainMenu}
 
 class Global{

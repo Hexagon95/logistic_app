@@ -14,14 +14,14 @@ import 'package:logistic_app/routes/scan_orders.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                 'v1.7.0';
+  static String versionNumber =                 'v1.8.0';
   static List<List<dynamic>> data =             List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataInterMission = List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =               true;
-  static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
-  //static const String urlPath =                 'http://app.mosaic.hu:81/android/logistic_app/';  // Test
+  //static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
+  static const String urlPath =                 'http://app.mosaic.hu:81/android/logistic_app/';  // Test
   static String get serverErrorText =>          (isServerAvailable)? '' : 'Nincs kapcsolat!';
-  static Identity? identity;  
+  static Identity? identity;
 
   // ---------- < Variables [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   final Map<String,String> headers =  {'Content-Type': 'application/json'};
@@ -31,6 +31,21 @@ class DataManager{
   DataManager({this.interMission});
 
   // ---------- < Methods [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
+  static Future get identitySQLite async {
+    final database = openDatabase(
+      p.join(await getDatabasesPath(), 'unique_identity.db'),
+      onCreate:(db, version) => db.execute(Global.sqlCreateTableIdentity),
+      version: 1
+    );
+    final db =                          await database;
+    List<Map<String, dynamic>> result = await db.query('identityTable');
+    if(result.isEmpty){
+      identity = Identity.generate();
+      await db.insert('identityTable', identity!.toMap, conflictAlgorithm: ConflictAlgorithm.replace);
+      result = await db.query('identityTable');
+    }
+    identity = Identity(id: 0, identity: result[0]['identity'].toString());    
+  }
   
   // ---------- < Methods [Public] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get beginInterMission async{
@@ -70,6 +85,7 @@ class DataManager{
           var varJson = jsonDecode(data[1][0]['keszlet']);
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'datum':      dataInterMission[3][0]['leltar_van'],
             'cikk_id':    dataInterMission[0][0]['result'][0]['id'].toString(),
             'raktar_id':  varJson[0]['tarhely_id'].toString(),
             'mennyiseg':  ScanInventoryState.currentItem!['keszlet'].toString()
@@ -80,6 +96,17 @@ class DataManager{
           if(kDebugMode)print(response.body);
           dataInterMission[check(2)] =  await jsonDecode(response.body);
           if(kDebugMode)print(dataInterMission[2]);
+          break;
+
+        case InterMission.askInventoryDate:
+          var queryParameters = {
+            'customer':   data[0][1]['Ugyfel_id'].toString()
+          };
+          Uri uriUrl =                  Uri.parse('${urlPath}ask_inventory_date.php');          
+          http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(response.body);
+          dataInterMission[check(3)] =  await jsonDecode(response.body);
+          if(kDebugMode)print(dataInterMission[3]);
           break;
 
         default:break; 
@@ -137,13 +164,15 @@ class DataManager{
         case NextRoute.inventory:
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
-            'tarhely_id': ScanInventoryState.storageId
+            'tarhely_id': ScanInventoryState.storageId,
+            'datum':      dataInterMission[3][0]['leltar_van']
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_storage.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
           data[check(1)] =          await jsonDecode(response.body);
-          if(kDebugMode)print(data[1]);
+          String varString = data[1].toString();
+          if(kDebugMode)print(varString);
           break;
 
         case NextRoute.pickUpData:
@@ -152,7 +181,7 @@ class DataManager{
             'bizonylat_id': data[1][ListOrdersState.getSelectedIndex!]['id']
           };
           if(kDebugMode)print(queryParameters);
-          Uri uriUrl =              Uri.parse('${urlPath}list_pick_up_items.php');
+          Uri uriUrl =              Uri.parse('${urlPath}list_pick_up_items.php');          
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(2)] =          await jsonDecode(response.body);          
           if(kDebugMode)print(data[2]);
@@ -210,22 +239,6 @@ class DataManager{
   }
 
   // ---------- < Methods [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static Future get identitySQLite async {    
-    final database = openDatabase(
-      p.join(await getDatabasesPath(), 'unique_identity.db'),
-      onCreate:(db, version) => db.execute(Global.sqlCreateTableIdentity),
-      version: 1
-    );
-    final db =                          await database;
-    List<Map<String, dynamic>> result = await db.query('identityTable');
-    if(result.isEmpty){
-      identity = Identity.generate();
-      await db.insert('identityTable', identity!.toMap, conflictAlgorithm: ConflictAlgorithm.replace);
-      result = await db.query('identityTable');
-    }
-    identity = Identity(id: 0, identity: result[0]['identity'].toString());    
-  }
-
   Future get _decisionInterMission async{
     try {
       switch(interMission){
@@ -263,8 +276,8 @@ class DataManager{
           ScanInventoryState.rawData =  (varJson[0]['tetelek'] != null)? varJson[0]['tetelek'] : <dynamic>[];
           break;
 
-        case NextRoute.pickUpData:
-          ListPickUpDetailsState.rawData =      (data[2][0]['tetelek'] != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
+        case NextRoute.pickUpData:          
+          ListPickUpDetailsState.rawData =      (data[2][0]['tetelek'] != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];          
           ListPickUpDetailsState.orderNumber =  data[1][ListOrdersState.getSelectedIndex!]['sorszam'];          
           break;
 
@@ -275,7 +288,7 @@ class DataManager{
             ScanOrdersState.progressOfTasks.add(false);
           }
           ScanOrdersState.currentTask = (ScanOrdersState.rawData.isNotEmpty)? 0 : null;
-          break;
+          break;          
 
         default:break;
       }
@@ -303,8 +316,6 @@ class DataManager{
     for (var i = 0; i < ScanOrdersState.progressOfTasks.length; i++) {if(ScanOrdersState.progressOfTasks[i]) result.add(ScanOrdersState.rawData[i]);}
     return result;
   }
-
-  // ---------- < Methods [2] > -------- ---------- ---------- ----------  
 }
 
 
@@ -324,6 +335,7 @@ class Identity{
     'id':         id,
     'identity':   identity
   };
+
   String generateRandomString({int length = 32}){
     final random =    Random();
     const charList =  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';    
