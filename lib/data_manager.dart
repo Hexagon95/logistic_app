@@ -19,7 +19,7 @@ class DataManager{
   static List<List<dynamic>> dataInterMission = List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =               true;
   //static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
-  static const String urlPath =                 'http://app.mosaic.hu:81/android/logistic_app/';  // Test
+  static const String urlPath =                 'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static String get serverErrorText =>          (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static Identity? identity;
 
@@ -33,7 +33,7 @@ class DataManager{
   // ---------- < Methods [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   static Future get identitySQLite async {
     final database = openDatabase(
-      p.join(await getDatabasesPath(), 'unique_identity.db'),
+      p.join(await getDatabasesPath(), 'unique_identity.db'),         
       onCreate:(db, version) => db.execute(Global.sqlCreateTableIdentity),
       version: 1
     );

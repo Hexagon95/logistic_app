@@ -156,7 +156,7 @@ Widget get _drawBarcodeManual => Scaffold(
     body:             LayoutBuilder(
       builder: (BuildContext context, BoxConstraints viewportConstraints) {
         return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Expanded(child: Center(child: Text('Ismeretlen cikkszám: $result')))
+          Expanded(child: Center(child: Text('Ismeretlen vonalkód: $result')))
         ]);
       }
     )    
