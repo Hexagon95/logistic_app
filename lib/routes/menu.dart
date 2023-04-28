@@ -20,6 +20,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
   ButtonState buttonPickUpList =  ButtonState.default0;
   ButtonState buttonListOrders =  ButtonState.default0;
   ButtonState buttonRevenue =     ButtonState.disabled;
+  ButtonState buttonCheckStock =  ButtonState.default0;
   ButtonState buttonInventory =   ButtonState.default0;
   late double _width;
 
@@ -45,6 +46,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
             _drawButtonPickUpList,
             Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonListOrders),
             _drawButtonRevenue,
+            _drawButtonCheckStock,
             _drawButtonInventory,
           ]));
         }
@@ -98,6 +100,21 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
     ))
   );
 
+  Widget get _drawButtonCheckStock => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonCheckStock))),
+      onPressed:  (buttonCheckStock == ButtonState.default0)? () => _buttonCheckStockPressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonCheckStock == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonCheckStock))))
+        ),
+        Text((buttonCheckStock == ButtonState.loading)? 'Betöltés...' : 'Készlet Ellenörzése', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonCheckStock)))
+      ])
+    ))
+  );
+
   Widget get _drawButtonInventory => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
@@ -134,14 +151,21 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
     setState((){});
   }
 
-  void get _buttonRevenuePressed {}  
+  void get _buttonRevenuePressed {}
+
+  Future get _buttonCheckStockPressed async{
+    setState(() => buttonCheckStock = ButtonState.loading);
+    Global.routeNext = NextRoute.checkStock;
+    buttonCheckStock = ButtonState.default0;
+    await Navigator.pushNamed(context, '/scanCheckStock');
+  }
 
   Future get _buttonInventoryPressed async{
     setState(() => buttonInventory = ButtonState.loading);
     if(await _isInventoryDate){
       Global.routeNext =  NextRoute.inventory;
       buttonInventory =   ButtonState.default0;
-      Navigator.pushNamed(context, '/scanInventory');
+      await Navigator.pushNamed(context, '/scanInventory');
       setState((){});
     }
     else{

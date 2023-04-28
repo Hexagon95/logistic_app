@@ -4,10 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
-enum NextRoute    {logIn, menu, listOrders, pickUpList, inventory, pickUpData, pickUpDataFinish, scanTasks, finishTasks, default0}
+enum NextRoute    {logIn, menu, listOrders, pickUpList, checkStock, inventory, pickUpData, pickUpDataFinish, scanTasks, finishTasks, default0}
 enum ButtonState  {hidden,  loading,  disabled, error, default0}
 enum TaskState    {askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, itemData, wrongItem, handleProduct, default0}
-enum InterMission {askBarcode, deleteItem, saveInventory, askInventoryDate}
+enum InterMission {askBarcode, deleteItem, saveInventory, askInventoryDate, checkStock}
 enum DialogResult {cancel, back, mainMenu}
 
 class Global{
@@ -22,6 +22,7 @@ class Global{
       case NextRoute.menu:              _routes[check(1)] =   value;  break;
       case NextRoute.listOrders:        _routes[check(2)] =   value;  break;
       case NextRoute.pickUpList:        _routes[check(2)] =   value;  break;
+      case NextRoute.checkStock:        _routes[check(2)] =   value;  break;
       case NextRoute.inventory:         _routes[check(2)] =   value;  break;
       case NextRoute.pickUpData:        _routes[check(3)] =   value;  break;
       case NextRoute.scanTasks:         _routes[check(3)] =   value;  break;

@@ -11,6 +11,7 @@ import 'package:logistic_app/routes/log_in.dart';
 import 'package:logistic_app/routes/list_orders.dart';
 import 'package:logistic_app/routes/list_pick_up_details.dart';
 import 'package:logistic_app/routes/scan_orders.dart';
+import 'package:logistic_app/routes/scan_check_stock.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -107,6 +108,18 @@ class DataManager{
           if(kDebugMode)print(response.body);
           dataInterMission[check(3)] =  await jsonDecode(response.body);
           if(kDebugMode)print(dataInterMission[3]);
+          break;
+
+        case InterMission.checkStock:
+          var queryParameters = {
+            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'tarhely_id': ScanCheckStockState.storageId
+          };
+          Uri uriUrl =                  Uri.parse('${urlPath}list_storage_check.php');          
+          http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(response.body);
+          dataInterMission[check(4)] =  await jsonDecode(response.body);
+          if(kDebugMode)print(dataInterMission[4]);
           break;
 
         default:break; 
