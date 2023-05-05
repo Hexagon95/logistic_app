@@ -19,8 +19,8 @@ class DataManager{
   static List<List<dynamic>> data =             List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataInterMission = List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =               true;
-  //static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
-  static const String urlPath =                 'https://developer.mosaic.hu/android/logistic_app/';  // Test
+  static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
+  //static const String urlPath =                 'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static String get serverErrorText =>          (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static Identity? identity;
 
@@ -117,9 +117,11 @@ class DataManager{
           };
           Uri uriUrl =                  Uri.parse('${urlPath}list_storage_check.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-          if(kDebugMode)print(response.body);
           dataInterMission[check(4)] =  await jsonDecode(response.body);
-          if(kDebugMode)print(dataInterMission[4]);
+          if(kDebugMode){
+            String varString = dataInterMission[4].toString();
+            print(varString);
+          }
           break;
 
         default:break; 
@@ -260,6 +262,14 @@ class DataManager{
           ScanInventoryState.barcodeResult = (dataInterMission[0][0]['result'].isEmpty)
             ? null
             : dataInterMission[0][0]['result'];
+          break;
+
+        case InterMission.checkStock:
+          ScanCheckStockState.rawData = [jsonDecode(dataInterMission[4][0]['b'].toString())];
+          if(kDebugMode){
+            String varString = ScanCheckStockState.rawData.toString();
+            print(varString);
+          }
           break;
 
         default:break;

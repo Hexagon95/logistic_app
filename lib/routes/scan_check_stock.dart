@@ -27,21 +27,12 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   static int? getSelectedIndex;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  TaskState taskState =     TaskState.default0;  
-  bool isProcessIndicator = false;
-  final GlobalKey qrKey =   GlobalKey(debugLabel: 'QR');
-  TextStyle formTextStyle = const TextStyle(fontSize: 14);
-
-  ButtonState buttonDelete = ButtonState.disabled;
-  int? _selectedIndex;
-  set selectedIndex(int? value){
-    if(buttonDelete != ButtonState.loading){
-      buttonDelete =      (value == null)? ButtonState.disabled : ButtonState.default0;
-      _selectedIndex =    value;
-      getSelectedIndex =  _selectedIndex;
-    }
-  }
-  int? get selectedIndex => _selectedIndex;
+  final GlobalKey qrKey =             GlobalKey(debugLabel: 'QR');
+  TextStyle formTextStyle =           const TextStyle(fontSize: 14);
+  TaskState taskState =               TaskState.default0;  
+  ButtonState buttonPreviousStorage = ButtonState.default0;
+  ButtonState buttonNextStorage =     ButtonState.default0;
+  bool isProcessIndicator =           false;
   double? width;
   double? qrScanCutOutSize;  
   QRViewController? controller;
@@ -60,6 +51,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       onWillPop:  () => _handlePop,
       child:      (){switch(taskState){
         case TaskState.scanStorage:   return _drawQrScanRoute;
+        case TaskState.barcodeManual: return _drawBarcodeManual;
         case TaskState.inventory:     return _drawInventory;
         default: return Container();
       }}()      
@@ -90,10 +82,24 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     ])
   );
 
+  Widget get _drawBarcodeManual => Scaffold(
+    appBar: AppBar(
+      title:            const Center(child: Padding(padding: EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Vonalkód Manuálisan'))),
+      backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+    ),
+    backgroundColor:  Colors.white,
+    body:             LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints viewportConstraints) {
+        return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          _drawBarcodeManualForm,
+          _drawBottomBar
+        ]);
+      }
+    )    
+  );
 
-
-  Widget get _drawInventory =>  GestureDetector(
-    onTap: () => setState(() => selectedIndex = null),
+  Widget get _drawInventory => GestureDetector(
+    onTap: null,
     child: Scaffold(
       appBar: AppBar(
         title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Tárhely: $storageId'))),
@@ -113,19 +119,17 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     )
   );
 
- 
-
-
-
 // ---------- < WidgetBuild [3] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawDataTable =>  Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child: 
+  Widget get _drawDataTable => (rawData[0]['tetelek'].isNotEmpty)
+  ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
     SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
       columns:            _generateColumns,
       rows:               _generateRows,                
       showCheckboxColumn: false,                
       border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
     ))
-  ));
+  ))
+  : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));
 
   Widget get _buildQrView => QRView(
     key:              qrKey,
@@ -140,6 +144,14 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
   );
 
+  Widget get _drawBarcodeManualForm => Expanded(child: Center(child: Padding(padding: const EdgeInsets.all(5), child: TextFormField(
+    enabled:      true,
+    initialValue: '',
+    onChanged:    (String? newValue) => setState(() {result = newValue!;}),
+    style:        const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    textAlign:    TextAlign.center,
+  ))));
+
   Widget get _getDrawTask{ switch(taskState){
     case TaskState.scanStorage:   return _drawTaskScanStorageText;
     case TaskState.scanProduct:   return _drawTaskScanProductText;    
@@ -149,13 +161,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   Widget get _drawBottomBar{ switch(taskState){
 
     case TaskState.scanStorage: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-      Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-        _drawFlash,
-        _drawFlipCamera
-      ])
-    );
-
-    case TaskState.scanProduct: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           _drawFlash,
@@ -173,9 +178,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     );
 
     case TaskState.inventory: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        _drawButtonDelete,
-        _drawNewItem
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        _drawButtonPreviousStorage,
+        _drawButtonNextStorage
       ])
     );
 
@@ -194,9 +199,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       mainAxisAlignment:  MainAxisAlignment.center,
       children:           [Text(DataManager.serverErrorText, style: const TextStyle(color: Color.fromARGB(255, 255, 255, 150)))]
     )) 
-  );
-
- 
+  ); 
 
   // ---------- < WidgetBuild [4] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawTaskScanStorageText => const Padding(padding: EdgeInsets.all(5), child: Center(child: Text(
@@ -227,37 +230,10 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     )
   );
 
-  Widget get _drawNewItem => Padding(padding: const EdgeInsets.all(5), child: TextButton(
-    onPressed:  () => _newItemPressed,
-    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
-    child:      Icon(Icons.add,
-      color: Global.getColorOfIcon(ButtonState.default0),
-      size: 30,      
-    )
-  ));
-  
   Widget get _drawButtonBarcodeManual => Padding(padding: const EdgeInsets.all(5), child: TextButton(
     onPressed:  () => _buttonBarcodeManualPressed,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
-    child:      Row(children: [
-      Visibility(visible: (buttonDelete == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(buttonDelete))),
-      Icon(Icons.keyboard,
-        color: Global.getColorOfIcon(ButtonState.default0),
-        size: 30,      
-      )
-    ])
-  ));
-
-  Widget get _drawButtonDelete => Padding(padding: const EdgeInsets.all(5), child: TextButton(
-    onPressed:  () => (buttonDelete == ButtonState.default0)? _buttonDeletePressed : null,
-    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
-    child:      Row(children: [
-      Visibility(visible: (buttonDelete == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(buttonDelete))),
-      Icon(Icons.delete,
-        color: Global.getColorOfIcon(buttonDelete),
-        size: 30,      
-      )
-    ])
+    child:      Icon(Icons.keyboard, color: Global.getColorOfIcon(ButtonState.default0), size: 30)
   ));
 
   Widget get _drawFlash => TextButton(
@@ -290,6 +266,24 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     ))
   );
 
+  Widget get _drawButtonPreviousStorage => (rawData[0]['elozo_tarhely'].toString().isEmpty)? Container() : TextButton(
+    onPressed:  () => (buttonPreviousStorage == ButtonState.default0)? _buttonPreviousStoragePressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+      Icon(Icons.arrow_back_ios_new, color: Global.getColorOfIcon(buttonPreviousStorage), size: 30),
+      Text('Előző tárhely', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonPreviousStorage)))
+    ]))
+  );
+
+  Widget get _drawButtonNextStorage => (rawData[0]['elozo_tarhely'].toString().isEmpty)? Container() : TextButton(
+    onPressed:  () => (buttonNextStorage == ButtonState.default0)? _buttonNextStoragePressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+      Text('Következő tárhely', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonNextStorage))),
+      Icon(Icons.arrow_forward_ios, color: Global.getColorOfIcon(buttonNextStorage), size: 30)
+    ]))
+  );
+
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- 
   @override
   void reassemble() {
@@ -302,10 +296,10 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   
   List<DataColumn> get _generateColumns{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
-    for (var item in rawData[0].keys) {switch(item){
-      case 'cikkszam':    columns.add(const DataColumn(label: Text('Cikkszám'))); break;
-      case 'megnevezes':  columns.add(const DataColumn(label: Text('Megnevezés'))); break;
-      case 'keszlet':     columns.add(const DataColumn(label: Text('Készlet')));  break;
+    for (var item in rawData[0]['tetelek'][0].keys) {switch(item){
+      case 'ip':      columns.add(const DataColumn(label: Text('ip'))); break;
+      case 'cikknev': columns.add(const DataColumn(label: Text('Cikk név'))); break;
+      case 'keszlet': columns.add(const DataColumn(label: Text('Készlet')));  break;
       default:break;
     }}
     return columns;
@@ -313,10 +307,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   List<DataRow> get _generateRows{
     List<DataRow> rows = List<DataRow>.empty(growable: true);
-    for (var i = 0; i < rawData.length; i++) {if(rawData[i]['cikkszam'].isNotEmpty){rows.add(DataRow(
-      cells:            _getCells(rawData[i]),
-      selected:         (i == selectedIndex),
-      onSelectChanged:  (bool? selected) => setState(() => selectedIndex = i)
+    for (var i = 0; i < rawData[0]['tetelek'].length; i++) {if(rawData[0]['tetelek'][i]['ip'].isNotEmpty){rows.add(DataRow(
+      cells:            _getCells(rawData[0]['tetelek'][i]),
     ));}}
     return rows;
   }
@@ -352,37 +344,12 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     catch(e)  {if(kDebugMode)print(e);}
   }
 
-  void get _newItemPressed => (buttonDelete != ButtonState.loading)? setState(() {selectedIndex = null; taskState = TaskState.scanProduct;}) : null;
-
-  Future get _buttonDeletePressed async{
-    setState(() => buttonDelete = ButtonState.loading);    
-    DataManager dataManager =     DataManager(interMission: InterMission.deleteItem);
-    await dataManager.beginInterMission;
-    await dataManager.beginProcess;
-    setState(() {buttonDelete = ButtonState.default0;});
-  }
-
   void get _buttonBarcodeManualPressed => setState(() {controller!.stopCamera(); taskState = TaskState.barcodeManual;});
 
   Future get _buttonOkPressed async{switch(taskState){
 
     case TaskState.barcodeManual:
-      setState((){isProcessIndicator = true;});
-      DataManager dataManager = DataManager(interMission: InterMission.askBarcode);
-      await dataManager.beginInterMission;
-      if(barcodeResult == null){
-        setState(() {isProcessIndicator = false; taskState = TaskState.wrongItem;});
-      }
-      else{        
-        if(!_checkCikkszam) {currentItem = {
-          'kod':                barcodeResult![0]['id'],
-          'cikkszam':           barcodeResult![0]['IP'],
-          'megnevezes':         barcodeResult![0]['megnevezes'],
-          'keszlet':            '',
-          'mennyisegi_egyseg':  'db'
-        };}
-        setState((){isProcessIndicator = false; taskState = TaskState.itemData;});
-      }
+      _checkResult;
       return;
 
     case TaskState.itemData:
@@ -401,6 +368,26 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     default:return;
   }}
 
+  Future get _buttonPreviousStoragePressed async{
+    setState(() => buttonPreviousStorage = ButtonState.loading);
+    storageId =               rawData[0]['elozo_tarhely'];
+    DataManager dataManager = DataManager(interMission: InterMission.checkStock);
+    await dataManager.beginInterMission;
+    buttonPreviousStorage =   (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+    buttonNextStorage =       (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+    setState((){});
+  }
+
+  Future get _buttonNextStoragePressed async{
+    setState(() => buttonNextStorage = ButtonState.loading);
+    storageId =               rawData[0]['kovetkezo_tarhely'];
+    DataManager dataManager = DataManager(interMission: InterMission.checkStock);
+    await dataManager.beginInterMission;
+    buttonPreviousStorage =   (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+    buttonNextStorage =       (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+    setState((){});
+  }
+
   Future<bool> get _handlePop async{switch(taskState){
     
     case TaskState.inventory: switch(await customDialog(context,
@@ -411,24 +398,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       case DialogResult.cancel:                                                     return false;
       default: Global.routeBack;                                                    return true;
     }
-
-    case TaskState.scanProduct:
-      setState(() => taskState = TaskState.inventory);
-      return false;
     
     case TaskState.barcodeManual:
-      setState(() => taskState = TaskState.scanProduct);
-      return false;
-
-    case TaskState.itemData:
-      if(await Global.yesNoDialog(context,
-        title:    'A(z) $result cikkszámú termék visszavonása',
-        content:  'Vissza kívánja vonni a(z) $result cikkszámú termék leltárfelvitelét és visszatér a leltárhoz?'
-      )) setState(() => taskState = TaskState.inventory);
-      return false;
-
-    case TaskState.wrongItem:
-      setState(() => taskState = TaskState.inventory);
+      setState(() => taskState = TaskState.scanStorage);
       return false;
 
     default:
@@ -440,8 +412,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   List<DataCell> _getCells(Map<String, dynamic> row){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
     for (var item in row.keys) {switch(item){
-      case 'cikkszam':  
-      case 'megnevezes':
+      case 'ip':  
+      case 'cikknev':
       case 'keszlet':     cells.add(DataCell(Text(row[item].toString()))); break;
       default:break;
     }}   
@@ -451,47 +423,19 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   Future get _checkResult async{switch(taskState){
 
     case TaskState.scanStorage:
-      DataManager dataManager = DataManager();
+    case TaskState.barcodeManual:
+      DataManager dataManager = DataManager(interMission: InterMission.checkStock);
       setState((){controller!.stopCamera(); isProcessIndicator = true;});
       storageId = result!;             
-      await dataManager.beginProcess;
-      if(kDebugMode)print(rawData);
-      setState((){isProcessIndicator = false; taskState = TaskState.inventory;});
-      break;
-    
-    case TaskState.scanProduct:
-      setState((){controller!.stopCamera(); isProcessIndicator = true;});
-      DataManager dataManager = DataManager(interMission: InterMission.askBarcode);
       await dataManager.beginInterMission;
-      if(barcodeResult == null){
-        setState(() {isProcessIndicator = false; taskState = TaskState.wrongItem;});
-      }
-      else{        
-        if(!_checkCikkszam) {currentItem = {
-          'kod':                barcodeResult![0]['id'],
-          'cikkszam':           barcodeResult![0]['IP'],
-          'megnevezes':         barcodeResult![0]['megnevezes'],
-          'keszlet':            '',
-          'mennyisegi_egyseg':  'db'
-        };}
-        setState((){isProcessIndicator = false; taskState = TaskState.itemData;});
-      }
+      if(kDebugMode)print(rawData);
+      buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+      buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+      setState((){isProcessIndicator = false; taskState = TaskState.inventory;});
       break;
 
     default:break;
-  }}  
-  
-  // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  bool get _checkCikkszam{
-    for (var element in rawData) {
-      if(element['cikkszam'] == barcodeResult![0]['IP']){
-        currentItem = element;
-        return true;
-      }
-    }
-    currentItem = null;
-    return false;
-  }
+  }}
 
 // ---------- < Dialogs > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future<DialogResult> customDialog(BuildContext context, {String title = '', String content = ''}) async{
