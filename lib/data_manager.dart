@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:logistic_app/routes/list_delivery_note.dart';
 import 'package:logistic_app/routes/scan_inventory.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
@@ -150,7 +151,10 @@ class DataManager{
           Uri uriUrl =              Uri.parse('${urlPath}login.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(0)] =          await jsonDecode(response.body);          
-          if(kDebugMode)print(data[0]);
+          if(kDebugMode){
+            String varString = data[0].toString();
+            print(varString);
+          }
           break;
 
         case NextRoute.pickUpList:
@@ -165,7 +169,7 @@ class DataManager{
           if(kDebugMode)print(data[1]);
           break;
 
-        case NextRoute.listOrders:
+        case NextRoute.orderList:
           var queryParameters = {       
             'customer': data[0][1]['Ugyfel_id'].toString()
           };
@@ -174,6 +178,20 @@ class DataManager{
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(1)] =          await jsonDecode(response.body);
           if(kDebugMode)print(data[1]);
+          break;
+
+        case NextRoute.deliveryNoteList:
+          var queryParameters = {
+            'customer':     data[0][1]['Ugyfel_id'].toString(),
+            'dolgozo_kod':  data[0][1]['dolgozo_kod'].toString()
+          };
+          Uri uriUrl =              Uri.parse('${urlPath}list_delivery_notes.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          data[check(1)] =          await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = data[1].toString();
+            print(varString);
+          }
           break;
 
         case NextRoute.inventory:
@@ -290,13 +308,21 @@ class DataManager{
           break;        
 
         case NextRoute.pickUpList:
-        case NextRoute.listOrders:
+        case NextRoute.orderList:
           ListOrdersState.rawData = data[1];
           break;
 
         case NextRoute.inventory:        
           var varJson =                 jsonDecode(data[1][0]['keszlet']);
           ScanInventoryState.rawData =  (varJson[0]['tetelek'] != null)? varJson[0]['tetelek'] : <dynamic>[];
+          break;
+        
+        case NextRoute.deliveryNoteList:
+          ListDeliveryNoteState.rawData = jsonDecode(data[1][0]['tetel'])['tetelek'];
+          if(kDebugMode){
+            String varString = ListDeliveryNoteState.rawData.toString();
+            print(varString);
+          }
           break;
 
         case NextRoute.pickUpData:          

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logistic_app/data_manager.dart';
+import 'package:logistic_app/routes/list_delivery_note.dart';
 import 'package:logistic_app/routes/log_in.dart';
 import 'package:logistic_app/routes/menu.dart';
 import 'package:logistic_app/routes/list_orders.dart';
@@ -19,6 +20,7 @@ void main() async{
         '/menu':              (context) => const Menu(),
         '/listOrders':        (context) => const ListOrders(),
         '/listPickUpDetails': (context) => const ListPickUpDetails(),
+        '/listDeliveryNote':  (context) => const ListDeliveryNote(),
         '/scanOrders':        (context) => const ScanOrders(),
         '/scanCheckStock':    (context) => const ScanCheckStock(),
         '/scanInventory':     (context) => const ScanInventory(),

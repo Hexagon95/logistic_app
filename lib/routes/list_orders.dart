@@ -26,7 +26,7 @@ class ListOrdersState extends State<ListOrders>{
   }}
   String get title {switch(Global.currentRoute){
     case NextRoute.pickUpList:  return 'Kiszedési lista';
-    case NextRoute.listOrders:
+    case NextRoute.orderList:
     default:                    return 'Rendelések';
   }}
   int? get selectedIndex => _selectedIndex;  
@@ -140,7 +140,7 @@ class ListOrdersState extends State<ListOrders>{
       else {setState(() {buttonState = ButtonState.default0; Global.routeNext = NextRoute.pickUpList;});}
       break;
 
-    case NextRoute.listOrders:
+    case NextRoute.orderList:
       setState(() => buttonState = ButtonState.loading);
       DataManager dataManager = DataManager();
       Global.routeNext =        NextRoute.scanTasks;
@@ -150,7 +150,7 @@ class ListOrdersState extends State<ListOrders>{
         await Navigator.pushNamed(context, '/scanOrders');
         setState((){});
       }
-      else {setState(() {buttonState = ButtonState.default0; Global.routeNext = NextRoute.listOrders;});}
+      else {setState(() {buttonState = ButtonState.default0; Global.routeNext = NextRoute.orderList;});}
       break;
 
     default:break;

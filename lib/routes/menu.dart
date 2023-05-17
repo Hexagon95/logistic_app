@@ -17,11 +17,12 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
   static String errorMessageBottomLine =  '';  
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  ButtonState buttonPickUpList =  ButtonState.default0;
-  ButtonState buttonListOrders =  ButtonState.default0;
-  ButtonState buttonRevenue =     ButtonState.disabled;
-  ButtonState buttonCheckStock =  ButtonState.default0;
-  ButtonState buttonInventory =   ButtonState.default0;
+  ButtonState buttonPickUpList =    ButtonState.default0;
+  ButtonState buttonListOrders =    ButtonState.default0;
+  ButtonState buttonDeliveryNote =  ButtonState.default0;
+  ButtonState buttonRevenue =       ButtonState.disabled;
+  ButtonState buttonCheckStock =    ButtonState.default0;
+  ButtonState buttonInventory =     ButtonState.default0;
   late double _width;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -44,7 +45,8 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
           return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             _drawButtonPickUpList,
-            Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonListOrders),
+            _drawButtonListOrders,
+            Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonDeliveryNote),
             _drawButtonRevenue,
             _drawButtonCheckStock,
             _drawButtonInventory,
@@ -84,6 +86,21 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
       ])
     ))
   );
+
+  Widget get _drawButtonDeliveryNote => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryNote))),
+      onPressed:  (buttonDeliveryNote == ButtonState.default0)? () => _buttonDeliveryNotePressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonDeliveryNote == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonDeliveryNote))))
+        ),
+        Text((buttonDeliveryNote == ButtonState.loading)? 'Betöltés...' : 'Szállítólevél Átvétel', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDeliveryNote)))
+      ])
+    ))
+  );  
 
   Widget get _drawButtonRevenue => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
@@ -143,12 +160,25 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
 
   Future get _buttonListOrdersPressed async{
     setState(() => buttonListOrders = ButtonState.loading);
-    Global.routeNext =        NextRoute.listOrders;
+    Global.routeNext =        NextRoute.orderList;
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
     buttonListOrders =        ButtonState.default0;
     await Navigator.pushNamed(context, '/listOrders');
     setState((){});
+  }
+
+  Future get _buttonDeliveryNotePressed async{
+    buttonDeliveryNote =      ButtonState.loading;
+    Global.routeNext =        NextRoute.deliveryNoteList;
+    setState((){});
+    DataManager dataManager = DataManager();
+    await dataManager.beginProcess;
+    buttonDeliveryNote =      ButtonState.default0;
+    if(DataManager.isServerAvailable){
+      await Navigator.pushNamed(context, '/listDeliveryNote');
+      setState((){});
+    }
   }
 
   void get _buttonRevenuePressed {}
