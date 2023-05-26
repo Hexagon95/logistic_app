@@ -47,7 +47,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
             _drawButtonPickUpList,
             _drawButtonListOrders,
             Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonDeliveryNote),
-            _drawButtonRevenue,
+            //_drawButtonRevenue,
             _drawButtonCheckStock,
             _drawButtonInventory,
           ]));
@@ -102,7 +102,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
     ))
   );  
 
-  Widget get _drawButtonRevenue => Padding(
+  /*Widget get _drawButtonRevenue => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(
       style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonRevenue))),
@@ -115,7 +115,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
         Text((buttonRevenue == ButtonState.loading)? 'Betöltés...' : 'Bevételezés', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonRevenue)))
       ])
     ))
-  );
+  );*/
 
   Widget get _drawButtonCheckStock => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
@@ -181,7 +181,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
     }
   }
 
-  void get _buttonRevenuePressed {}
+  //void get _buttonRevenuePressed {}
 
   Future get _buttonCheckStockPressed async{
     setState(() => buttonCheckStock = ButtonState.loading);
@@ -209,8 +209,8 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future<bool> get _isInventoryDate async{
-    DataManager dataManager = DataManager(interMission: InterMission.askInventoryDate);
-    await dataManager.beginInterMission;
+    DataManager dataManager = DataManager(quickCall: QuickCall.askInventoryDate);
+    await dataManager.beginQuickCall;
     return (DataManager.dataInterMission[3][0]['leltar_van'] != null);
   }
 }

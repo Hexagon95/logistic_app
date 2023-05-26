@@ -448,8 +448,8 @@ Widget get _drawBarcodeManual => Scaffold(
 
   Future get _buttonDeletePressed async{
     setState(() => buttonDelete = ButtonState.loading);    
-    DataManager dataManager =     DataManager(interMission: InterMission.deleteItem);
-    await dataManager.beginInterMission;
+    DataManager dataManager =     DataManager(quickCall: QuickCall.deleteItem);
+    await dataManager.beginQuickCall;
     await dataManager.beginProcess;
     setState(() {buttonDelete = ButtonState.default0;});
   }
@@ -460,8 +460,8 @@ Widget get _drawBarcodeManual => Scaffold(
 
     case TaskState.barcodeManual:
       setState((){isProcessIndicator = true;});
-      DataManager dataManager = DataManager(interMission: InterMission.askBarcode);
-      await dataManager.beginInterMission;
+      DataManager dataManager = DataManager(quickCall: QuickCall.askBarcode);
+      await dataManager.beginQuickCall;
       if(barcodeResult == null){
         setState(() {isProcessIndicator = false; taskState = TaskState.wrongItem;});
       }
@@ -484,8 +484,8 @@ Widget get _drawBarcodeManual => Scaffold(
         }
       }
       insertCurrentItem();
-      DataManager dataManager = DataManager(interMission: InterMission.saveInventory);
-      await dataManager.beginInterMission;
+      DataManager dataManager = DataManager(quickCall: QuickCall.saveInventory);
+      await dataManager.beginQuickCall;
       await dataManager.beginProcess;
       setState(() => taskState = TaskState.inventory);
       return;
@@ -553,8 +553,8 @@ Widget get _drawBarcodeManual => Scaffold(
     
     case TaskState.scanProduct:
       setState((){controller!.stopCamera(); isProcessIndicator = true;});
-      DataManager dataManager = DataManager(interMission: InterMission.askBarcode);
-      await dataManager.beginInterMission;
+      DataManager dataManager = DataManager(quickCall: QuickCall.askBarcode);
+      await dataManager.beginQuickCall;
       if(barcodeResult == null){
         setState(() {isProcessIndicator = false; taskState = TaskState.wrongItem;});
       }

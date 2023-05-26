@@ -1,5 +1,8 @@
 // ignore_for_file: use_build_context_synchronously, recursive_getters
 
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:signature/signature.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +20,11 @@ class ListDeliveryNote extends StatefulWidget{//-------- ---------- ---------- -
 class ListDeliveryNoteState extends State<ListDeliveryNote>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
   static List<dynamic> rawData =  List<dynamic>.empty(growable: true);
-  static List<dynamic>? barcodeResult;
-  static String storageId =       '';  
+  static String signatureBase64 = '';
+  static String storageId =       '';
+
   static Map<String, dynamic>? currentItem;
+  static List<dynamic>? barcodeResult;
   static String? result;
   static String? getSelectedId;
  
@@ -32,6 +37,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   ButtonState buttonClear =     ButtonState.disabled;
   ButtonState buttonCheck =     ButtonState.disabled;
   bool isProcessIndicator =     false;
+
   int? _selectedIndex; int? get selectedIndex => _selectedIndex; set selectedIndex(int? value){
     if(buttonSignature == ButtonState.loading) return;
     buttonSignature = (value == null)? ButtonState.disabled : ButtonState.default0;
@@ -211,9 +217,21 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     setState(() => taskState = TaskState.signature);
   }
 
-  Future get _checkPressed async{
+  Future get _checkPressed async {if(_controller.isNotEmpty){
     setState(() => buttonCheck = ButtonState.loading);
-  }
+    final Uint8List? data = await _controller.toPngBytes();
+    if (data != null) {       
+      signatureBase64 =         base64.encode(data);        
+      DataManager dataManager = DataManager(quickCall: QuickCall.saveSignature);
+      await dataManager.beginQuickCall;
+      buttonCheck =             ButtonState.default0;
+      taskState =               TaskState.listDeliveryNotes;
+      await dataManager.beginProcess;
+      selectedIndex =           null;
+      _controller.clear();
+      setState((){});
+    }
+  }}
 
   Future<bool> get _handlePop async{switch(taskState) {
     case TaskState.signature: setState(() => taskState = TaskState.listDeliveryNotes);  return false;

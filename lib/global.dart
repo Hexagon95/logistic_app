@@ -4,11 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
-enum NextRoute    {logIn, menu, orderList, pickUpList, deliveryNoteList, checkStock, inventory, pickUpData, pickUpDataFinish, scanTasks, finishTasks, default0}
-enum ButtonState  {hidden,  loading,  disabled, error, default0}
-enum TaskState    {askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, listDeliveryNotes, itemData, wrongItem, handleProduct, signature, default0}
-enum InterMission {askBarcode, deleteItem, saveInventory, askInventoryDate, checkStock, }
-enum DialogResult {cancel, back, mainMenu}
+enum NextRoute    {logIn,           menu,           orderList,              pickUpList,           deliveryNoteList, checkStock,     inventory,              pickUpData,
+                  pickUpDataFinish, scanTasks,      finishTasks,            dataFormMonetization, default0}
+enum ButtonState  {hidden,          loading,        disabled,               error,                default0}
+enum TaskState    {askStorage,      scanStorage,    askProduct,             scanProduct,          barcodeManual,    inventory,      listDeliveryNotes,      itemData,
+                  wrongItem,        handleProduct,  scanDestinationStorage, signature,            default0}
+enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,     checkStock,       saveSignature,  scanDestinationStorage}
+enum DialogResult {cancel,          back,           mainMenu}
 
 class Global{
   // ---------- < Variables [Static] > - ---------- ---------- ----------
@@ -18,17 +20,18 @@ class Global{
   static set routeNext (NextRoute value){
     int check(int i)  {while(_routes.length > i){_routes.removeLast();} while(_routes.length <= i){_routes.add(NextRoute.default0);} return i; }
     switch (value) {
-      case NextRoute.logIn:             _routes[check(0)] =   value;  break;
-      case NextRoute.menu:              _routes[check(1)] =   value;  break;
-      case NextRoute.orderList:         _routes[check(2)] =   value;  break;
-      case NextRoute.pickUpList:        _routes[check(2)] =   value;  break;
-      case NextRoute.deliveryNoteList:  _routes[check(2)] =   value;  break;
-      case NextRoute.checkStock:        _routes[check(2)] =   value;  break;
-      case NextRoute.inventory:         _routes[check(2)] =   value;  break;
-      case NextRoute.pickUpData:        _routes[check(3)] =   value;  break;
-      case NextRoute.scanTasks:         _routes[check(3)] =   value;  break;
-      case NextRoute.finishTasks:       _routes[check(3)] =   value;  break;
-      case NextRoute.pickUpDataFinish:  _routes[check(4)] =   value;  break;
+      case NextRoute.logIn:                 _routes[check(0)] =   value;  break;
+      case NextRoute.menu:                  _routes[check(1)] =   value;  break;
+      case NextRoute.orderList:             _routes[check(2)] =   value;  break;
+      case NextRoute.pickUpList:            _routes[check(2)] =   value;  break;
+      case NextRoute.deliveryNoteList:      _routes[check(2)] =   value;  break;
+      case NextRoute.checkStock:            _routes[check(2)] =   value;  break;
+      case NextRoute.inventory:             _routes[check(2)] =   value;  break;
+      case NextRoute.pickUpData:            _routes[check(3)] =   value;  break;
+      case NextRoute.scanTasks:             _routes[check(3)] =   value;  break;
+      case NextRoute.finishTasks:           _routes[check(3)] =   value;  break;
+      case NextRoute.dataFormMonetization:  _routes[check(3)] =   value;  break;
+      case NextRoute.pickUpDataFinish:      _routes[check(4)] =   value;  break;
       default:  throw Exception('Default rout has been thrown!!!!');
     }
     _printRoutes;

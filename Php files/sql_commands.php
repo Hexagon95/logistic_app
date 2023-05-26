@@ -24,4 +24,5 @@ class SqlCommand{
     public function exec_finishPickUps()                {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Kiszedes_Felvitele] :kiszedesi_lista";}
     public function exec_deleteItem()                   {return "EXEC [" . $this->customer . "].[dbo].[NyitoleltarTorles] :cikk_id, :raktar_id";}
     public function exec_bizonylatDataTableDetails()    {return "EXEC [" . $this->customer . "].[dbo].[Bizonylat_DataTable_Details] :parameter, '', 0, 100, ''";}
+    public function exec_bizonylatAlairasFelvitele()    {return "EXEC [" . $this->customer . "].[dbo].[BizonylatAlairasFelvitele] :parameter";}
 }

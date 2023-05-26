@@ -13,6 +13,7 @@ import 'package:logistic_app/routes/list_orders.dart';
 import 'package:logistic_app/routes/list_pick_up_details.dart';
 import 'package:logistic_app/routes/scan_orders.dart';
 import 'package:logistic_app/routes/scan_check_stock.dart';
+import 'package:logistic_app/routes/data_form.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -27,10 +28,11 @@ class DataManager{
 
   // ---------- < Variables [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   final Map<String,String> headers =  {'Content-Type': 'application/json'};
-  InterMission? interMission;
+  dynamic input;
+  QuickCall? quickCall;
 
   // ---------- < Constructors > ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  DataManager({this.interMission});
+  DataManager({this.quickCall, this.input});
 
   // ---------- < Methods [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   static Future get identitySQLite async {
@@ -50,13 +52,13 @@ class DataManager{
   }
   
   // ---------- < Methods [Public] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Future get beginInterMission async{
+  Future get beginQuickCall async{
     int check (int index) {while(dataInterMission.length < index + 1) {dataInterMission.add(List<dynamic>.empty());} return index;}
     try {
       isServerAvailable = true;
-      switch(interMission){        
+      switch(quickCall){        
 
-        case InterMission.askBarcode:
+        case QuickCall.askBarcode:
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
             'vonalkod':   ScanInventoryState.result!
@@ -68,7 +70,7 @@ class DataManager{
           if(kDebugMode)print(dataInterMission[0]);
           break;
 
-        case InterMission.deleteItem:
+        case QuickCall.deleteItem:
           var varJson = jsonDecode(data[1][0]['keszlet']);
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
@@ -83,7 +85,7 @@ class DataManager{
           if(kDebugMode)print(dataInterMission[1]);
           break;
 
-        case InterMission.saveInventory:
+        case QuickCall.saveInventory:
           var varJson = jsonDecode(data[1][0]['keszlet']);
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
@@ -100,7 +102,7 @@ class DataManager{
           if(kDebugMode)print(dataInterMission[2]);
           break;
 
-        case InterMission.askInventoryDate:
+        case QuickCall.askInventoryDate:
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString()
           };
@@ -111,7 +113,7 @@ class DataManager{
           if(kDebugMode)print(dataInterMission[3]);
           break;
 
-        case InterMission.checkStock:
+        case QuickCall.checkStock:
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
             'tarhely_id': ScanCheckStockState.storageId
@@ -125,6 +127,21 @@ class DataManager{
           }
           break;
 
+        case QuickCall.saveSignature:
+          var queryParameters = {
+            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'id':       ListDeliveryNoteState.getSelectedId,
+            'alairas':  ListDeliveryNoteState.signatureBase64
+          };
+          Uri uriUrl =                  Uri.parse('${urlPath}upload_signature.php');          
+          http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataInterMission[check(5)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataInterMission[5].toString();
+            print(varString);
+          }
+          break;
+
         default:break; 
       }
     }
@@ -133,7 +150,7 @@ class DataManager{
       isServerAvailable = false;
     }
     finally{
-      await _decisionInterMission;
+      await _decisionQuickCall;
     }
   }
 
@@ -272,17 +289,23 @@ class DataManager{
   }
 
   // ---------- < Methods [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Future get _decisionInterMission async{
+  Future get _decisionQuickCall async{
     try {
-      switch(interMission){
+      switch(quickCall){
 
-        case InterMission.askBarcode:
+        case QuickCall.scanDestinationStorage:
+          ScanCheckStockState.result =        null;
+          ScanCheckStockState.selectedIndex = null;
+          DataFormState.amount =              null;
+          break;
+
+        case QuickCall.askBarcode:
           ScanInventoryState.barcodeResult = (dataInterMission[0][0]['result'].isEmpty)
             ? null
             : dataInterMission[0][0]['result'];
           break;
 
-        case InterMission.checkStock:
+        case QuickCall.checkStock:
           ScanCheckStockState.rawData = [jsonDecode(dataInterMission[4][0]['b'].toString())];
           if(kDebugMode){
             String varString = ScanCheckStockState.rawData.toString();
@@ -331,13 +354,17 @@ class DataManager{
           break;
 
         case NextRoute.scanTasks:
-          ScanOrdersState.rawData =          (jsonDecode(data[2][0]['tetelek']) != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
-          ScanOrdersState.progressOfTasks =  List<bool>.empty(growable: true);
-          Iterator iterator = ScanOrdersState.rawData.iterator; while(iterator.moveNext()){
+          ScanOrdersState.rawData =           (jsonDecode(data[2][0]['tetelek']) != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
+          ScanOrdersState.progressOfTasks =   List<bool>.empty(growable: true);
+          Iterator iterator =                 ScanOrdersState.rawData.iterator; while(iterator.moveNext()){
             ScanOrdersState.progressOfTasks.add(false);
           }
           ScanOrdersState.currentTask = (ScanOrdersState.rawData.isNotEmpty)? 0 : null;
-          break;          
+          break;
+
+        case NextRoute.dataFormMonetization:
+          _generateRawDataForScanCheckStockDataForm(ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex!]);
+          break;
 
         default:break;
       }
@@ -348,6 +375,7 @@ class DataManager{
     }
   }
 
+  // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   List<dynamic> get _kiszedesiLista{
     List<dynamic> result = List<dynamic>.empty(growable: true);
     for (var i = 0; i < ListPickUpDetailsState.rawData.length; i++) {if(ListPickUpDetailsState.selections[i]){
@@ -364,6 +392,26 @@ class DataManager{
     List<dynamic> result = List<dynamic>.empty(growable: true);
     for (var i = 0; i < ScanOrdersState.progressOfTasks.length; i++) {if(ScanOrdersState.progressOfTasks[i]) result.add(ScanOrdersState.rawData[i]);}
     return result;
+  }
+
+  void _generateRawDataForScanCheckStockDataForm(dynamic input){
+    List<dynamic> varList = List<dynamic>.empty(growable: true);
+    int valueInt =       int.parse(input['keszlet'].toString());
+    DataFormState.title =   'ip kód:   ${input['ip'].toString()}';
+    varList.add({
+      'input_field':  'text',
+      'name':         'cikknév',
+      'value':        input['cikknev'].toString(),
+      'editable':     '0',
+    });
+    varList.add({
+      'input_field':  'integer',
+      'name':         'készlet',
+      'value':        valueInt,
+      'limit':        valueInt,
+      'editable':     '1',
+    });
+    DataFormState.rawData = varList;
   }
 }
 

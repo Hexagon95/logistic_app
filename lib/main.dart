@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logistic_app/data_manager.dart';
+import 'package:logistic_app/routes/data_form.dart';
 import 'package:logistic_app/routes/list_delivery_note.dart';
 import 'package:logistic_app/routes/log_in.dart';
 import 'package:logistic_app/routes/menu.dart';
@@ -25,6 +26,7 @@ void main() async{
         '/scanCheckStock':    (context) => const ScanCheckStock(),
         '/scanInventory':     (context) => const ScanInventory(),
         '/confirmProduct':    (context) => const ConfirmProduct(),
+        '/dataForm':          (context) => const DataForm(),
       },
     )
   );
