@@ -19,7 +19,7 @@ class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   static String versionNumber =                 'v1.8.0';
   static List<List<dynamic>> data =             List<List<dynamic>>.empty(growable: true);
-  static List<List<dynamic>> dataInterMission = List<List<dynamic>>.empty(growable: true);
+  static List<List<dynamic>> dataQuickCall =    List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =               true;
   static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
   //static const String urlPath =                 'https://developer.mosaic.hu/android/logistic_app/';  // Test
@@ -53,7 +53,7 @@ class DataManager{
   
   // ---------- < Methods [Public] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get beginQuickCall async{
-    int check (int index) {while(dataInterMission.length < index + 1) {dataInterMission.add(List<dynamic>.empty());} return index;}
+    int check (int index) {while(dataQuickCall.length < index + 1) {dataQuickCall.add(List<dynamic>.empty());} return index;}
     try {
       isServerAvailable = true;
       switch(quickCall){        
@@ -66,8 +66,8 @@ class DataManager{
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =                  Uri.parse('${urlPath}ask_barcode.php');
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
-          dataInterMission[check(0)] =  await jsonDecode(response.body);
-          if(kDebugMode)print(dataInterMission[0]);
+          dataQuickCall[check(0)] =  await jsonDecode(response.body);
+          if(kDebugMode)print(dataQuickCall[0]);
           break;
 
         case QuickCall.deleteItem:
@@ -81,16 +81,16 @@ class DataManager{
           Uri uriUrl =                  Uri.parse('${urlPath}delete_item.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
-          dataInterMission[check(1)] =  await jsonDecode(response.body);
-          if(kDebugMode)print(dataInterMission[1]);
+          dataQuickCall[check(1)] =  await jsonDecode(response.body);
+          if(kDebugMode)print(dataQuickCall[1]);
           break;
 
         case QuickCall.saveInventory:
           var varJson = jsonDecode(data[1][0]['keszlet']);
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
-            'datum':      dataInterMission[3][0]['leltar_van'],
-            'cikk_id':    dataInterMission[0][0]['result'][0]['id'].toString(),
+            'datum':      dataQuickCall[3][0]['leltar_van'],
+            'cikk_id':    dataQuickCall[0][0]['result'][0]['id'].toString(),
             'raktar_id':  varJson[0]['tarhely_id'].toString(),
             'mennyiseg':  ScanInventoryState.currentItem!['keszlet'].toString()
           };
@@ -98,8 +98,8 @@ class DataManager{
           Uri uriUrl =                  Uri.parse('${urlPath}finish_inventory.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
-          dataInterMission[check(2)] =  await jsonDecode(response.body);
-          if(kDebugMode)print(dataInterMission[2]);
+          dataQuickCall[check(2)] =  await jsonDecode(response.body);
+          if(kDebugMode)print(dataQuickCall[2]);
           break;
 
         case QuickCall.askInventoryDate:
@@ -109,8 +109,8 @@ class DataManager{
           Uri uriUrl =                  Uri.parse('${urlPath}ask_inventory_date.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
-          dataInterMission[check(3)] =  await jsonDecode(response.body);
-          if(kDebugMode)print(dataInterMission[3]);
+          dataQuickCall[check(3)] =  await jsonDecode(response.body);
+          if(kDebugMode)print(dataQuickCall[3]);
           break;
 
         case QuickCall.checkStock:
@@ -120,9 +120,9 @@ class DataManager{
           };
           Uri uriUrl =                  Uri.parse('${urlPath}list_storage_check.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-          dataInterMission[check(4)] =  await jsonDecode(response.body);
+          dataQuickCall[check(4)] =  await jsonDecode(response.body);
           if(kDebugMode){
-            String varString = dataInterMission[4].toString();
+            String varString = dataQuickCall[4].toString();
             print(varString);
           }
           break;
@@ -135,9 +135,21 @@ class DataManager{
           };
           Uri uriUrl =                  Uri.parse('${urlPath}upload_signature.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-          dataInterMission[check(5)] =  await jsonDecode(response.body);
+          dataQuickCall[check(5)] =  await jsonDecode(response.body);
           if(kDebugMode){
-            String varString = dataInterMission[5].toString();
+            String varString = dataQuickCall[5].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.scanDestinationStorage:
+          var queryParameters =         input;
+          queryParameters['customer'] = data[0][1]['Ugyfel_id'].toString();
+          Uri uriUrl =                  Uri.parse('${urlPath}move_product.php');          
+          http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(6)] =     await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[6].toString();
             print(varString);
           }
           break;
@@ -215,7 +227,7 @@ class DataManager{
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
             'tarhely_id': ScanInventoryState.storageId,
-            'datum':      dataInterMission[3][0]['leltar_van']
+            'datum':      dataQuickCall[3][0]['leltar_van']
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_storage.php');
@@ -294,22 +306,30 @@ class DataManager{
       switch(quickCall){
 
         case QuickCall.scanDestinationStorage:
-          ScanCheckStockState.result =        null;
-          ScanCheckStockState.selectedIndex = null;
-          DataFormState.amount =              null;
+          if(dataQuickCall[6][0]['success'] == 1){
+            ScanCheckStockState.storageToExist =  true;
+            ScanCheckStockState.result =          null;
+            ScanCheckStockState.selectedIndex =   null;
+            DataFormState.amount =                null;
+          }
+          else{
+            ScanCheckStockState.storageToExist =  false;
+          }
           break;
 
         case QuickCall.askBarcode:
-          ScanInventoryState.barcodeResult = (dataInterMission[0][0]['result'].isEmpty)
+          ScanInventoryState.barcodeResult = (dataQuickCall[0][0]['result'].isEmpty)
             ? null
-            : dataInterMission[0][0]['result'];
+            : dataQuickCall[0][0]['result'];
           break;
 
         case QuickCall.checkStock:
-          ScanCheckStockState.rawData = [jsonDecode(dataInterMission[4][0]['b'].toString())];
-          if(kDebugMode){
-            String varString = ScanCheckStockState.rawData.toString();
-            print(varString);
+          if (dataQuickCall[4][0]['error'] == null){ 
+            ScanCheckStockState.rawData =           [jsonDecode(dataQuickCall[4][0]['b'].toString())];
+            ScanCheckStockState.storageFromExist =  true;
+          }
+          else{
+            ScanCheckStockState.storageFromExist =  false;
           }
           break;
 

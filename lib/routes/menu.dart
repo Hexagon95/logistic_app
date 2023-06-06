@@ -211,6 +211,6 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
   Future<bool> get _isInventoryDate async{
     DataManager dataManager = DataManager(quickCall: QuickCall.askInventoryDate);
     await dataManager.beginQuickCall;
-    return (DataManager.dataInterMission[3][0]['leltar_van'] != null);
+    return (DataManager.dataQuickCall[3][0]['leltar_van'] != null);
   }
 }

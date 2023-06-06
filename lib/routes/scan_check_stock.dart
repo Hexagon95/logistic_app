@@ -21,6 +21,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
   static List<dynamic> rawData =  List<dynamic>.empty(growable: true);
   static String storageId =       '';
+  static bool storageFromExist =  true;
+  static bool storageToExist =    true;
   static List<dynamic>? barcodeResult;
   static Map<String, dynamic>? currentItem;
   static String? result;
@@ -478,8 +480,15 @@ class ScanCheckStockState extends State<ScanCheckStock>{
           'amount':       DataFormState.amount,
         }
       );
+      controller!.stopCamera();
+      setState((){});
       await dataManager.beginQuickCall;
-      setState(() => taskState = TaskState.default0);
+      if(storageToExist) {controller!.resumeCamera(); setState(() => taskState = TaskState.default0);}
+      else{
+        await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
+        controller!.resumeCamera();
+        setState(() => taskState = TaskState.scanDestinationStorage);
+      }
       break;
 
     case TaskState.scanStorage:
@@ -488,10 +497,15 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       setState(() {controller!.stopCamera(); isProcessIndicator = true;});
       storageId = result!;             
       await dataManager.beginQuickCall;
-      if(kDebugMode)print(rawData);
-      buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
-      buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
-      setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+      if(storageFromExist){
+        buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+        buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+        setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+      }
+      else{
+        await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
+        setState(() {isProcessIndicator = false; controller!.resumeCamera(); taskState = TaskState.scanStorage;});
+      }
       break;
 
     default:break;

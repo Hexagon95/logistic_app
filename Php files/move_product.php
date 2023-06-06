@@ -5,4 +5,4 @@ include 'database_manager.php';
 include 'tasks/task_move_product.php';
 
 $taskMove = new Task();
-echo json_encode(array(['success' => 1]));
+echo json_encode(array(['success' => $taskMove->success]));
