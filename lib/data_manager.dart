@@ -17,17 +17,18 @@ import 'package:logistic_app/routes/data_form.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                 'v1.8.0';
-  static List<List<dynamic>> data =             List<List<dynamic>>.empty(growable: true);
-  static List<List<dynamic>> dataQuickCall =    List<List<dynamic>>.empty(growable: true);
-  static bool isServerAvailable =               true;
-  static const String urlPath =                 'https://app.mosaic.hu/android/logistic_app/';    // Live
-  //static const String urlPath =                 'https://developer.mosaic.hu/android/logistic_app/';  // Test
-  static String get serverErrorText =>          (isServerAvailable)? '' : 'Nincs kapcsolat!';
+  static String versionNumber =                           'v1.9.0';
+  static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
+  static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
+  static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
+  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
+  static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
+  static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
+  static bool isServerAvailable =                         true;
   static Identity? identity;
 
-  // ---------- < Variables [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
-  final Map<String,String> headers =  {'Content-Type': 'application/json'};
+  // ---------- < Variables [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  final Map<String,String> headers = {'Content-Type': 'application/json'};
   dynamic input;
   QuickCall? quickCall;
 
@@ -131,7 +132,8 @@ class DataManager{
           var queryParameters = {
             'customer': data[0][1]['Ugyfel_id'].toString(),
             'id':       ListDeliveryNoteState.getSelectedId,
-            'alairas':  ListDeliveryNoteState.signatureBase64
+            'alairas':  ListDeliveryNoteState.signatureBase64,
+            'alairo':   ListDeliveryNoteState.signatureTextController.text
           };
           Uri uriUrl =                  Uri.parse('${urlPath}upload_signature.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);

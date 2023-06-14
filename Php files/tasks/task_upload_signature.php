@@ -10,7 +10,8 @@ class Task{
 
     // ---------- <Constructors> ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
     function __construct(){        
-        $this->_inizialite();        
+        $this->_inizialite();
+        file_get_contents('https://app.mosaic.hu/pdfgenerator/bizonylat.php?ceg='.$this->request['customer'].'&kategoria_id=3&id='.$this->request['id'].'&save=1');
     }
 
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -21,6 +22,7 @@ class Task{
             'parameter' => json_encode(array(
                 'id' =>         $this->request['id'],
                 'alairas' =>    $this->request['alairas'],
+                'alairo' =>     $this->request['alairo']
             )),
         ]);
         $this->result = $this->databaseManager->getData();

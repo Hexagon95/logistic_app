@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, recursive_getters
 
 import 'dart:convert';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -19,28 +20,31 @@ class ListDeliveryNote extends StatefulWidget{//-------- ---------- ---------- -
 
 class ListDeliveryNoteState extends State<ListDeliveryNote>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
-  static List<dynamic> rawData =  List<dynamic>.empty(growable: true);
-  static String signatureBase64 = '';
-  static String storageId =       '';
-
+  static List<dynamic> rawData =                          List<dynamic>.empty(growable: true);
+  static TextEditingController signatureTextController =  TextEditingController();
+  static String signatureBase64 =                         '';
+  static String storageId =                               '';
   static Map<String, dynamic>? currentItem;
   static List<dynamic>? barcodeResult;
   static String? result;
   static String? getSelectedId;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  NumberFormat numberFormat =   NumberFormat("###,###.00#", "hu_HU");
-  final GlobalKey qrKey =       GlobalKey(debugLabel: 'QR');
-  TextStyle formTextStyle =     const TextStyle(fontSize: 14);
-  TaskState taskState =         TaskState.listDeliveryNotes;
-  ButtonState buttonSignature = ButtonState.disabled;
-  ButtonState buttonClear =     ButtonState.disabled;
-  ButtonState buttonCheck =     ButtonState.disabled;
-  bool isProcessIndicator =     false;
+  final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
+  final GlobalKey qrKey =                           GlobalKey(debugLabel: 'QR');
+  NumberFormat numberFormat =                       NumberFormat("###,###.00#", "hu_HU");
+  TextStyle formTextStyle =                         const TextStyle(fontSize: 14);
+  TaskState taskState =                             TaskState.listDeliveryNotes;
+  ButtonState buttonDeliveryNote =                  ButtonState.default0;
+  ButtonState buttonSignature =                     ButtonState.default0;
+  ButtonState buttonContinue =                      ButtonState.disabled;
+  ButtonState buttonClear =                         ButtonState.disabled;
+  ButtonState buttonCheck =                         ButtonState.disabled;
+  bool isProcessIndicator =                         false;
 
   int? _selectedIndex; int? get selectedIndex => _selectedIndex; set selectedIndex(int? value){
-    if(buttonSignature == ButtonState.loading) return;
-    buttonSignature = (value == null)? ButtonState.disabled : ButtonState.default0;
+    if(buttonContinue == ButtonState.loading) return;
+    buttonContinue =  (value == null)? ButtonState.disabled : ButtonState.default0;
     _selectedIndex =  value;
     getSelectedId =   (value == null)? null : rawData[value]['id'].toString();
   }
@@ -51,6 +55,11 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     onDrawStart:            (){},
     onDrawEnd:              (){}
   );
+  BoxDecoration customBoxDecoration = BoxDecoration(            
+    border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
+    color:        Colors.white,
+    borderRadius: const BorderRadius.all(Radius.circular(8))
+  );
 
   // ---------- < WidgetBuild [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
@@ -59,6 +68,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       onWillPop:  () => _handlePop,
       child:      (){switch(taskState){
         case TaskState.listDeliveryNotes: return _drawListDeliveryNotes;
+        case TaskState.showPDF:           return _drawShowPdf;
         case TaskState.signature:         return _drawSignaureCanvas;
         default: return Container();
       }}()      
@@ -87,6 +97,17 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     )
   );
 
+  Widget get _drawShowPdf => Scaffold(
+    appBar: AppBar(
+      title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Sorszám: ${rawData[selectedIndex!]['Sorszám']}'))),
+      backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+    ),
+    body: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Expanded(child: SfPdfViewer.network(DataManager.getPdfUrl(rawData[selectedIndex!]['id'].toString()), key: _pdfViewerKey)),
+      _drawBottomBar
+    ])
+  );
+
   Widget get _drawSignaureCanvas =>  Scaffold(
     appBar:           AppBar(
       title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Sorszám: ${rawData[selectedIndex!]['Sorszám']}'))),
@@ -94,11 +115,12 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     ),
     backgroundColor:  Colors.white,
     body:             OrientationBuilder(builder: (context, orientation) {
-      return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[ //ListView(children: <Widget>[ 
+      return Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[ //ListView(children: <Widget>[ 
         Expanded(child: Signature( //SIGNATURE CANVAS0
           controller:       _controller,                
           backgroundColor:  Colors.white,
         )),
+        _drawTextInput,
         _drawBottomBar
       ]);
     })
@@ -116,10 +138,30 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   ))
   : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));
 
+  Widget get _drawTextInput => Padding(padding: const EdgeInsets.all(5), child: Container(
+      decoration: customBoxDecoration,
+      child:      SizedBox(height: 55, child: TextFormField(
+        controller: signatureTextController,
+        decoration: const InputDecoration(
+          contentPadding: EdgeInsets.all(10),
+          labelText:      'Aláíró Neve',
+          border:         InputBorder.none,
+        ),
+        style:  const TextStyle(color:  Color.fromARGB(255, 51, 51, 51)),
+      ))
+    ));
+
   Widget get _drawBottomBar{ switch(taskState){
 
     case TaskState.listDeliveryNotes: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        _drawButtonContinue
+      ])
+    );
+
+    case TaskState.showPDF: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
+      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        _drawButtonDeliveryNote,
         _drawButtonSignature
       ])
     );
@@ -145,6 +187,16 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   ));
 
   // ---------- < WidgetBuild [Buttons] >  ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawButtonDeliveryNote => TextButton(
+    onPressed:  () => (buttonDeliveryNote == ButtonState.default0)? _buttonDeliveryNotePressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Row(children: [
+      Visibility(visible: (buttonDeliveryNote == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(ButtonState.loading))),
+      Text('Fuvar levélszám ', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonDeliveryNote))),
+      Icon(Icons.delivery_dining, color: Global.getColorOfIcon(buttonDeliveryNote))
+    ])
+  );
+
   Widget get _drawButtonSignature => TextButton(
     onPressed:  () => (buttonSignature == ButtonState.default0)? _buttonSignaturePressed : null,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
@@ -152,6 +204,16 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       Visibility(visible: (buttonSignature == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(ButtonState.loading))),
       Text('Aláírás ', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonSignature))),
       Icon(Icons.edit_document, color: Global.getColorOfIcon(buttonSignature))
+    ])
+  );
+
+  Widget get _drawButtonContinue => TextButton(
+    onPressed:  () => (buttonContinue == ButtonState.default0)? _buttonContinuePressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Row(children: [
+      Visibility(visible: (buttonContinue == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(ButtonState.loading))),
+      Text('Tovább ', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonContinue))),
+      Icon(Icons.arrow_forward_ios, color: Global.getColorOfIcon(buttonContinue))
     ])
   );
 
@@ -211,10 +273,18 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       cells:            _getCells(rawData[i])
     ));}
     return rows;
-  } 
+  }
+
+  Future get _buttonContinuePressed async{
+    setState(() => taskState = TaskState.showPDF);
+  }
 
   Future get _buttonSignaturePressed async{
     setState(() => taskState = TaskState.signature);
+  }
+
+  Future get _buttonDeliveryNotePressed async{
+    
   }
 
   Future get _checkPressed async {if(_controller.isNotEmpty){
@@ -234,7 +304,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   }}
 
   Future<bool> get _handlePop async{switch(taskState) {
-    case TaskState.signature: setState(() => taskState = TaskState.listDeliveryNotes);  return false;
+    case TaskState.showPDF: setState(() => taskState = TaskState.listDeliveryNotes);    return false;
     default:                                                                            return true;
   }}
 
