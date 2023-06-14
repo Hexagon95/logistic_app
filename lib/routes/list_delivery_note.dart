@@ -35,11 +35,11 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   NumberFormat numberFormat =                       NumberFormat("###,###.00#", "hu_HU");
   TextStyle formTextStyle =                         const TextStyle(fontSize: 14);
   TaskState taskState =                             TaskState.listDeliveryNotes;
-  ButtonState buttonDeliveryNote =                  ButtonState.default0;
   ButtonState buttonSignature =                     ButtonState.default0;
   ButtonState buttonContinue =                      ButtonState.disabled;
   ButtonState buttonClear =                         ButtonState.disabled;
   ButtonState buttonCheck =                         ButtonState.disabled;
+  bool isSignatureDisabled =                        false;
   bool isProcessIndicator =                         false;
 
   int? _selectedIndex; int? get selectedIndex => _selectedIndex; set selectedIndex(int? value){
@@ -113,11 +113,11 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Sorszám: ${rawData[selectedIndex!]['Sorszám']}'))),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
     ),
-    backgroundColor:  Colors.white,
+    backgroundColor:  (isSignatureDisabled)? Colors.grey : Colors.white,
     body:             OrientationBuilder(builder: (context, orientation) {
       return Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[ //ListView(children: <Widget>[ 
-        Expanded(child: Signature( //SIGNATURE CANVAS0
-          controller:       _controller,                
+        (isSignatureDisabled)? Container() : Expanded(child: Signature( //SIGNATURE CANVAS0
+          controller:       _controller,
           backgroundColor:  Colors.white,
         )),
         _drawTextInput,
@@ -142,12 +142,13 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       decoration: customBoxDecoration,
       child:      SizedBox(height: 55, child: TextFormField(
         controller: signatureTextController,
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.all(10),
-          labelText:      'Aláíró Neve',
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.all(10),
+          labelText:      (isSignatureDisabled)? 'Fuvar levélszám' : 'Aláíró Neve',
           border:         InputBorder.none,
         ),
-        style:  const TextStyle(color:  Color.fromARGB(255, 51, 51, 51)),
+        style:      const TextStyle(color:  Color.fromARGB(255, 51, 51, 51)),
+        onChanged:  (value) => setState(() {if(isSignatureDisabled) buttonCheck = (value.isEmpty)? ButtonState.disabled : ButtonState.default0;}),
       ))
     ));
 
@@ -188,17 +189,17 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
 
   // ---------- < WidgetBuild [Buttons] >  ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawButtonDeliveryNote => TextButton(
-    onPressed:  () => (buttonDeliveryNote == ButtonState.default0)? _buttonDeliveryNotePressed : null,
+    onPressed:  () => (buttonSignature == ButtonState.default0)? _buttonSignaturePressed(delivery: true) : null,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Row(children: [
-      Visibility(visible: (buttonDeliveryNote == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(ButtonState.loading))),
-      Text('Fuvar levélszám ', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonDeliveryNote))),
-      Icon(Icons.delivery_dining, color: Global.getColorOfIcon(buttonDeliveryNote))
+      Visibility(visible: (buttonSignature == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(ButtonState.loading))),
+      Text('Fuvarlevélszám ', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonSignature))),
+      Icon(Icons.delivery_dining, color: Global.getColorOfIcon(buttonSignature))
     ])
   );
 
   Widget get _drawButtonSignature => TextButton(
-    onPressed:  () => (buttonSignature == ButtonState.default0)? _buttonSignaturePressed : null,
+    onPressed:  () => (buttonSignature == ButtonState.default0)? _buttonSignaturePressed() : null,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Row(children: [
       Visibility(visible: (buttonSignature == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(ButtonState.loading))),
@@ -275,38 +276,54 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     return rows;
   }
 
-  Future get _buttonContinuePressed async{
-    setState(() => taskState = TaskState.showPDF);
-  }
+  Future get _buttonContinuePressed async => setState(() => taskState = TaskState.showPDF);  
 
-  Future get _buttonSignaturePressed async{
+  Future _buttonSignaturePressed({bool delivery = false}) async{
+    isSignatureDisabled = delivery;
     setState(() => taskState = TaskState.signature);
   }
 
-  Future get _buttonDeliveryNotePressed async{
-    
-  }
-
-  Future get _checkPressed async {if(_controller.isNotEmpty){
+  Future get _checkPressed async {if(_controller.isNotEmpty || isSignatureDisabled){
     setState(() => buttonCheck = ButtonState.loading);
-    final Uint8List? data = await _controller.toPngBytes();
-    if (data != null) {       
-      signatureBase64 =         base64.encode(data);        
-      DataManager dataManager = DataManager(quickCall: QuickCall.saveSignature);
+    if(isSignatureDisabled){
+      DataManager dataManager = DataManager(quickCall: QuickCall.saveSignature, input: {'mode': 'deliveryNote'});
       await dataManager.beginQuickCall;
       buttonCheck =             ButtonState.default0;
       taskState =               TaskState.listDeliveryNotes;
       await dataManager.beginProcess;
       selectedIndex =           null;
       _controller.clear();
+      signatureTextController.clear;
       setState((){});
+    }
+    else{
+      final Uint8List? data = await _controller.toPngBytes();
+      if (data != null) {       
+        signatureBase64 =         base64.encode(data);        
+        DataManager dataManager = DataManager(quickCall: QuickCall.saveSignature, input: {'mode': 'signature'});
+        await dataManager.beginQuickCall;
+        buttonCheck =             ButtonState.default0;
+        taskState =               TaskState.listDeliveryNotes;
+        await dataManager.beginProcess;
+        selectedIndex =           null;
+        _controller.clear();
+        signatureTextController.clear;
+        setState((){});
+      }
     }
   }}
 
-  Future<bool> get _handlePop async{switch(taskState) {
-    case TaskState.showPDF: setState(() => taskState = TaskState.listDeliveryNotes);    return false;
-    default:                                                                            return true;
-  }}
+  Future<bool> get _handlePop async {
+    _controller.clear();
+    signatureTextController.clear();
+    buttonCheck = ButtonState.disabled;
+    buttonClear = ButtonState.disabled;
+    switch(taskState) {
+      case TaskState.signature: setState(() => taskState = TaskState.showPDF);            return false;
+      case TaskState.showPDF:   setState(() => taskState = TaskState.listDeliveryNotes);  return false;
+      default:                                                                            return true;
+    }
+  }
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   List<DataCell> _getCells(Map<String, dynamic> row){

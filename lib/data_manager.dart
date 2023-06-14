@@ -129,12 +129,26 @@ class DataManager{
           break;
 
         case QuickCall.saveSignature:
-          var queryParameters = {
-            'customer': data[0][1]['Ugyfel_id'].toString(),
-            'id':       ListDeliveryNoteState.getSelectedId,
-            'alairas':  ListDeliveryNoteState.signatureBase64,
-            'alairo':   ListDeliveryNoteState.signatureTextController.text
-          };
+          var queryParameters = {};
+          switch(input['mode']){
+
+            case 'signature': queryParameters = {
+              'mode':     'signature',
+              'customer': data[0][1]['Ugyfel_id'].toString(),
+              'id':       ListDeliveryNoteState.getSelectedId,
+              'alairas':  ListDeliveryNoteState.signatureBase64,
+              'alairo':   ListDeliveryNoteState.signatureTextController.text
+            }; break;
+
+            case 'deliveryNote': queryParameters = {
+              'mode':       'deliveryNote',
+              'customer':   data[0][1]['Ugyfel_id'].toString(),
+              'id':         ListDeliveryNoteState.getSelectedId,
+              'fuvarlevel': ListDeliveryNoteState.signatureTextController.text
+            }; break;
+
+            default:break;
+          }
           Uri uriUrl =                  Uri.parse('${urlPath}upload_signature.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(5)] =  await jsonDecode(response.body);
