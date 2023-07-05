@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +18,7 @@ import 'package:logistic_app/routes/data_form.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                           'v1.9.0';
+  static String versionNumber =                           'v1.10.0';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
@@ -161,11 +162,26 @@ class DataManager{
         case QuickCall.scanDestinationStorage:
           var queryParameters =         input;
           queryParameters['customer'] = data[0][1]['Ugyfel_id'].toString();
-          Uri uriUrl =                  Uri.parse('${urlPath}move_product.php');          
+          Uri uriUrl =                  Uri.parse('${urlPath}move_product.php');
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(6)] =     await jsonDecode(response.body);
           if(kDebugMode){
             String varString = dataQuickCall[6].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.savePdf:
+          var queryParameters = {
+            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'id':         ListDeliveryNoteState.getSelectedId,
+            'pdf':        base64Encode(File(ListDeliveryNoteState.pdfPath!).readAsBytesSync())
+          };
+          Uri uriUrl =              Uri.parse('${urlPath}upload_pdf.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(7)] = await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[7].toString();
             print(varString);
           }
           break;

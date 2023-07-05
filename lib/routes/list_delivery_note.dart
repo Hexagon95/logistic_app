@@ -1,6 +1,9 @@
 // ignore_for_file: use_build_context_synchronously, recursive_getters
 
 import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import 'package:flutter/foundation.dart';
@@ -28,6 +31,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   static List<dynamic>? barcodeResult;
   static String? result;
   static String? getSelectedId;
+  static String? pdfPath;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
@@ -36,6 +40,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   TextStyle formTextStyle =                         const TextStyle(fontSize: 14);
   TaskState taskState =                             TaskState.listDeliveryNotes;
   ButtonState buttonSignature =                     ButtonState.default0;
+  ButtonState buttonPickFile =                      ButtonState.default0;
   ButtonState buttonContinue =                      ButtonState.disabled;
   ButtonState buttonClear =                         ButtonState.disabled;
   ButtonState buttonCheck =                         ButtonState.disabled;
@@ -103,7 +108,9 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
     ),
     body: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Expanded(child: SfPdfViewer.network(DataManager.getPdfUrl(rawData[selectedIndex!]['id'].toString()), key: _pdfViewerKey)),
+      (pdfPath == null)
+      ? Expanded(child: SfPdfViewer.network(DataManager.getPdfUrl(rawData[selectedIndex!]['id'].toString()), key: _pdfViewerKey))
+      : Expanded(child: SfPdfViewer.file(File(pdfPath!), key: _pdfViewerKey)),
       _drawBottomBar
     ])
   );
@@ -144,7 +151,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
         controller: signatureTextController,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.all(10),
-          labelText:      (isSignatureDisabled)? 'Fuvar levélszám' : 'Aláíró Neve',
+          labelText:      (isSignatureDisabled)? 'Csomagszám' : 'Aláíró Neve',
           border:         InputBorder.none,
         ),
         style:      const TextStyle(color:  Color.fromARGB(255, 51, 51, 51)),
@@ -161,9 +168,14 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     );
 
     case TaskState.showPDF: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        _drawButtonDeliveryNote,
-        _drawButtonSignature
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        _drawButtonPickFile,
+        (pdfPath == null)
+        ? Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          _drawButtonDeliveryNote,
+          _drawButtonSignature
+        ])
+        : Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: _drawButtonCheck)
       ])
     );
 
@@ -188,12 +200,22 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   ));
 
   // ---------- < WidgetBuild [Buttons] >  ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawButtonPickFile => TextButton(
+    onPressed:  () => (buttonPickFile == ButtonState.default0)? _buttonPickFilePressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Row(children: [
+      Visibility(visible: (buttonPickFile == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(ButtonState.loading))),
+      Text('PDF Csatolás ', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonPickFile))),
+      Icon(Icons.file_present, color: Global.getColorOfIcon(buttonPickFile))
+    ])
+  );
+
   Widget get _drawButtonDeliveryNote => TextButton(
     onPressed:  () => (buttonSignature == ButtonState.default0)? _buttonSignaturePressed(delivery: true) : null,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Row(children: [
       Visibility(visible: (buttonSignature == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(ButtonState.loading))),
-      Text('Fuvarlevélszám ', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonSignature))),
+      Text('Csomagszám ', style: TextStyle(fontSize: 20, color: Global.getColorOfIcon(buttonSignature))),
       Icon(Icons.delivery_dining, color: Global.getColorOfIcon(buttonSignature))
     ])
   );
@@ -232,7 +254,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     IconButton(
       icon:       const Icon(Icons.save),
       color:      Global.getColorOfIcon(buttonCheck),
-      onPressed:  () => (buttonCheck == ButtonState.default0)? _checkPressed : null
+      onPressed:  () => (buttonCheck == ButtonState.default0)? (pdfPath == null)? _checkPressed : _uploadPDF : null
     )
   ]);
 
@@ -276,7 +298,30 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     return rows;
   }
 
-  Future get _buttonContinuePressed async => setState(() => taskState = TaskState.showPDF);  
+  Future get _buttonContinuePressed async => setState(() => taskState = TaskState.showPDF);
+
+  Future get _buttonPickFilePressed async{
+    try {
+      var paths = (await FilePicker.platform.pickFiles(
+        type:             FileType.any,
+        allowMultiple:    false,
+        onFileLoading:    (FilePickerStatus status) {
+          if(kDebugMode) print(status);
+        },
+        dialogTitle:      'PDF kiválasztása',
+        lockParentWindow: false,
+      ))?.files;
+      if(paths != null && paths[0].path != null){
+        String varString = paths[0].path!;
+        if(varString.substring(varString.length - 3).toLowerCase() != 'pdf') return;
+        setState(() {pdfPath = paths[0].path!; buttonCheck = ButtonState.default0;});
+      }
+      else{setState(() => buttonCheck = ButtonState.disabled);}
+    }
+    catch (e) {
+      if(kDebugMode)print(e);
+    }
+  }
 
   Future _buttonSignaturePressed({bool delivery = false}) async{
     isSignatureDisabled = delivery;
@@ -313,11 +358,20 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     }
   }}
 
+  Future get _uploadPDF async{
+    setState(() => buttonCheck = ButtonState.loading);
+    DataManager dataManager = DataManager(quickCall: QuickCall.savePdf);
+    await dataManager.beginQuickCall;
+    _selectedIndex =          null;
+    await _handlePop;
+  }
+
   Future<bool> get _handlePop async {
     _controller.clear();
     signatureTextController.clear();
     buttonCheck = ButtonState.disabled;
     buttonClear = ButtonState.disabled;
+    pdfPath =     null;
     switch(taskState) {
       case TaskState.signature: setState(() => taskState = TaskState.showPDF);            return false;
       case TaskState.showPDF:   setState(() => taskState = TaskState.listDeliveryNotes);  return false;
@@ -342,7 +396,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       default:break;
     }}
     return cells;
-  }  
+  }
 
 // ---------- < Dialogs > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future<DialogResult> customDialog(BuildContext context, {String title = '', String content = ''}) async{

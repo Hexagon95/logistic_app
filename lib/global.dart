@@ -9,7 +9,7 @@ enum NextRoute    {logIn,           menu,           orderList,              pick
 enum ButtonState  {hidden,          loading,        disabled,               error,                default0}
 enum TaskState    {askStorage,      scanStorage,    askProduct,             scanProduct,          barcodeManual,    inventory,      listDeliveryNotes,      itemData,
                   wrongItem,        handleProduct,  scanDestinationStorage, showPDF,              signature,        default0}
-enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,     checkStock,       saveSignature,  scanDestinationStorage}
+enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,     checkStock,       saveSignature,  scanDestinationStorage, savePdf}
 enum DialogResult {cancel,          back,           mainMenu}
 
 class Global{
