@@ -338,7 +338,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       await dataManager.beginProcess;
       selectedIndex =           null;
       _controller.clear();
-      signatureTextController.clear;
+      signatureTextController.clear();
       setState((){});
     }
     else{
@@ -352,7 +352,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
         await dataManager.beginProcess;
         selectedIndex =           null;
         _controller.clear();
-        signatureTextController.clear;
+        signatureTextController.clear();
         setState((){});
       }
     }
