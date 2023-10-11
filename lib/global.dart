@@ -4,13 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
-enum NextRoute    {logIn,           menu,           orderList,              pickUpList,           deliveryNoteList, checkStock,     inventory,              pickUpData,
-                  pickUpDataFinish, scanTasks,      finishTasks,            dataFormMonetization, default0}
+enum NextRoute    {logIn,           menu,           orderList,              pickUpList,           deliveryNoteList, checkStock, inventory,          pickUpData,
+default0,         pickUpDataFinish, scanTasks,      finishTasks,            dataFormMonetization}
 enum ButtonState  {hidden,          loading,        disabled,               error,                default0}
-enum TaskState    {askStorage,      scanStorage,    askProduct,             scanProduct,          barcodeManual,    inventory,      listDeliveryNotes,      itemData,
-                  wrongItem,        handleProduct,  scanDestinationStorage, showPDF,              signature,        default0}
-enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,     checkStock,       saveSignature,  scanDestinationStorage, savePdf}
+enum TaskState    {askStorage,      scanStorage,    askProduct,             scanProduct,          barcodeManual,    inventory,  listDeliveryNotes,  itemData,
+default0,         wrongItem,        handleProduct,  scanDestinationStorage, showPDF,              signature}
+enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,     checkStock,       addItem,    saveSignature,      scanDestinationStorage, savePdf}
 enum DialogResult {cancel,          back,           mainMenu}
+enum StockState   {checkStock,      stockIn,        default0}
 
 class Global{
   // ---------- < Variables [Static] > - ---------- ---------- ----------

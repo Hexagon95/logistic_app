@@ -62,13 +62,13 @@ class DataManager{
 
         case QuickCall.askBarcode:
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'customer':   data[0][1]['Ugyfel_id'].toString(), 
             'vonalkod':   ScanInventoryState.result!
           };
           if(kDebugMode)print(queryParameters);
-          Uri uriUrl =                  Uri.parse('${urlPath}ask_barcode.php');
-          http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
-          dataQuickCall[check(0)] =  await jsonDecode(response.body);
+          Uri uriUrl =              Uri.parse('${urlPath}ask_barcode.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
+          dataQuickCall[check(0)] = await jsonDecode(response.body);
           if(kDebugMode)print(dataQuickCall[0]);
           break;
 
@@ -186,6 +186,23 @@ class DataManager{
           }
           break;
 
+        case QuickCall.addItem:
+          var queryParameters = {
+            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'tarhely_id': ScanCheckStockState.storageId.toString(),
+            'cikk_id':    ScanCheckStockState.itemId.toString(),
+            'mennyiseg':  1,
+            'user_id':    1
+          };
+          Uri uriUrl =              Uri.parse('${urlPath}add_item.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(8)] = await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[8].toString();
+            print(varString);
+          }
+          break;
+
         default:break; 
       }
     }
@@ -199,7 +216,7 @@ class DataManager{
   }
 
   Future get beginProcess async{
-    int check (int index) {while(data.length < index + 1) {data.add(List<dynamic>.empty());} return index;}
+    int check(int index) {while(data.length < index + 1) {data.add(List<dynamic>.empty());} return index;}
     try {
       isServerAvailable = true;
       switch(Global.currentRoute){
@@ -362,6 +379,17 @@ class DataManager{
           }
           else{
             ScanCheckStockState.storageFromExist =  false;
+          }
+          break;
+
+        case QuickCall.addItem:
+          ScanCheckStockState.messageData = {};
+          if(isServerAvailable && dataQuickCall[8].isNotEmpty) {
+            List<dynamic> result = json.decode(dataQuickCall[8][0]['result']);
+            ScanCheckStockState.messageData = {
+              'title':    result[0]['name'],
+              'content':  (result[0]['row'].toString().isNotEmpty)? result[0]['row'] : result[0]['message']
+            };
           }
           break;
 

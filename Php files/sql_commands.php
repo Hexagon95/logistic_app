@@ -21,11 +21,17 @@ class SqlCommand{
     public function select_vonalkod_old()                   {return "SELECT [id],[IP],[Teljes megnevezés] as megnevezes FROM [" . $this->customer . "].[dbo].[Torzs_cikk] WHERE [EAN] = :vonalkod";}
     public function exec_tabletFelvitel()                   {return "EXEC [" . $this->customer . "].[dbo].[TabletFelvitele] :eszkoz_id";}
     public function exec_finishOrders()                     {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Rendeles_Felvitele] :completed_orders";}
-    public function exec_finishInventory()                  {return "EXEC [" . $this->customer . "].[dbo].[RaktarmozgasFelvitele] :input";}
     public function exec_finishPickUps()                    {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Kiszedes_Felvitele] :kiszedesi_lista";}
+    public function exec_finishInventory()                  {return "EXEC [" . $this->customer . "].[dbo].[RaktarmozgasFelvitele] :input";}
     public function exec_deleteItem()                       {return "EXEC [" . $this->customer . "].[dbo].[NyitoleltarTorles] :cikk_id, :raktar_id";}
     public function exec_bizonylatDataTableDetails()        {return "EXEC [" . $this->customer . "].[dbo].[Bizonylat_DataTable_Details] :parameter, '', 0, 100, ''";}
     public function exec_bizonylatAlairasFelvitele()        {return "EXEC [" . $this->customer . "].[dbo].[BizonylatAlairasFelvitele] :parameter";}
     public function exec_bizonylatFuvarlevelszamFelvitele() {return "EXEC [" . $this->customer . "].[dbo].[BizonylatFuvarlevelszamFelvitele] :parameter";}
     public function exec_keszletmozgatasFelvitele()         {return "EXEC [" . $this->customer . "].[dbo].[KeszletmozgatasFelvitele] :parameter";}
+	public function exec_bizonylatDokumentumFelvitele()     {return "EXEC [" . $this->customer . "].[dbo].[BizonylatDokumentumFelvitele] :parameter, :user_id, ''";}
+    //public function exec_tabletBetarolasFelvitele()         {return "DECLARE @RC varchar(max); DECLARE @X varchar(max); EXEC @RC = [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, @X OUTPUT; SELECT @X;";}
+    //public function exec_tabletBetarolasFelvitele()         {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id";}
+    //public function exec_tabletBetarolasFelvitele()         {return "DECLARE @X varchar(max); EXEC @X = [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id; SELECT 'output = @X";}
+    //public function exec_tabletBetarolasFelvitele()         {return "DECLARE @output varchar(max); EXEC [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, @output OUTPUT;";}
+	public function exec_tabletBetarolasFelvitele()         {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, :kimenet";}
 }

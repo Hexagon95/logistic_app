@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/global.dart';
+import 'package:logistic_app/routes/scan_check_stock.dart';
 
 class Menu extends StatefulWidget{ //----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <Menu>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -22,6 +23,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
   ButtonState buttonDeliveryNote =  ButtonState.default0;
   ButtonState buttonRevenue =       ButtonState.disabled;
   ButtonState buttonCheckStock =    ButtonState.default0;
+  ButtonState buttonStockIn =       ButtonState.default0;
   ButtonState buttonInventory =     ButtonState.default0;
   late double _width;
 
@@ -49,7 +51,8 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
             Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonDeliveryNote),
             //_drawButtonRevenue,
             _drawButtonCheckStock,
-            _drawButtonInventory,
+            Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonStockIn),
+            _drawButtonInventory
           ]));
         }
       )
@@ -132,6 +135,21 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
     ))
   );
 
+  Widget get _drawButtonStockIn => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonStockIn))),
+      onPressed:  (buttonStockIn == ButtonState.default0)? () => _buttonStockInPressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonStockIn == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonStockIn))))
+        ),
+        Text((buttonStockIn == ButtonState.loading)? 'Betöltés...' : 'Betárolás', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonStockIn)))
+      ])
+    ))
+  );
+
   Widget get _drawButtonInventory => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
@@ -185,8 +203,17 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
 
   Future get _buttonCheckStockPressed async{
     setState(() => buttonCheckStock = ButtonState.loading);
-    Global.routeNext = NextRoute.checkStock;
-    buttonCheckStock = ButtonState.default0;
+    Global.routeNext =                NextRoute.checkStock;
+    buttonCheckStock =                ButtonState.default0;
+    ScanCheckStockState.stockState =  StockState.checkStock;
+    await Navigator.pushNamed(context, '/scanCheckStock');
+  }
+
+  Future get _buttonStockInPressed async{
+    setState(() => buttonStockIn = ButtonState.loading);
+    Global.routeNext =                NextRoute.checkStock;
+    buttonStockIn =                   ButtonState.default0;
+    ScanCheckStockState.stockState =  StockState.stockIn;
     await Navigator.pushNamed(context, '/scanCheckStock');
   }
 
