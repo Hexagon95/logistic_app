@@ -1,4 +1,8 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
+
 header('Content-Type: application/json; charset=utf-8');
 include 'sql_commands.php';
 include 'database_manager.php';

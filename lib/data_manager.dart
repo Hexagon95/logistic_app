@@ -50,7 +50,7 @@ class DataManager{
       await db.insert('identityTable', identity!.toMap, conflictAlgorithm: ConflictAlgorithm.replace);
       result = await db.query('identityTable');
     }
-    identity = Identity(id: 0, identity: result[0]['identity'].toString());    
+    identity = Identity(id: 0, identity: result[0]['identity'].toString());
   }
   
   // ---------- < Methods [Public] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -179,6 +179,7 @@ class DataManager{
           };
           Uri uriUrl =              Uri.parse('${urlPath}upload_pdf.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(queryParameters);
           dataQuickCall[check(7)] = await jsonDecode(response.body);
           if(kDebugMode){
             String varString = dataQuickCall[7].toString();
@@ -406,7 +407,8 @@ class DataManager{
     try {
       switch(Global.currentRoute){
 
-        case NextRoute.logIn:          
+        case NextRoute.logIn:
+          if(data[0][1]['scanner'] != null) Global.isScannerDevice = (data[0][1]['scanner'].toString() == '1');
           LogInMenuState.errorMessageBottomLine = data[0][0]['error'];
           break;        
 

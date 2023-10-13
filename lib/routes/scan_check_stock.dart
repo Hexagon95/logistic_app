@@ -1,13 +1,14 @@
 // ignore_for_file: use_build_context_synchronously, recursive_getters
 
-import 'dart:developer';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:logistic_app/data_manager.dart';
-import 'package:logistic_app/routes/data_form.dart';
+import 'package:flutter/foundation.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:logistic_app/global.dart';
+import 'package:logistic_app/data_manager.dart';
+import 'package:logistic_app/routes/data_form.dart';
+import 'package:logistic_app/src/scanner_hardware.dart';
 
 class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -49,9 +50,13 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   double? width;
   double? qrScanCutOutSize;
   QRViewController? controller;
+  ScannerHardware? scannerHardware;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
-  ScanCheckStockState() {taskState ??= TaskState.default0;}
+  ScanCheckStockState(){
+    taskState ??= TaskState.default0;
+    if(Global.isScannerDevice) scannerHardware = ScannerHardware(profileName: 'ScanCheckStock');
+  }
 
   // ---------- < WidgetBuild [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
@@ -66,7 +71,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       child:      (){switch(taskState){
         case TaskState.scanDestinationStorage:
         case TaskState.scanProduct:
-        case TaskState.scanStorage:   return _drawQrScanRoute;
+        case TaskState.scanStorage:   Future.delayed(const Duration(seconds: 1), () => scannerHardware!.startScan); return _drawQrScanRoute;
         case TaskState.barcodeManual: return _drawBarcodeManual;
         case TaskState.inventory:     return _drawInventory;
         default: return Container();
@@ -151,7 +156,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   ))
   : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));
 
-  Widget get _buildQrView => QRView(
+  Widget get _buildQrView => (!Global.isScannerDevice)
+  ? QRView(
     key:              qrKey,
     onQRViewCreated:  _onQRViewCreated,
     overlay:          QrScannerOverlayShape(
@@ -162,7 +168,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       cutOutSize:   qrScanCutOutSize!
     ),
     onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
-  );
+  )
+  : Icon(Icons.barcode_reader, size: 200, color: Global.getColorOfButton(ButtonState.default0));
 
   Widget get _drawBarcodeManualForm => Expanded(child: Center(child: Padding(padding: const EdgeInsets.all(5), child: TextFormField(
     enabled:      true,
@@ -257,7 +264,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     child:      Icon(Icons.keyboard, color: Global.getColorOfIcon(ButtonState.default0), size: 30)
   ));
 
-  Widget get _drawFlash => TextButton(
+  Widget get _drawFlash => (!Global.isScannerDevice)
+  ? TextButton(
     onPressed:  () => _toggleFlash,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: FutureBuilder(
@@ -270,9 +278,11 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         size: 30,
       ),
     ))
-  );
+  )
+  : Container();
 
-  Widget get _drawFlipCamera => TextButton(
+  Widget get _drawFlipCamera => (!Global.isScannerDevice)
+  ? TextButton(
     onPressed:  () => _flipCamera,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: FutureBuilder(
@@ -285,7 +295,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         size:   30,
       ),
     ))
-  );
+  )
+  : Container();
 
   Widget get _drawButtonPreviousStorage => (rawData[0]['elozo_tarhely'].toString().isEmpty)? Container() : TextButton(
     onPressed:  () => (buttonPreviousStorage == ButtonState.default0)? _buttonPreviousStoragePressed : null,
@@ -336,9 +347,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   void reassemble() {
     super.reassemble();
     if (Platform.isAndroid) {
-      controller!.pauseCamera();
+      if(!Global.isScannerDevice) controller!.pauseCamera();
     }
-    controller!.resumeCamera();
+    if(!Global.isScannerDevice) controller!.resumeCamera();
   }
   
   List<DataColumn> get _generateColumns{
@@ -363,12 +374,12 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }
 
   void _onQRViewCreated(QRViewController controller) {    
-    setState(() => this.controller = controller);    
+    if(!Global.isScannerDevice) setState(() => this.controller = controller);    
     controller.scannedDataStream.listen((scanData){      
       result = scanData.code;      
       _checkResult;      
     });
-    this.controller?.resumeCamera();
+    if(!Global.isScannerDevice) this.controller?.resumeCamera();
   }
 
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
@@ -399,7 +410,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     catch(e)  {if(kDebugMode)print(e);}
   }
 
-  void get _buttonBarcodeManualPressed => setState(() {controller!.pauseCamera(); taskState = TaskState.barcodeManual;});
+  void get _buttonBarcodeManualPressed => setState(() {if(!Global.isScannerDevice) controller!.pauseCamera(); taskState = TaskState.barcodeManual;});
 
   Future get _buttonContinueToFormPressed async{
     setState(() => buttonContinueToForm = ButtonState.loading);
@@ -479,7 +490,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       return false;
 
     default:
-      await controller?.pauseCamera();
+      if(!Global.isScannerDevice) await controller?.pauseCamera();
       return true;
   }}
 
@@ -507,20 +518,20 @@ class ScanCheckStockState extends State<ScanCheckStock>{
           'amount':       DataFormState.amount,
         }
       );
-      await controller!.pauseCamera();
+      if(!Global.isScannerDevice) await controller!.pauseCamera();
       setState((){});
       await dataManager.beginQuickCall;
-      if(storageToExist) {controller!.resumeCamera(); setState(() => taskState = TaskState.default0);}
+      if(storageToExist) {if(!Global.isScannerDevice) controller!.resumeCamera(); setState(() => taskState = TaskState.default0);}
       else{
         await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
-        controller!.resumeCamera();
+        if(!Global.isScannerDevice) controller!.resumeCamera();
         setState(() => taskState = TaskState.scanDestinationStorage);
       }
       break;
 
     case TaskState.scanProduct:
       DataManager dataManager = DataManager(quickCall: QuickCall.addItem);
-      await controller!.pauseCamera();
+      if(!Global.isScannerDevice) await controller!.pauseCamera();
       //controller!.stopCamera();
       isProcessIndicator = true;
       itemId = result!;
@@ -535,7 +546,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     case TaskState.scanStorage:
     case TaskState.barcodeManual:
       DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
-      await controller!.pauseCamera(); 
+      if(!Global.isScannerDevice) await controller!.pauseCamera(); 
       setState(() => isProcessIndicator = true);
       storageId = result!;             
       await dataManager.beginQuickCall;
@@ -546,7 +557,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       }
       else{
         await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
-        setState(() {isProcessIndicator = false; controller!.resumeCamera(); taskState = TaskState.scanStorage;});
+        setState(() {isProcessIndicator = false; if(!Global.isScannerDevice) controller!.resumeCamera(); taskState = TaskState.scanStorage;});
       }
       break;
 

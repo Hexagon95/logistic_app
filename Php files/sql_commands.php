@@ -28,7 +28,7 @@ class SqlCommand{
     public function exec_bizonylatAlairasFelvitele()        {return "EXEC [" . $this->customer . "].[dbo].[BizonylatAlairasFelvitele] :parameter";}
     public function exec_bizonylatFuvarlevelszamFelvitele() {return "EXEC [" . $this->customer . "].[dbo].[BizonylatFuvarlevelszamFelvitele] :parameter";}
     public function exec_keszletmozgatasFelvitele()         {return "EXEC [" . $this->customer . "].[dbo].[KeszletmozgatasFelvitele] :parameter";}
-	public function exec_bizonylatDokumentumFelvitele()     {return "EXEC [" . $this->customer . "].[dbo].[BizonylatDokumentumFelvitele] :parameter, :user_id, ''";}
+	public function exec_bizonylatDokumentumFelvitele()     {return "EXEC [" . $this->customer . "].[dbo].[BizonylatDokumentumFelvitele] :parameter";}
     //public function exec_tabletBetarolasFelvitele()         {return "DECLARE @RC varchar(max); DECLARE @X varchar(max); EXEC @RC = [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, @X OUTPUT; SELECT @X;";}
     //public function exec_tabletBetarolasFelvitele()         {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id";}
     //public function exec_tabletBetarolasFelvitele()         {return "DECLARE @X varchar(max); EXEC @X = [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id; SELECT 'output = @X";}

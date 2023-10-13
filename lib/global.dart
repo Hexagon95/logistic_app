@@ -36,7 +36,8 @@ class Global{
       default:  throw Exception('Default rout has been thrown!!!!');
     }
     _printRoutes;
-  }  
+  }
+  static bool isScannerDevice = false;
 
   // ---------- < SQL Commands > ------- ---------- ---------- ----------
   static const String sqlCreateTableIdentity = "CREATE TABLE identityTable(id INTEGER PRIMARY KEY, identity TEXT)";
