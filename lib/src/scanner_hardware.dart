@@ -9,13 +9,10 @@ class ScannerHardware{
   static const MethodChannel methodChannel =  MethodChannel('com.darryncampbell.datawedgeflutter/command');
 
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ----------
-  String symbology =  "";
-  String scanData =   "";
-  String dateTime =   "";
-  String? errorMessage;
+  ValueNotifier<ScannerDatas> scannerDatas;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  ScannerHardware({required String profileName}){
+  ScannerHardware({required this.scannerDatas, required String profileName}){
     scanChannel.receiveBroadcastStream().listen(_onEvent, onError: _onError);
     _createProfile(profileName);
   }
@@ -40,16 +37,29 @@ class ScannerHardware{
 
   void _onEvent(event){
     Map barcodeScan = jsonDecode(event);
-    scanData =        barcodeScan['scanData'].toString();
-    symbology =       barcodeScan['symbology'].toString();
-    dateTime =        barcodeScan['dateTime'].toString();
+    scannerDatas.value = ScannerDatas(
+      scanData:   barcodeScan['scanData'].toString(),
+      symbology:  barcodeScan['symbology'].toString(),
+      dateTime:   barcodeScan['dateTime'].toString()
+    );
     if(kDebugMode)print(barcodeScan.toString());
   }
 
-  void _onError(Object error){
-    scanData =      "";
-    symbology =     "";
-    dateTime =      "";
-    errorMessage =  error.toString();
-  }
+  void _onError(Object error) {scannerDatas.value = ScannerDatas(
+    scanData:     "",
+    symbology:    "",
+    dateTime :    "",
+    errorMessage: error.toString()
+  );}
+}
+
+class ScannerDatas{
+  // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ----------
+  String symbology =  "";
+  String scanData =   "";
+  String dateTime =   "";
+  String? errorMessage;
+
+  // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  ScannerDatas({required this.symbology, required this.scanData, required this.dateTime, String? errorMessage});
 }

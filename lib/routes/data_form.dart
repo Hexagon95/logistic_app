@@ -115,9 +115,9 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
 
   Future get _buttonContinuePressed async {
     setState(() => buttonContinue = ButtonState.loading);
-    amount =                        rawData[1]['value'];
-    ScanCheckStockState.taskState = TaskState.scanDestinationStorage;
-    buttonContinue =                ButtonState.default0;
+    amount =                              rawData[1]['value'];
+    ScanCheckStockState.taskStateStatic = TaskState.scanDestinationStorage;
+    buttonContinue =                      ButtonState.default0;
     Navigator.popUntil(context, ModalRoute.withName('/scanCheckStock'));
     await Navigator.pushReplacementNamed(context, '/scanCheckStock');
   }

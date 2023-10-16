@@ -20,6 +20,7 @@ class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---
 
 class ScanCheckStockState extends State<ScanCheckStock>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
+  static TaskState? _taskState; static set taskStateStatic(TaskState? value) => _taskState = value;
   static List<dynamic> rawData =  List<dynamic>.empty(growable: true);
   static dynamic messageData =    {};
   static StockState stockState =  StockState.default0;
@@ -29,11 +30,20 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   static bool storageToExist =    true;
   static Map<String, dynamic>? currentItem;
   static List<dynamic>? barcodeResult;
-  static TaskState? taskState;
-  static String? result;
   static int? selectedIndex;
+  static String? result;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  TaskState? get taskState => _taskState; set taskState(TaskState? value) {switch(value){
+
+    case TaskState.scanStorage:
+    case TaskState.scanProduct:
+      if(scannerHardware != null) scannerHardware!.startScan;
+      setState(() => _taskState = value);
+      break;
+
+    default: _taskState = value; break;
+  }}
   final GlobalKey qrKey =             GlobalKey(debugLabel: 'QR');
   TextStyle formTextStyle =           const TextStyle(fontSize: 14);
   ButtonState buttonPreviousStorage = ButtonState.default0;
@@ -51,11 +61,15 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   double? qrScanCutOutSize;
   QRViewController? controller;
   ScannerHardware? scannerHardware;
+  ValueNotifier<ScannerDatas>? scannerDatas;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   ScanCheckStockState(){
     taskState ??= TaskState.default0;
-    if(Global.isScannerDevice) scannerHardware = ScannerHardware(profileName: 'ScanCheckStock');
+    if(Global.isScannerDevice){
+      scannerDatas =    ValueNotifier(ScannerDatas(dateTime: '', scanData: '', symbology: ''));
+      scannerHardware = ScannerHardware(scannerDatas: scannerDatas!, profileName: 'ScanCheckStock');
+    }
   }
 
   // ---------- < WidgetBuild [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -71,7 +85,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       child:      (){switch(taskState){
         case TaskState.scanDestinationStorage:
         case TaskState.scanProduct:
-        case TaskState.scanStorage:   Future.delayed(const Duration(seconds: 1), () => scannerHardware!.startScan); return _drawQrScanRoute;
+        case TaskState.scanStorage:   return _drawQrScanRoute;
         case TaskState.barcodeManual: return _drawBarcodeManual;
         case TaskState.inventory:     return _drawInventory;
         default: return Container();
@@ -124,9 +138,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     child: Scaffold(
       appBar: AppBar(
         title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          _drawButtonPreviousStorage,
+          (stockState == StockState.checkStock)? _drawButtonPreviousStorage : Container(),
           Text('Tárhely: $storageId'),
-          _drawButtonNextStorage
+          (stockState == StockState.checkStock)? _drawButtonNextStorage : Container()
         ]),
         backgroundColor:  Global.getColorOfButton(ButtonState.default0),
       ),
@@ -342,7 +356,13 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     : Container()
   ;
 
-  // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- 
+  // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  @override
+  void initState(){
+    super.initState();
+    if(Global.isScannerDevice) scannerDatas!.addListener(_triggerScan);
+  }
+
   @override
   void reassemble() {
     super.reassemble();
@@ -495,6 +515,39 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }}
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future _triggerScan() async{switch(taskState){
+
+    case TaskState.scanStorage:
+      DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
+      setState(() => isProcessIndicator = true);
+      storageId = scannerDatas!.value.scanData;
+      await dataManager.beginQuickCall;
+      if(storageFromExist){
+        buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+        buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+        setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+      }
+      else{
+        await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
+        setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
+      }
+      break;
+
+    case TaskState.scanProduct:
+      DataManager dataManager = DataManager(quickCall: QuickCall.addItem);
+      isProcessIndicator = true;
+      itemId = scannerDatas!.value.scanData;
+      setState((){});
+      await dataManager.beginQuickCall;
+      dataManager = DataManager(quickCall: QuickCall.checkStock);
+      await dataManager.beginQuickCall;
+      setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+      if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
+      break;
+
+    default: break;
+  }}
+
   List<DataCell> _getCells(Map<String, dynamic> row){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
     for (var item in row.keys) {switch(item){
