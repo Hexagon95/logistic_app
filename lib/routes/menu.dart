@@ -1,21 +1,22 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:flutter/material.dart';
-import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/global.dart';
+import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/routes/scan_check_stock.dart';
+import 'package:flutter/material.dart';
 
 class Menu extends StatefulWidget{ //----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <Menu>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   const Menu({Key? key}) : super(key: key);
 
   @override
-  State<Menu> createState() => LogInMenuState();
+  State<Menu> createState() => MenuState();
 }
 
-class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <LogInMenuState>
+class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <LogInMenuState>
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String errorMessageBottomLine =  '';  
+  static List<dynamic> menuList =         List<dynamic>.empty();
+  static String errorMessageBottomLine =  '';
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonPickUpList =    ButtonState.default0;
@@ -28,13 +29,15 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
   late double _width;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  LogInMenuState(){
+  MenuState(){
     Global.routeNext =  NextRoute.logIn;
   }
 
   // ---------- < WidgetBuild [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
    Widget build(BuildContext context){
+    Widget filter(int id, Widget menuOption) {for(var item in menuList) {if(item['id'] == id && item['aktiv'] == 1) return menuOption;} return Container();}
+
     _width = MediaQuery.of(context).size.width - 50;
     if(_width > 400) _width = 400;
     return Scaffold(
@@ -46,13 +49,12 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
       body:             LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
           return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            _drawButtonPickUpList,
-            _drawButtonListOrders,
-            Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonDeliveryNote),
-            //_drawButtonRevenue,
-            _drawButtonCheckStock,
-            Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 40), child: _drawButtonStockIn),
-            _drawButtonInventory
+            filter(1, _drawButtonPickUpList),
+            filter(2, _drawButtonListOrders),
+            filter(3, _drawButtonDeliveryNote),
+            filter(4, _drawButtonCheckStock),
+            filter(5, _drawButtonStockIn),
+            filter(6, _drawButtonInventory)
           ]));
         }
       )
@@ -70,7 +72,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
           visible:  (buttonPickUpList == ButtonState.loading)? true : false,
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonPickUpList))))
         ),
-        Text((buttonPickUpList == ButtonState.loading)? 'Betöltés...' : 'Kiszedési lista', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonPickUpList)))
+        Text((buttonPickUpList == ButtonState.loading)? 'Betöltés...' : menuList[0]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonPickUpList)))
       ])
     ))
   );
@@ -85,7 +87,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
           visible:  (buttonListOrders == ButtonState.loading)? true : false,
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonListOrders))))
         ),
-        Text((buttonListOrders == ButtonState.loading)? 'Betöltés...' : 'Rendelések összeszedése', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonListOrders)))
+        Text((buttonListOrders == ButtonState.loading)? 'Betöltés...' : menuList[1]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonListOrders)))
       ])
     ))
   );
@@ -100,7 +102,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
           visible:  (buttonDeliveryNote == ButtonState.loading)? true : false,
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonDeliveryNote))))
         ),
-        Text((buttonDeliveryNote == ButtonState.loading)? 'Betöltés...' : 'Szállítólevél Átvétel', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDeliveryNote)))
+        Text((buttonDeliveryNote == ButtonState.loading)? 'Betöltés...' : menuList[2]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDeliveryNote)))
       ])
     ))
   );  
@@ -130,7 +132,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
           visible:  (buttonCheckStock == ButtonState.loading)? true : false,
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonCheckStock))))
         ),
-        Text((buttonCheckStock == ButtonState.loading)? 'Betöltés...' : 'Készlet Ellenörzése', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonCheckStock)))
+        Text((buttonCheckStock == ButtonState.loading)? 'Betöltés...' : menuList[3]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonCheckStock)))
       ])
     ))
   );
@@ -145,7 +147,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
           visible:  (buttonStockIn == ButtonState.loading)? true : false,
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonStockIn))))
         ),
-        Text((buttonStockIn == ButtonState.loading)? 'Betöltés...' : 'Betárolás', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonStockIn)))
+        Text((buttonStockIn == ButtonState.loading)? 'Betöltés...' : menuList[4]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonStockIn)))
       ])
     ))
   );
@@ -160,7 +162,7 @@ class LogInMenuState extends State<Menu>{ //--------- ---------- ---------- ----
           visible:  (buttonInventory == ButtonState.loading)? true : false,
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonInventory))))
         ),
-        Text((buttonInventory == ButtonState.loading)? 'Betöltés...' : 'Leltár', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonInventory)))
+        Text((buttonInventory == ButtonState.loading)? 'Betöltés...' : menuList[5]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonInventory)))
       ])
     ))
   );

@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_final_fields
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
 enum NextRoute    {logIn,           menu,           orderList,              pickUpList,           deliveryNoteList, checkStock, inventory,          pickUpData,

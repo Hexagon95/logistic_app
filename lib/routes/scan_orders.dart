@@ -1,13 +1,13 @@
 // ignore_for_file: use_build_context_synchronously, recursive_getters
 
-import 'dart:developer';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:logistic_app/data_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-
 import 'package:logistic_app/global.dart';
+import 'package:logistic_app/data_manager.dart';
+import 'package:logistic_app/src/scanner_hardware.dart';
 
 class ScanOrders extends StatefulWidget{//---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -19,36 +19,42 @@ class ScanOrders extends StatefulWidget{//---- ---------- ---------- ---------- 
 
 class ScanOrdersState extends State<ScanOrders>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
-  static List<dynamic> rawData =      List<dynamic>.empty(growable: true);
-  static List<bool> progressOfTasks = List<bool>.empty(growable: true);
+  static List<dynamic> rawData =        List<dynamic>.empty(growable: true);
+  static List<dynamic> completedTasks = List<dynamic>.empty(growable: true);
+  static List<String> listOfStorages =  List<String>.empty(growable: true);
+  static List<bool> progressOfTasks =   List<bool>.empty(growable: true);
+  static int currentStorage =           0;
   static int? currentTask;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  TaskState _taskState = TaskState.default0;
+  TaskState _taskState = TaskState.askStorage;
   TaskState get taskState => _taskState; set taskState(TaskState value){_taskState = value; switch(value){
 
     case TaskState.scanProduct:
       buttonNoBarcode =       ButtonState.default0;
       buttonSkip =            ButtonState.default0;
-      buttonOkHandleProduct = ButtonState.hidden;      
-      break;
+      buttonOkHandleProduct = ButtonState.hidden;
+    break;
 
     case TaskState.handleProduct:
       buttonOkHandleProduct = ButtonState.default0;
       buttonSkip =            ButtonState.default0;
-      buttonNoBarcode =       ButtonState.hidden;      
-      break;
+      buttonNoBarcode =       ButtonState.hidden;
+    break;
 
     default:
       buttonNoBarcode =       ButtonState.hidden;
       buttonOkHandleProduct = ButtonState.hidden;
       buttonSkip =            ButtonState.hidden;
-      break;
+    break;
   }}
+  List<dynamic> pickUpList =          List<dynamic>.empty();
+  ButtonState buttonContinue =        ButtonState.default0;
   ButtonState buttonAskOk =           ButtonState.default0;
   ButtonState buttonNoBarcode =       ButtonState.hidden;
   ButtonState buttonOkHandleProduct = ButtonState.hidden;
   ButtonState buttonSkip =            ButtonState.hidden;
+  bool isProperStorageCode =          true;
   bool isProgressIndicator =          false;
   bool isAskScanProductOpen =         false;
   final GlobalKey qrKey =             GlobalKey(debugLabel: 'QR');
@@ -56,48 +62,84 @@ class ScanOrdersState extends State<ScanOrders>{
   double? qrScanCutOutSize;
   String? result;
   QRViewController? controller;
+  ScannerHardware? scannerHardware;
+  ValueNotifier<ScannerDatas>? scannerDatas;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  
+  ScanOrdersState() {if(Global.isScannerDevice){
+    scannerDatas =    ValueNotifier(ScannerDatas(dateTime: '', scanData: '', symbology: ''));
+    scannerHardware = ScannerHardware(scannerDatas: scannerDatas!, profileName: 'ScanOrders');
+  }}
+
   // ---------- < WidgetBuild [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override  
-  Widget build(BuildContext context) {
-    if(currentTask != null) {if(taskState == TaskState.default0) taskState = TaskState.askStorage;}
-    else {_endTask;}
-    width ??= _setWidth;    
-    if(taskState == TaskState.scanProduct || taskState == TaskState.scanStorage){
-      if(width != MediaQuery.of(context).size.width) width = _setWidth;
-    }
-    return WillPopScope(
+  Widget build(BuildContext context) {switch(Global.isScannerDevice){
+
+    case true: return WillPopScope(
       onWillPop:  () => _handlePop,
-      child:      (Global.currentRoute == NextRoute.scanTasks)
-      ? (){switch(taskState){
-        case TaskState.askStorage:
-        case TaskState.askProduct:  return _drawAskStorageOrProduct;
-        default:                    return _drawQrScanRoute;
+      child:      () {switch(taskState){
+        case TaskState.askStorage:  return _drawAskStorageOrProduct;
+        case TaskState.askProduct:  return _drawProduckInventory;
+        default:                    return Container();
       }}()
-      : _drawWaitingForFinishTask
     );
-  }
+
+    case false:
+      if(currentTask != null) {if(taskState == TaskState.default0) taskState = TaskState.askStorage;}
+      else {_endTask;}
+      width ??= _setWidth;    
+      if(taskState == TaskState.scanProduct || taskState == TaskState.scanStorage){
+        if(width != MediaQuery.of(context).size.width) width = _setWidth;
+      }
+      return WillPopScope(
+        onWillPop:  () => _handlePop,
+        child:      (Global.currentRoute == NextRoute.scanTasks)
+        ? (){switch(taskState){
+          case TaskState.askStorage:
+          case TaskState.askProduct:  return _drawAskStorageOrProduct;
+          default:                    return (!Global.isScannerDevice)? _drawQrScanRoute : _drawAskStorageOrProduct;
+        }}()
+        : _drawWaitingForFinishTask
+      );
+
+    default: return Container();
+  }}
   
   // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawAskStorageOrProduct{
-    String order = (taskState == TaskState.askStorage)
-    ? 'A(z) ${rawData[currentTask!]['tarhely']} számú tárjhely QR kódjának leolvasása.'
-    :'Kérem olvassa le a vonalkódját az alábbi terméknek:\n${rawData[currentTask!]['cikkszam']}\n${rawData[currentTask!]['megnevezes']}';
-    //: 'A(z) ${rawData[currentTask!]['cikkszam']} cikkszámú termék vonalkódjának leolvasása.';
-    return Scaffold(
-      appBar: AppBar(title: const Text('Rendelések Összeszedése'), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
-      body:   Center(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-        Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(order, style: const TextStyle(fontSize: 16)),
-          _drawButtonAskOk
-        ])),
+  Widget get _drawAskStorageOrProduct {switch(Global.isScannerDevice){
+
+    case true:
+      String qrCodeScannerScan = 'Szkennelje be az alábbi tárhelyet:';
+      return Scaffold(
+        appBar: AppBar(title: const Center(child: Text('Kitárazás')), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
+        body:   Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.max, children: [
+          Text(qrCodeScannerScan, style: const TextStyle(fontSize: 16)),
+          Text(listOfStorages[currentStorage], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Visibility(visible: !isProperStorageCode, child: Padding(padding: const EdgeInsets.fromLTRB(0, 20, 0, 0), child: Container(
+            decoration:   const BoxDecoration(color: Color.fromARGB(90, 0, 0, 0),
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+            child:        const Padding(padding: EdgeInsets.all(5), child: Text('Nem megfelelő QR kód!', style: TextStyle(color: Colors.yellow)))
+          )))
+        ]))
+      );
+
+    case false:
+      String cameraScan = (taskState == TaskState.askStorage)
+      ? 'A(z) ${rawData[currentTask!]['tarhely']} számú tárjhely QR kódjának leolvasása.'
+      :'Kérem olvassa le a vonalkódját az alábbi terméknek:\n${rawData[currentTask!]['cikkszam']}\n${rawData[currentTask!]['megnevezes']}';
+      //: 'A(z) ${rawData[currentTask!]['cikkszam']} cikkszámú termék vonalkódjának leolvasása.';
+      return Scaffold(
+        appBar: AppBar(title: const Text('Rendelések Összeszedése'), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
+        body:   Center(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(cameraScan, style: const TextStyle(fontSize: 16)),
+            _drawButtonAskOk
+          ])),
         _drawErrorMessaggeBottomline
-      ]))
-    );
-  }
-  
+        ]))
+      );
+    default: return Container();
+  }}
 
   Widget get _drawQrScanRoute => Scaffold(
     appBar: AppBar(title: const Text('Rendelések Összeszedése'), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
@@ -118,12 +160,42 @@ class ScanOrdersState extends State<ScanOrders>{
     ])
   );
 
+  Widget get _drawProduckInventory => Scaffold(
+    appBar: AppBar(
+      title:            const Center(child: Text('Kitárazás')),
+      backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+    ),
+    backgroundColor:  Colors.white,
+    body:             LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints viewportConstraints) {
+        return (rawData.isNotEmpty) 
+        ? Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          _drawDataTable,          
+          _drawBottomBar
+        ]) 
+        : const Center(child: Text('Nincs adat'));
+      }
+    )
+  );
+
   Widget get _drawWaitingForFinishTask => Scaffold(body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
     Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [_progressIndicator(Colors.lightBlue)])),
     _drawErrorMessaggeBottomline
   ])));
 
 // ---------- < WidgetBuild [3] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawDataTable => (rawData.isNotEmpty)
+  ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
+    SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+      columns:            [DataColumn(label: Expanded(child: Center(child: Text(listOfStorages[currentStorage], style: const TextStyle(fontSize: 16)))))],
+      headingRowHeight:   30,
+      rows:               _generateRows,
+      showCheckboxColumn: true,
+      border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
+    ))
+  ))
+  : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));
+
   Widget get _buildQrView => QRView(
     key:              qrKey,
     onQRViewCreated:  _onQRViewCreated,
@@ -172,6 +244,14 @@ class ScanOrdersState extends State<ScanOrders>{
         _drawOkHandleProduct
       ])
     );
+
+    case TaskState.askProduct: return (Global.isScannerDevice)
+    ? Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
+      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        _drawButtonContinue
+      ])
+    )
+    : Container();
 
     default: return Container();
   }}
@@ -231,6 +311,16 @@ class ScanOrdersState extends State<ScanOrders>{
     )
   ]));
 
+  List<DataRow> get _generateRows{
+    List<DataRow> rows = List<DataRow>.empty(growable: true);
+    for(var item in pickUpList) {rows.add(DataRow(
+      cells:            _getCells(item),
+      selected:         (completedTasks.contains(item)),
+      onSelectChanged:  (value) => setState((){})
+    ));}
+    return rows;
+  }
+
   Widget get _drawTaskHandleProductText => Padding(padding: const EdgeInsets.all(5), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
     Text(
       'Helyezzen ${rawData[currentTask!]['mennyiseg']}db ${rawData[currentTask!]['cikkszam']} cikkszámú terméket a gyűjtőterületre.',
@@ -239,6 +329,11 @@ class ScanOrdersState extends State<ScanOrders>{
   ]));
   
   // ---------- < WidgetBuild [5] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  List<DataCell> _getCells(Map<String, dynamic> item) => [DataCell(Column(children: [
+    Text(item['cikkszam'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+    Text(item['megnevezes'])
+  ]))];
+
   Widget _progressIndicator(Color colorInput) => Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: SizedBox(
     width:  20,
     height: 20,
@@ -246,7 +341,8 @@ class ScanOrdersState extends State<ScanOrders>{
   ));
 
   // ---------- < WidgetBuild [Buttons] >  ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawButtonAskOk => Padding(
+  Widget get _drawButtonAskOk => (!Global.isScannerDevice)
+  ? Padding(
     padding:  const EdgeInsets.fromLTRB(20, 40, 20, 40),
     child:    SizedBox(height: 40, width: 100, child: TextButton(          
       style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonAskOk))),
@@ -259,7 +355,8 @@ class ScanOrdersState extends State<ScanOrders>{
         Text((buttonAskOk == ButtonState.loading)? 'Betöltés...' : 'Ok', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonAskOk)))
       ])
     ))
-  );
+  )
+  : Container();
 
   Widget get _drawFlash => TextButton(
     onPressed:  () => _toggleFlash,
@@ -336,14 +433,41 @@ class ScanOrdersState extends State<ScanOrders>{
     ])
   )));
 
-  // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- 
+  Widget get _drawButtonContinue => Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+    TextButton(
+      onPressed:  () => (buttonContinue == ButtonState.default0)? _buttonContinuePressed : null,
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+      child:      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        Visibility(
+          visible:  (buttonContinue == ButtonState.loading)? true : false,
+          child:    Padding(
+            padding:  const EdgeInsets.fromLTRB(0, 0, 10, 0),
+            child:    SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonContinue)))
+          )
+        ),
+        Icon(
+          Icons.arrow_forward,
+          color: Global.getColorOfIcon(buttonContinue),
+          size:  30,
+        )
+      ])
+    )
+  ]);
+
+  // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  @override
+  void initState(){
+    super.initState();
+    if(Global.isScannerDevice) scannerDatas!.addListener(_triggerScan);
+  }
+
   @override
   void reassemble() {
     super.reassemble();
     if (Platform.isAndroid) {
-      controller!.pauseCamera();
+      if(!Global.isScannerDevice)controller!.pauseCamera();
     }
-    controller!.resumeCamera();
+    if(!Global.isScannerDevice)controller!.resumeCamera();
   }
   
   void _onQRViewCreated(QRViewController controller) {    
@@ -364,7 +488,7 @@ class ScanOrdersState extends State<ScanOrders>{
   }
 
   Future<bool> get _handlePop async{
-    controller?.stopCamera();
+    if(!Global.isScannerDevice)controller?.stopCamera();
     if (await Global.yesNoDialog(context,
       title:    'Munka elvetése?',
       content:  'El kívánja vetni az idáigi munkát és visszatér a rendelésekhez?'
@@ -397,6 +521,24 @@ class ScanOrdersState extends State<ScanOrders>{
 
   void get _buttonAskOkPressed => setState(() => taskState = (taskState == TaskState.askStorage)? TaskState.scanStorage : TaskState.scanProduct);
 
+  Future get _buttonContinuePressed async{
+    bool allCompleted() {for(var item in pickUpList) {if(!completedTasks.contains(item)) return false;} return true;}
+
+    buttonContinue = ButtonState.loading;
+    setState((){});
+    buttonContinue = ButtonState.default0;
+    if(allCompleted() || await Global.yesNoDialog(context,
+      title:    'Tovább lépés',
+      content:  'Nem került minden tétel kitárazásra, folytatja?'
+    )){
+      if(currentStorage < listOfStorages.length - 1){
+        currentStorage++;
+        setState(() => taskState = TaskState.askStorage);
+      }
+      else {_endTask;}
+    }
+  }
+
   Future get _toggleFlash async{
     try       {await controller?.toggleFlash(); setState((){});}
     catch(e)  {if(kDebugMode)print(e);}
@@ -408,7 +550,7 @@ class ScanOrdersState extends State<ScanOrders>{
   }
 
   void get _goToHandleProduct{    
-    setState((){controller?.stopCamera(); taskState = TaskState.handleProduct;});
+    setState((){if(!Global.isScannerDevice)controller?.stopCamera(); taskState = TaskState.handleProduct;});
   }
 
   void get _goToNextTask{    
@@ -435,20 +577,45 @@ class ScanOrdersState extends State<ScanOrders>{
     if(DataManager.isServerAvailable){
       Global.routeBack;
       dataManager.beginProcess;
-      Navigator.popUntil(context, ModalRoute.withName('/listOrders'));
+      Navigator.popUntil(context, ModalRoute.withName('/menu'));
       await Navigator.pushReplacementNamed(context, '/listOrders');
+      setState((){});
     }
     else {setState((){}); Future.delayed(const Duration(seconds: 5), () => _endTask);}
   }
 
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future _triggerScan() async{switch(taskState){
+
+    case TaskState.askStorage:
+      if(scannerDatas!.value.scanData == listOfStorages[currentStorage]){
+        isProperStorageCode = true;
+        pickUpList =          List<dynamic>.empty(growable: true);
+        for(var item in rawData) {if(item['tarhely'].toString() == listOfStorages[currentStorage]) pickUpList.add(item);}
+        setState(() => taskState = TaskState.askProduct);
+      }
+      else{
+        isProperStorageCode = false;
+        setState((){});
+      }
+    break;
+    
+    case TaskState.askProduct: for(var item in pickUpList){
+      if(item['vonalkod'].toString() == scannerDatas!.value.scanData && !completedTasks.contains(item)) {
+        completedTasks.add(item); break;
+      }
+    } setState((){}); break;
+
+    default: break;
+  }}
+
   void get _checkResult{switch(taskState){
 
     case TaskState.scanStorage:
       if(result != null && result == rawData[currentTask!]['tarhely']){        
         Future.delayed(const Duration(milliseconds: 500), () => setState(() => isProgressIndicator = false));
-        Future.delayed(const Duration(seconds: 1), () => setState(() {controller?.stopCamera(); result = null; taskState = TaskState.askProduct;}));
+        Future.delayed(const Duration(seconds: 1), () => setState(() {if(!Global.isScannerDevice)controller?.stopCamera(); result = null; taskState = TaskState.askProduct;}));
       }
       break;
     
@@ -460,5 +627,7 @@ class ScanOrdersState extends State<ScanOrders>{
       break;
 
     default:break;
-  }}  
+  }}
+
+  // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 }

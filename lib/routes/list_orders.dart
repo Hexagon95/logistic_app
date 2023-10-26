@@ -27,7 +27,7 @@ class ListOrdersState extends State<ListOrders>{
   String get title {switch(Global.currentRoute){
     case NextRoute.pickUpList:  return 'Kiszedési lista';
     case NextRoute.orderList:
-    default:                    return 'Rendelések';
+    default:                    return 'Kitárazás';
   }}
   int? get selectedIndex => _selectedIndex;  
 

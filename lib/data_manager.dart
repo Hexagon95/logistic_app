@@ -1,20 +1,21 @@
-// ignore_for_file: depend_on_referenced_packages
-import 'dart:convert';
+// ignore_for_file: depend_on_referenced_packages, avoid_print
+import 'package:logistic_app/global.dart';
+import 'package:logistic_app/routes/menu.dart';
+import 'package:logistic_app/routes/log_in.dart';
+import 'package:logistic_app/routes/data_form.dart';
+import 'package:logistic_app/routes/scan_orders.dart';
+import 'package:logistic_app/routes/list_orders.dart';
+import 'package:logistic_app/routes/scan_inventory.dart';
+import 'package:logistic_app/routes/scan_check_stock.dart';
+import 'package:logistic_app/routes/list_delivery_note.dart';
+import 'package:logistic_app/routes/list_pick_up_details.dart';
 import 'dart:io';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import 'package:logistic_app/routes/list_delivery_note.dart';
-import 'package:logistic_app/routes/scan_inventory.dart';
+import 'dart:convert';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
-import 'package:logistic_app/global.dart';
-import 'package:logistic_app/routes/log_in.dart';
-import 'package:logistic_app/routes/list_orders.dart';
-import 'package:logistic_app/routes/list_pick_up_details.dart';
-import 'package:logistic_app/routes/scan_orders.dart';
-import 'package:logistic_app/routes/scan_check_stock.dart';
-import 'package:logistic_app/routes/data_form.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -319,7 +320,7 @@ class DataManager{
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_order_items.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-          data[check(2)] =          await jsonDecode(response.body);          
+          data[check(2)] =          await jsonDecode(response.body);
           if(kDebugMode)print(data[2]);
           break;
 
@@ -410,6 +411,7 @@ class DataManager{
         case NextRoute.logIn:
           if(data[0][1]['scanner'] != null) Global.isScannerDevice = (data[0][1]['scanner'].toString() == '1');
           LogInMenuState.errorMessageBottomLine = data[0][0]['error'];
+          MenuState.menuList =                    jsonDecode(data[0][1]['menu']);
           break;        
 
         case NextRoute.pickUpList:
@@ -435,14 +437,29 @@ class DataManager{
           ListPickUpDetailsState.orderNumber =  data[1][ListOrdersState.getSelectedIndex!]['sorszam'];          
           break;
 
-        case NextRoute.scanTasks:
-          ScanOrdersState.rawData =           (jsonDecode(data[2][0]['tetelek']) != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
-          ScanOrdersState.progressOfTasks =   List<bool>.empty(growable: true);
-          Iterator iterator =                 ScanOrdersState.rawData.iterator; while(iterator.moveNext()){
-            ScanOrdersState.progressOfTasks.add(false);
-          }
-          ScanOrdersState.currentTask = (ScanOrdersState.rawData.isNotEmpty)? 0 : null;
-          break;
+        case NextRoute.scanTasks: switch(Global.isScannerDevice){
+
+          case true:
+            ScanOrdersState.rawData =         (jsonDecode(data[2][0]['tetelek']) != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
+            ScanOrdersState.listOfStorages =  List<String>.empty(growable: true);
+            for(var item in ScanOrdersState.rawData){
+              if(!ScanOrdersState.listOfStorages.contains(item['tarhely'].toString())) ScanOrdersState.listOfStorages.add(item['tarhely'].toString());
+            }
+            if(kDebugMode)print(ScanOrdersState.listOfStorages);
+            ScanOrdersState.currentStorage =  0;
+            break;
+
+          case false: 
+            ScanOrdersState.rawData =         (jsonDecode(data[2][0]['tetelek']) != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];
+            ScanOrdersState.progressOfTasks = List<bool>.empty(growable: true);
+            Iterator iterator =               ScanOrdersState.rawData.iterator; while(iterator.moveNext()){
+              ScanOrdersState.progressOfTasks.add(false);
+            }
+            ScanOrdersState.currentTask =     (ScanOrdersState.rawData.isNotEmpty)? 0 : null;
+            break;
+
+          default: break;
+        } break;
 
         case NextRoute.dataFormMonetization:
           _generateRawDataForScanCheckStockDataForm(ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex!]);
@@ -470,11 +487,16 @@ class DataManager{
     return result;
   }
 
-  List<dynamic> get _cropCompletedTasks{
-    List<dynamic> result = List<dynamic>.empty(growable: true);
-    for (var i = 0; i < ScanOrdersState.progressOfTasks.length; i++) {if(ScanOrdersState.progressOfTasks[i]) result.add(ScanOrdersState.rawData[i]);}
-    return result;
-  }
+  List<dynamic> get _cropCompletedTasks {switch(Global.isScannerDevice){
+
+    case false:
+      List<dynamic> result = List<dynamic>.empty(growable: true);
+      for (int i = 0; i < ScanOrdersState.progressOfTasks.length; i++) {if(ScanOrdersState.progressOfTasks[i]) result.add(ScanOrdersState.rawData[i]);}
+      return result;
+
+    case true:  return ScanOrdersState.completedTasks;
+    default:    return List<dynamic>.empty();
+  }}
 
   void _generateRawDataForScanCheckStockDataForm(dynamic input){
     List<dynamic> varList = List<dynamic>.empty(growable: true);
