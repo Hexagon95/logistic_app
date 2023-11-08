@@ -22,6 +22,7 @@ class DataManager{
   static String versionNumber =                           'v1.10.0';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
+  static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
   static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
   //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
@@ -53,6 +54,8 @@ class DataManager{
     }
     identity = Identity(id: 0, identity: result[0]['identity'].toString());
   }
+
+  static ButtonState get setButtonSave {for(var item in DataFormState.rawData) {if(item['value'] == null || item['value'].toString().isEmpty) return ButtonState.disabled;} return ButtonState.default0;}
   
   // ---------- < Methods [Public] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get beginQuickCall async{
@@ -205,7 +208,21 @@ class DataManager{
           }
           break;
 
-        default:break; 
+        case QuickCall.giveDatas:
+          var queryParameters = {
+            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'id':       ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
+          };
+          Uri uriUrl =              Uri.parse('${urlPath}give_datas.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(9)] = await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[9].toString();
+            print(varString);
+          }
+          break;
+
+        default:break;
       }
     }
     catch(e) {
@@ -395,6 +412,34 @@ class DataManager{
           }
           break;
 
+        case QuickCall.giveDatas:
+          DataFormState.rawData =           jsonDecode(dataQuickCall[9][0]['b'])['adatok'];
+          DataFormState.listOfLookupDatas = <String, dynamic>{};
+          for(var item in DataFormState.rawData){
+            if(item['input_field'] != 'select') continue;
+            DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(item['lookup_data']);
+          }
+          if(kDebugMode)print(DataFormState.listOfLookupDatas);
+          break;
+
+        case QuickCall.chainGiveDatas:
+          for(var item in DataFormState.rawData[input['index']]['update_items']) {DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(item['lookup_data']);}
+          DataFormState.listOfLookupDatas.forEach((key, value) {for(int i = 0; i < DataFormState.rawData.length; i++){
+            if(DataFormState.rawData[i]['id'] == key){
+              if(DataFormState.rawData[i]['input_field'] == 'text'){
+                DataFormState.rawData[i]['value'] = (value[0]['id'] == null)? '' : value[0]['id'].toString();
+                break;
+              }
+              if(DataFormState.rawData[i]['input_field'] == 'select' && value[0]['id'] == null){
+                DataFormState.listOfLookupDatas[key] = List<dynamic>.empty();
+                break;
+              }
+            }
+          }});
+          
+          if(kDebugMode)print(DataFormState.listOfLookupDatas);
+          break;
+
         default:break;
       }
     }
@@ -475,6 +520,24 @@ class DataManager{
   }
 
   // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future<dynamic> _getLookupData(String input) async{
+    String sqlCommand = input.replaceAll("[id]", ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id'].toString());
+    for(var item in DataFormState.rawData){
+      String pattern = '[${item['id'].toString()}]';
+      sqlCommand = sqlCommand.replaceAll(pattern, '\'${item['value'].toString()}\'');
+    }
+        
+    try{
+      Uri uriUrl =              Uri.parse('$sqlUrlLink$sqlCommand');
+      http.Response response =  await http.post(uriUrl);
+      dynamic result =          await jsonDecode(response.body);
+      if(kDebugMode)print(result);
+      return result;
+    }
+    catch(e) {print(e); return [];}
+
+  }
+
   List<dynamic> get _kiszedesiLista{
     List<dynamic> result = List<dynamic>.empty(growable: true);
     for (var i = 0; i < ListPickUpDetailsState.rawData.length; i++) {if(ListPickUpDetailsState.selections[i]){

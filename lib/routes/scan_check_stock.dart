@@ -20,7 +20,6 @@ class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---
 
 class ScanCheckStockState extends State<ScanCheckStock>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
-  static TaskState? _taskState; static set taskStateStatic(TaskState? value) => _taskState = value;
   static List<dynamic> rawData =  List<dynamic>.empty(growable: true);
   static dynamic messageData =    {};
   static StockState stockState =  StockState.default0;
@@ -30,26 +29,18 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   static bool storageToExist =    true;
   static Map<String, dynamic>? currentItem;
   static List<dynamic>? barcodeResult;
+  static TaskState? taskState;
   static int? selectedIndex;
   static String? result;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  TaskState? get taskState => _taskState; set taskState(TaskState? value) {switch(value){
-
-    case TaskState.scanStorage:
-    case TaskState.scanProduct:
-      if(scannerHardware != null) scannerHardware!.startScan;
-      setState(() => _taskState = value);
-      break;
-
-    default: _taskState = value; break;
-  }}
   final GlobalKey qrKey =             GlobalKey(debugLabel: 'QR');
   TextStyle formTextStyle =           const TextStyle(fontSize: 14);
   ButtonState buttonPreviousStorage = ButtonState.default0;
   ButtonState buttonNextStorage =     ButtonState.default0;
   ButtonState buttonContinueToForm =  ButtonState.disabled;
   ButtonState buttonAddItem =         ButtonState.default0;
+  ButtonState buttonGiveDatas =       ButtonState.disabled;
   bool isProcessIndicator =           false;
   int? _selected; int? get selected => _selected; set selected(int? value) {if(buttonContinueToForm != ButtonState.loading){
     buttonContinueToForm =  (value == null)? ButtonState.disabled : ButtonState.default0;
@@ -353,8 +344,18 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         Icon(Icons.add_box_outlined, color: Global.getColorOfIcon(buttonAddItem), size: 30)
       ]))
     )
-    : Container()
+    : _drawButtonGiveDatas
   ;
+
+  Widget get _drawButtonGiveDatas => TextButton(
+    onPressed:  () => (buttonGiveDatas == ButtonState.default0)? _buttonGiveDatasPressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+      (buttonGiveDatas == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonGiveDatas)) : Container(),
+      Text(' Adatok megadása ', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonGiveDatas))),
+      Icon(Icons.edit_document, color: Global.getColorOfIcon(buttonGiveDatas), size: 30)
+    ]))
+  );
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
@@ -374,8 +375,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   
   List<DataColumn> get _generateColumns{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
+    columns.add(const DataColumn(label: Text('')));
     for (var item in rawData[0]['tetelek'][0].keys) {switch(item){
-      case 'ip':      columns.add(const DataColumn(label: Text('ip'))); break;
+      case 'ip':      columns.add(const DataColumn(label: Text('ip')));       break;
       case 'cikknev': columns.add(const DataColumn(label: Text('Cikk név'))); break;
       case 'keszlet': columns.add(const DataColumn(label: Text('Készlet')));  break;
       default:break;
@@ -384,12 +386,21 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }
 
   List<DataRow> get _generateRows{
+    bool isHiba(int index) => (rawData[0]['tetelek'][index]['hiba'].toString() == '1');
+
     List<DataRow> rows = List<DataRow>.empty(growable: true);
-    for (var i = 0; i < rawData[0]['tetelek'].length; i++) {if(rawData[0]['tetelek'][i]['ip'].isNotEmpty){rows.add(DataRow(
-      onSelectChanged:  (value) => setState(() => selected = i),
-      selected:         (selected != null && selected == i),
-      cells:            _getCells(rawData[0]['tetelek'][i]),
-    ));}}
+    for (var i = 0; i < rawData[0]['tetelek'].length; i++) {if(rawData[0]['tetelek'][i]['ip'].isNotEmpty){
+      rows.add(DataRow(
+        color: (isHiba(i))
+          ? (selected != null && selected == i)
+            ? const MaterialStatePropertyAll(Color.fromARGB(20, 255, 0, 100))
+            : const MaterialStatePropertyAll(Color.fromARGB(10, 255, 0, 0))
+          : null,
+        onSelectChanged:  (value) => setState(() {selected = i; buttonGiveDatas = (selected != null && isHiba(selected!))? ButtonState.default0 : ButtonState.disabled;}),
+        selected:         (selected != null && selected == i),
+        cells:            _getCells(rawData[0]['tetelek'][i]),
+      ));
+    }}
     return rows;
   }
 
@@ -486,6 +497,18 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     setState((){});
   }
 
+  Future get _buttonGiveDatasPressed async{
+    setState(() => buttonGiveDatas = ButtonState.loading);
+    DataManager dataManager = DataManager(quickCall: QuickCall.giveDatas);
+    await dataManager.beginQuickCall;
+    buttonGiveDatas =         ButtonState.default0;
+    if(DataManager.isServerAvailable){
+      Global.routeNext = NextRoute.dataFormGiveDatas;
+      setState((){});
+      await Navigator.pushNamed(context, '/dataForm');
+    }
+  }
+
   Future<bool> get _handlePop async{switch(taskState){
 
     case TaskState.scanDestinationStorage:
@@ -550,10 +573,14 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   List<DataCell> _getCells(Map<String, dynamic> row){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
+    cells.add(DataCell((row['hiba'].toString() == '1')
+      ? const Icon(Icons.warning_amber_rounded, color: Colors.red)
+      : const Icon(Icons.check,                 color: Colors.green)
+    ));
     for (var item in row.keys) {switch(item){
       case 'ip':  
       case 'cikknev':
-      case 'keszlet':     cells.add(DataCell(Text(row[item].toString()))); break;
+      case 'keszlet': cells.add(DataCell(Text(row[item].toString())));  break;
       default:break;
     }}   
     return cells;

@@ -17,6 +17,7 @@ class SqlCommand{
     public function select_rendelesTetelek()                {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Rendeles_tetelek] (:bizonylat_id)";}
     public function select_kiszedesTetelek()                {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Kiszedes_tetelek] (:bizonylat_id)";}
     public function select_tabletLeltarVan()                {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_LeltarVan] ()";}
+    public function select_abroncs_reszletezo()             {return "SELECT * FROM [" . $this->customer . "].[local].[Abroncs_reszletezo] (:id)";}
     public function select_vonalkod()                       {return "SELECT [id],[IP],[megnevezes] FROM [" . $this->customer . "].[local].[Cikk_kereses] (:vonalkod)";}
     public function select_vonalkod_old()                   {return "SELECT [id],[IP],[Teljes megnevezés] as megnevezes FROM [" . $this->customer . "].[dbo].[Torzs_cikk] WHERE [EAN] = :vonalkod";}
     public function exec_tabletFelvitel()                   {return "EXEC [" . $this->customer . "].[dbo].[TabletFelvitele] :eszkoz_id";}

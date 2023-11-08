@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/routes/data_form.dart';
@@ -31,6 +32,10 @@ void main() async{
     )
   );
   await DataManager.identitySQLite;
+  String varString =    "SELECT id,megnevezes,0 as selected FROM mezandmol.local.Abroncs_id ([id])";
+  String newVarString = varString.replaceAll('[id]', 'kiscica');
+  if(kDebugMode) print(newVarString);
+
 }
 /*import 'src/file_picker_demo.dart';
 import 'package:flutter/widgets.dart';

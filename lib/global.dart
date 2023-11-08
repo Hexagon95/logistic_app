@@ -5,11 +5,15 @@ import 'package:flutter/foundation.dart';
 
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
 enum NextRoute    {logIn,           menu,           orderList,              pickUpList,           deliveryNoteList, checkStock, inventory,          pickUpData,
-default0,         pickUpDataFinish, scanTasks,      finishTasks,            dataFormMonetization}
+  default0,       pickUpDataFinish, scanTasks,      finishTasks,            dataFormMonetization, dataFormGiveDatas
+}
 enum ButtonState  {hidden,          loading,        disabled,               error,                default0}
 enum TaskState    {askStorage,      scanStorage,    askProduct,             scanProduct,          barcodeManual,    inventory,  listDeliveryNotes,  itemData,
-default0,         wrongItem,        handleProduct,  scanDestinationStorage, showPDF,              signature}
-enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,     checkStock,       addItem,    saveSignature,      scanDestinationStorage, savePdf}
+  default0,       wrongItem,        handleProduct,  scanDestinationStorage, showPDF,              signature
+}
+enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,     checkStock,       addItem,    saveSignature,      scanDestinationStorage,
+  savePdf,         giveDatas,       chainGiveDatas
+}
 enum DialogResult {cancel,          back,           mainMenu}
 enum StockState   {checkStock,      stockIn,        default0}
 
@@ -32,6 +36,7 @@ class Global{
       case NextRoute.scanTasks:             _routes[check(3)] =   value;  break;
       case NextRoute.finishTasks:           _routes[check(3)] =   value;  break;
       case NextRoute.dataFormMonetization:  _routes[check(3)] =   value;  break;
+      case NextRoute.dataFormGiveDatas:     _routes[check(3)] =   value;  break;
       case NextRoute.pickUpDataFinish:      _routes[check(4)] =   value;  break;
       default:  throw Exception('Default rout has been thrown!!!!');
     }
