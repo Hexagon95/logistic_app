@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
+// ignore_for_file: use_build_context_synchronously
+
+import '../global.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/routes/scan_check_stock.dart';
-import '../global.dart';
+import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class DataForm extends StatefulWidget {//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <DataForm>
   const DataForm({super.key});
@@ -13,7 +16,9 @@ class DataForm extends StatefulWidget {//-------- ---------- ---------- --------
 class DataFormState extends State<DataForm> {//-- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <DataFormState>
   // ---------- < Wariables [Static] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   static List<dynamic> rawData =                  List<dynamic>.empty();
+  static List<dynamic> rawData2 =                 List<dynamic>.empty();
   static Map<String, dynamic> listOfLookupDatas = <String, dynamic>{};
+  static TaskState taskState =                    TaskState.dataForm;
   static String title =                           '';
   static int? amount;
 
@@ -21,14 +26,18 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   List<TextEditingController> controller =  List<TextEditingController>.empty(growable: true);
   ButtonState buttonContinue =              ButtonState.default0;
   ButtonState buttonSave =                  ButtonState.disabled;
+  bool enableInteraction =                  true;
   BoxDecoration customBoxDecoration =       BoxDecoration(            
     border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
     color:        Colors.white,
     borderRadius: const BorderRadius.all(Radius.circular(8))
   );
   String get titleText {switch(Global.currentRoute){
-    case NextRoute.dataFormGiveDatas: return  'Adatok megadása';
-    default:                          return  'Adja meg a mennyiséget';
+    case NextRoute.dataFormGiveDatas: switch(taskState){
+      case TaskState.dataList:  return 'Abroncsok kiválasztása';
+      default:                  return ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex!]['ip'];
+    }
+    default:  return  'Adja meg a mennyiséget';
   }}
 
   // ---------- < Constructor > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -37,21 +46,29 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   // ---------- < WidgetBuild [1] > -- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
    Widget build(BuildContext context){
+    Widget display() {switch(taskState){
+      case TaskState.dataList:  return _drawDataList;
+      default:                  return _drawFormList;
+    }}
+
     return GestureDetector(
       onTap:  () => setState((){}),
-      child:  Scaffold(
-        appBar: AppBar(
-          title:            Center(child: Text(titleText)),
-          backgroundColor:  Global.getColorOfButton(ButtonState.default0),
-        ),
-        backgroundColor:  Colors.white,
-        body:             LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints viewportConstraints) {
-            return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              _drawFormList,
-              _drawBottomBar
-            ]);
-          }
+      child:  WillPopScope(
+        onWillPop:  _handlePop,
+        child:      Scaffold(
+          appBar: AppBar(
+            title:            Center(child: Text(titleText)),
+            backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+          ),
+          backgroundColor:  Colors.white,
+          body:             LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints viewportConstraints) {
+              return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                display(),
+                _drawBottomBar
+              ]);
+            }
+          )
         )
       )
     );
@@ -60,12 +77,44 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   // ---------- < WidgetBuild [2] > -- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawFormList{
     List<Widget> varListWidget = List<Widget>.empty(growable: true);
-    for(int i = 0; i < rawData.length; i++) {varListWidget.add(Padding(
-      padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
-      child:    Container(decoration: customBoxDecoration, child: Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i)))
-    ));}
-    return Expanded(child: SingleChildScrollView(child: Column(mainAxisAlignment: MainAxisAlignment.start, children: varListWidget)));
+    int maxSor() {int maxSor = 1; for(var item in rawData) {if(item['sor'] > maxSor) maxSor = item['sor'];} return maxSor;}
+
+    if(rawData[0]['sor'] == null){
+      for(int i = 0; i < rawData.length; i++) {varListWidget.add(Padding(
+        padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
+        child:    Container(decoration: customBoxDecoration, child: Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i)))
+        //child:    Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
+      ));}
+    }
+    else {for(int sor = 1; sor <= maxSor(); sor++) {
+      List<Widget> row = List<Widget>.empty(growable: true);
+      for(int i = 0; i < rawData.length; i++) {if(rawData[i]['sor'] == sor){
+        row.add(Padding(
+          padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
+          child:    Container(decoration: customBoxDecoration, child: Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i)))
+          //child:    Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
+        ));
+      }}
+      varListWidget.add(SizedBox(width: MediaQuery.of(context).size.width, child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: row)));
+    }}
+    return Expanded(child: SingleChildScrollView(child: Column(
+      mainAxisAlignment:  MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children:           varListWidget
+    )));
   }
+
+  Widget get _drawDataList => (rawData2[0]['tetelek'].isNotEmpty)
+  ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
+    SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+      columns:            _generateColumns,
+      columnSpacing:      25.0,
+      rows:               _generateRows,                
+      showCheckboxColumn: false,                
+      border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
+    ))
+  ))
+  : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: (){switch(Global.currentRoute){
     case NextRoute.dataFormGiveDatas: return Row(mainAxisAlignment: MainAxisAlignment.end, children: [_drawButtonSave]);
@@ -91,7 +140,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   );
 
   Widget get _drawButtonSave => TextButton(
-    onPressed:  () => (buttonSave == ButtonState.default0)? _buttonSavePressed : null,
+    onPressed:  () async => (buttonSave == ButtonState.default0)? await _buttonSavePressed : null,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
       (buttonSave == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonSave)) : Container(),
@@ -103,34 +152,38 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   // ---------- < Methods [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget _getWidget(dynamic input, int index){
     bool editable =           (input['editable'].toString() == '1');
-    controller[index].text =  rawData[index]['value'].toString();
+    controller[index].text =  (rawData[index]['value'] == null)? '' : rawData[index]['value'];
+    double getWidth(int index) {int sorDB = 0; for(var item in rawData) {if(item['sor'] == rawData[index]['sor']) sorDB++;} return MediaQuery.of(context).size.width / sorDB - 22;}
+
     switch(input['input_field']){
 
-      case 'select':
-        bool isInLookupData(String input, List<dynamic> list) {for(var item in list) {if(item['id'].toString() == input) return true;} return false;}
-
-        List<DropdownMenuItem<String>> items =  List<DropdownMenuItem<String>>.empty(growable: true);
-        List<dynamic> lookupData =              listOfLookupDatas[input['id']];
-        for (var item in lookupData) {items.add(DropdownMenuItem(value: item['id'].toString(), child: Text(item['megnevezes'], textAlign: TextAlign.start)));}
-        String? selectedItem =    (isInLookupData(rawData[index]['value'].toString(), lookupData))? rawData[index]['value'].toString() : null;
-        return (lookupData.isNotEmpty)
-        ? Stack(children: [
-            SizedBox(height: 55, child: Padding(padding: const EdgeInsets.all(15), child: DropdownButtonHideUnderline(child: DropdownButton<String>(
-            value:      selectedItem,
-            hint:       Text(rawData[index]['name'].toString(), textAlign: TextAlign.start),
-            icon:       const Icon(Icons.arrow_downward),
-            iconSize:   24,
-            elevation:  16,
-            isExpanded: true,
-            alignment:  AlignmentDirectional.centerStart,
-            onChanged:  (String? newValue) async => await _handleSelectChange(newValue, index),
-            items:      items
-          )))),
-          (selectedItem != null)
-          ? Text(rawData[index]['name'].toString(), style: const TextStyle(color: Colors.grey))
-          : Container()
-        ])
-        : SizedBox(height: 55, child: TextFormField(
+      case 'search':
+        List<String> items =    List<String>.empty(growable: true);
+        for(var item in listOfLookupDatas[input['id']]) {items.add(item['megnevezes'].toString());}
+        return (items.isNotEmpty)
+        ? Stack(alignment: AlignmentDirectional.centerStart, children: [
+            Visibility(visible: (rawData[index]['value'] == null), child: Padding(padding: const EdgeInsets.all(10), child: Text(
+              rawData[index]['name'],
+              style: const TextStyle(color: Colors.grey, fontSize: 16),
+            ))),
+            SizedBox(height: 55, width: getWidth(index), child: DropdownSearch<String>(
+              items:                  items,
+              selectedItem:           controller[index].text,
+              popupProps:             const PopupProps.menu(showSearchBox: true),
+              onChanged:              (String? newValue) => _handleSelectChange(newValue, index),
+              dropdownButtonProps:    const DropdownButtonProps(
+                icon:                     Row(mainAxisSize: MainAxisSize.min, children:[Icon(Icons.search), Icon(Icons.arrow_downward)]),
+                padding:                  EdgeInsets.symmetric(vertical: 16),
+              ),
+              dropdownDecoratorProps: const DropDownDecoratorProps(
+                baseStyle:                TextStyle(color: Colors.black),
+                textAlign:                TextAlign.start,
+                textAlignVertical:        TextAlignVertical.center,
+                dropdownSearchDecoration: InputDecoration(border: InputBorder.none)
+              ),
+            ))
+          ])
+        : SizedBox(height: 55, width: getWidth(index), child: TextFormField(
           enabled:      false,          
           controller:   controller[index],
           decoration:   InputDecoration(
@@ -141,7 +194,43 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
           onChanged:  null,
         ));
 
-      case 'integer': return SizedBox(height: 55, child: TextFormField(
+      case 'select':
+        bool isInLookupData(String input, List<dynamic>? list) {if(list != null)for(var item in list) {if(item['id'].toString() == input) return true;} return false;}
+
+        List<DropdownMenuItem<String>> items =  List<DropdownMenuItem<String>>.empty(growable: true);
+        List<dynamic>? lookupData =             listOfLookupDatas[input['id']];
+        if(lookupData != null) for (var item in lookupData) {items.add(DropdownMenuItem(value: item['id'].toString(), child: Text(item['megnevezes'], textAlign: TextAlign.start)));}
+        String? selectedItem =    (isInLookupData(rawData[index]['value'].toString(), lookupData))? rawData[index]['value'].toString() : null;
+        return (lookupData != null && lookupData.isNotEmpty)
+        ? Stack(children: [
+            SizedBox(height: 55, width: getWidth(index), child: Padding(padding: const EdgeInsets.all(15), child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+            value:      selectedItem,
+            hint:       Text(rawData[index]['name'].toString(), textAlign: TextAlign.start),
+            icon:       const Icon(Icons.arrow_downward),
+            iconSize:   24,
+            elevation:  16,
+            isExpanded: false,
+            alignment:  AlignmentDirectional.centerStart,
+            onChanged:  (String? newValue) async => await _handleSelectChange(newValue, index),
+            items:      items
+          )))),
+          (selectedItem != null)
+          ? Text(rawData[index]['name'].toString(), style: const TextStyle(color: Colors.grey))
+          : Container()
+        ])
+        : SizedBox(height: 55, width: getWidth(index), child: TextFormField(
+          enabled:      false,          
+          controller:   controller[index],
+          decoration:   InputDecoration(
+            contentPadding: const EdgeInsets.all(10),
+            labelText:      rawData[index]['name'],
+            border:         InputBorder.none,
+          ),
+          onChanged:  null,
+        ));
+
+      case 'number':
+      case 'integer': return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
         enabled:            editable,          
         controller:         controller[index],
         onChanged:          (value) => _checkInteger(value, input, index),
@@ -154,7 +243,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
         keyboardType: TextInputType.number,
       ));
 
-      default: return SizedBox(height: 55, child: TextFormField(
+      default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
         enabled:      editable,
         controller:   controller[index],
         decoration:   InputDecoration(
@@ -162,10 +251,30 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
           labelText:      input['name'],
           border:         InputBorder.none,
         ),
-        onChanged:    (value) {},
+        onChanged:    (value) => setState((){rawData[index]['value'] = value; buttonSave = DataManager.setButtonSave;}),
         style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
       ));
     }
+  }
+
+  List<DataColumn> get _generateColumns{
+    List<DataColumn> columns = List<DataColumn>.empty(growable: true);
+    for(var item in rawData2[0]['oszlop']) {columns.add(DataColumn(label: Text(item['text'])));}
+    return columns;
+  }
+
+  List<DataRow> get _generateRows{
+    String swap(String input) {return (input == '1')? '0' : '1';}
+
+    List<DataRow> rows = List<DataRow>.empty(growable: true);
+    for (var i = 0; i < rawData2[0]['tetelek'].length; i++) {
+      rows.add(DataRow(
+        onSelectChanged:  (value) => setState(() => rawData2[0]['tetelek'][i]['tarolas'] = swap(rawData2[0]['tetelek'][i]['tarolas'].toString())),
+        selected:         (rawData2[0]['tetelek'][i]['tarolas'].toString() == '1'),
+        cells:            _getCells(rawData2[0]['tetelek'][i]),
+      ));
+    }
+    return rows;
   }
 
   Future get _buttonContinuePressed async {
@@ -177,10 +286,58 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     await Navigator.pushReplacementNamed(context, '/scanCheckStock');
   }
 
-  Future get _buttonSavePressed async {}
+  Future get _buttonSavePressed async {switch(taskState){
+    case TaskState.dataForm:
+      setState(() {buttonSave = ButtonState.loading; enableInteraction = false;});
+      DataManager dataManager = DataManager(quickCall: QuickCall.askAbroncs);
+      await dataManager.beginQuickCall;
+      setState((){buttonSave = ButtonState.default0; enableInteraction = true;});
+      break;
+
+    case TaskState.dataList:
+      setState(() {buttonSave = ButtonState.loading; enableInteraction = false;});
+      DataManager dataManager = DataManager(quickCall: QuickCall.finishGiveDatas);
+      await dataManager.beginQuickCall;
+      dataManager =             DataManager(quickCall: QuickCall.checkStock);
+      await dataManager.beginQuickCall;
+      buttonSave =              ButtonState.default0;
+      enableInteraction =       true;
+      await Navigator.of(context).pushNamedAndRemoveUntil('/scanCheckStock', ModalRoute.withName('/menu'));
+      break;
+
+    default: break;
+  }}
+
+  Future<bool> _handlePop() async {switch(taskState){
+
+    case TaskState.dataList:
+      setState(() => taskState = TaskState.dataForm);
+      return false;
+
+    default: return true;
+  }}
 
   // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  List<DataCell> _getCells(Map<String, dynamic> row){
+    List<DataCell> cells = List<DataCell>.empty(growable: true);
+    for(var item in rawData2[0]['oszlop']) {switch(item['id'].toString()){
+
+      case 'tarolas':
+        cells.add(DataCell((row['tarolas'].toString() == '1')
+          ? const Icon(Icons.check, color: Colors.blue)
+          : Container()
+        ));
+        break;
+
+      default:
+        cells.add(DataCell(Text(row[item['id'].toString()].toString())));
+        break;
+    }}
+    return cells;
+  }
+
   void _checkInteger(String value, dynamic input, int index){ //Check if integer and is between 0 and limit.
+    if(input['limit'] == null) {setState(() {rawData[index]['value'] = value; buttonSave = DataManager.setButtonSave;}); return;}
     int? varInt;
     try{varInt = int.parse(value);}
     // ignore: empty_catches
@@ -198,11 +355,13 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     }
   }
 
-  Future _handleSelectChange(String? newValue, int index) async{
+  Future _handleSelectChange(String? newValue, int index) async{ if(enableInteraction){
+    enableInteraction = false;
     setState(() => rawData[index]['value'] = newValue);
     DataManager dataManager = DataManager(quickCall: QuickCall.chainGiveDatas, input: {'index': index});
     await dataManager.beginQuickCall;
     buttonSave = DataManager.setButtonSave;
     setState((){});
-  }
+    enableInteraction = true;
+  }}
 }

@@ -44,6 +44,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   bool isProcessIndicator =           false;
   int? _selected; int? get selected => _selected; set selected(int? value) {if(buttonContinueToForm != ButtonState.loading){
     buttonContinueToForm =  (value == null)? ButtonState.disabled : ButtonState.default0;
+    buttonGiveDatas =       (value == null)? ButtonState.disabled : ButtonState.default0;
     _selected =     value;
     selectedIndex = value;
     setState((){});
@@ -130,7 +131,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       appBar: AppBar(
         title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           (stockState == StockState.checkStock)? _drawButtonPreviousStorage : Container(),
-          Text('Tárhely: $storageId'),
+          Text(storageId),
           (stockState == StockState.checkStock)? _drawButtonNextStorage : Container()
         ]),
         backgroundColor:  Global.getColorOfButton(ButtonState.default0),
@@ -154,6 +155,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
     SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
       columns:            _generateColumns,
+      columnSpacing:      25.0,
       rows:               _generateRows,                
       showCheckboxColumn: false,                
       border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
@@ -308,7 +310,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
       Icon(Icons.arrow_back_ios_new, color: Global.getColorOfIcon(buttonPreviousStorage), size: 30),
-      Text('Előző', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonPreviousStorage)))
     ]))
   );
 
@@ -316,7 +317,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     onPressed:  () => (buttonNextStorage == ButtonState.default0)? _buttonNextStoragePressed : null,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
-      Text('Következő', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonNextStorage))),
       Icon(Icons.arrow_forward_ios, color: Global.getColorOfIcon(buttonNextStorage), size: 30)
     ]))
   );
@@ -352,7 +352,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
       (buttonGiveDatas == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonGiveDatas)) : Container(),
-      Text(' Adatok megadása ', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonGiveDatas))),
+      Text(' Adatok ', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonGiveDatas))),
       Icon(Icons.edit_document, color: Global.getColorOfIcon(buttonGiveDatas), size: 30)
     ]))
   );
@@ -375,13 +375,14 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   
   List<DataColumn> get _generateColumns{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
-    columns.add(const DataColumn(label: Text('')));
+    for(var item in rawData[0]['oszlop']) {columns.add(DataColumn(label: Text(item['text'])));}
+    /*columns.add(const DataColumn(label: Text('')));
     for (var item in rawData[0]['tetelek'][0].keys) {switch(item){
       case 'ip':      columns.add(const DataColumn(label: Text('ip')));       break;
       case 'cikknev': columns.add(const DataColumn(label: Text('Cikk név'))); break;
       case 'keszlet': columns.add(const DataColumn(label: Text('Készlet')));  break;
       default:break;
-    }}
+    }}*/
     return columns;
   }
 
@@ -396,7 +397,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             ? const MaterialStatePropertyAll(Color.fromARGB(20, 255, 0, 100))
             : const MaterialStatePropertyAll(Color.fromARGB(10, 255, 0, 0))
           : null,
-        onSelectChanged:  (value) => setState(() {selected = i; buttonGiveDatas = (selected != null && isHiba(selected!))? ButtonState.default0 : ButtonState.disabled;}),
+        onSelectChanged:  (value) => setState(() => selected = i),
         selected:         (selected != null && selected == i),
         cells:            _getCells(rawData[0]['tetelek'][i]),
       ));
@@ -573,16 +574,25 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   List<DataCell> _getCells(Map<String, dynamic> row){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
-    cells.add(DataCell((row['hiba'].toString() == '1')
-      ? const Icon(Icons.warning_amber_rounded, color: Colors.red)
-      : const Icon(Icons.check,                 color: Colors.green)
-    ));
-    for (var item in row.keys) {switch(item){
+    for(var item in rawData[0]['oszlop']) {switch(item['id'].toString()){
+
+      case 'hiba':
+        cells.add(DataCell((row['hiba'].toString() == '1')
+          ? const Icon(Icons.warning_amber_rounded, color: Colors.red)
+          : const Icon(Icons.check,                 color: Colors.green)
+        ));
+        break;
+
+      default:
+        cells.add(DataCell(Text(row[item['id'].toString()].toString())));
+        break;
+    }}
+    /*for (var item in row.keys) {switch(item){
       case 'ip':  
       case 'cikknev':
       case 'keszlet': cells.add(DataCell(Text(row[item].toString())));  break;
       default:break;
-    }}   
+    }}*/   
     return cells;
   }
 
