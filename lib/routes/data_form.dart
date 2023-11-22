@@ -300,7 +300,8 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       await dataManager.beginQuickCall;
       dataManager =             DataManager(quickCall: QuickCall.checkStock);
       await dataManager.beginQuickCall;
-      buttonSave =              ButtonState.default0;
+      taskState =               TaskState.dataForm;
+      buttonSave =              ButtonState.disabled;
       enableInteraction =       true;
       await Navigator.of(context).pushNamedAndRemoveUntil('/scanCheckStock', ModalRoute.withName('/menu'));
       break;
