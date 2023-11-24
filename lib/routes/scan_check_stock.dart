@@ -127,27 +127,38 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   Widget get _drawInventory => GestureDetector(
     onTap: () => setState(() => (buttonContinueToForm != ButtonState.loading)? selected = null : null),
-    child: Scaffold(
-      appBar: AppBar(
-        title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          (stockState == StockState.checkStock)? _drawButtonPreviousStorage : Container(),
-          Text(storageId),
-          (stockState == StockState.checkStock)? _drawButtonNextStorage : Container()
-        ]),
-        backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+    child: Stack(children: [
+      Scaffold(
+        appBar: AppBar(
+          title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            (stockState == StockState.checkStock)? _drawButtonPreviousStorage : Container(),
+            Text(storageId),
+            (stockState == StockState.checkStock)? _drawButtonNextStorage : Container()
+          ]),
+          backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+        ),
+        backgroundColor:  Colors.white,
+        body:             LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints viewportConstraints) {
+            return (rawData.isNotEmpty) 
+            ? Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              _drawDataTable,          
+              _drawBottomBar
+            ]) 
+            : const Center(child: Text('Nincs adat'));
+          }
+        )
       ),
-      backgroundColor:  Colors.white,
-      body:             LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints viewportConstraints) {
-          return (rawData.isNotEmpty) 
-          ? Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            _drawDataTable,          
-            _drawBottomBar
-          ]) 
-          : const Center(child: Text('Nincs adat'));
-        }
-      )
-    )
+      Padding(padding: const EdgeInsets.fromLTRB(0, 70, 0, 0), child: Container(
+        height:     25,
+        decoration: BoxDecoration(
+          color:        Global.getColorOfButton(ButtonState.default0),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow:    const[BoxShadow(color: Colors.grey, offset: Offset(5, 5), blurRadius: 5)]
+        ),
+        child:      Text(' Készlet: ${rawData[0]['tetelek'].length.toString()} ', style: TextStyle(color: Global.getColorOfIcon(ButtonState.default0), fontSize: 16, decoration: TextDecoration.none))
+      ))
+    ])
   );
 
 // ---------- < WidgetBuild [3] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
