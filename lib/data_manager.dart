@@ -19,7 +19,7 @@ import 'package:flutter/foundation.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                           'v1.10.4';
+  static String versionNumber =                           'v1.10.6';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
@@ -407,7 +407,7 @@ class DataManager{
 
   // ---------- < Methods [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get _decisionQuickCall async{
-    try {
+    try { 
       switch(quickCall){
 
         case QuickCall.scanDestinationStorage:
@@ -431,6 +431,7 @@ class DataManager{
         case QuickCall.checkStock:
           if (dataQuickCall[4][0]['error'] == null){ 
             ScanCheckStockState.rawData =           dataQuickCall[4];
+            ScanCheckStockState.selectionList =     List.filled(dataQuickCall[4][0]['tetelek'].length, false);
             ScanCheckStockState.storageFromExist =  true;
           }
           else{
@@ -522,7 +523,7 @@ class DataManager{
           }
           break;
 
-        case NextRoute.pickUpData:          
+        case NextRoute.pickUpData:
           ListPickUpDetailsState.rawData =      (data[2][0]['tetelek'] != null)? jsonDecode(data[2][0]['tetelek']) : <dynamic>[];          
           ListPickUpDetailsState.orderNumber =  data[1][ListOrdersState.getSelectedIndex!]['sorszam'];          
           break;
@@ -550,10 +551,6 @@ class DataManager{
 
           default: break;
         } break;
-
-        case NextRoute.dataFormMonetization:
-          _generateRawDataForScanCheckStockDataForm(ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex!]);
-          break;
 
         default:break;
       }
@@ -604,27 +601,7 @@ class DataManager{
 
     case true:  return ScanOrdersState.completedTasks;
     default:    return List<dynamic>.empty();
-  }}
-
-  void _generateRawDataForScanCheckStockDataForm(dynamic input){
-    List<dynamic> varList = List<dynamic>.empty(growable: true);
-    int valueInt =       int.parse(input['keszlet'].toString());
-    DataFormState.title =   'ip kód:   ${input['ip'].toString()}';
-    varList.add({
-      'input_field':  'text',
-      'name':         'cikknév',
-      'value':        input['cikknev'].toString(),
-      'editable':     '0',
-    });
-    varList.add({
-      'input_field':  'integer',
-      'name':         'készlet',
-      'value':        valueInt,
-      'limit':        valueInt,
-      'editable':     '1',
-    });
-    DataFormState.rawData = varList;
-  }
+  }} 
 }
 
 

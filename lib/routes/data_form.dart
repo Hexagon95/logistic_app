@@ -37,7 +37,8 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       case TaskState.dataList:  return 'Abroncsok kiválasztása';
       default:                  return ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex!]['ip'];
     }
-    default:  return  'Adja meg a mennyiséget';
+    case NextRoute.dataFormMonetization:  return 'Ellenörzés';
+    default:                              return 'Adja meg a mennyiséget';
   }}
 
   // ---------- < Constructor > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -46,9 +47,12 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   // ---------- < WidgetBuild [1] > -- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
    Widget build(BuildContext context){
-    Widget display() {switch(taskState){
-      case TaskState.dataList:  return _drawDataList;
-      default:                  return _drawFormList;
+    Widget display() {switch(Global.currentRoute){
+      case NextRoute.dataFormMonetization: return _drawDoubleColumn;
+      default: switch(taskState){
+        case TaskState.dataList:  return _drawDataList;
+        default:                  return _drawFormList;
+      }
     }}
 
     return GestureDetector(
@@ -116,6 +120,49 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   ))
   : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));
 
+  Widget get _drawDoubleColumn{
+    Widget decor({required String name, required double ratio, required Widget input}) {return Padding(
+      padding:  const EdgeInsets.all(5),
+      child:    Container(
+        width:      MediaQuery.of(context).size.width * ratio - 10,
+        decoration: customBoxDecoration,
+        child:      Stack(children: [
+          Padding(padding: const EdgeInsets.all(16), child: input),
+          Padding(padding: const EdgeInsets.all(2), child: Text(name, style: const TextStyle(fontSize: 12, color: Colors.grey)))
+        ])
+      ),
+    );}
+
+    List<Widget> columnText =   List<Widget>.empty(growable: true);
+    List<Widget> columnAmount = List<Widget>.empty(growable: true);
+    String varString =          '';
+
+    for(int i = 0; i < ScanCheckStockState.selectionList.length; i++) {if(ScanCheckStockState.selectionList[i]){
+      varString = '';
+      for(String key in ScanCheckStockState.rawData[0]['tetelek'][i].keys){
+        if(!['id', 'hiba', 'keszlet'].contains(key)){varString += ScanCheckStockState.rawData[0]['tetelek'][i][key].toString();}
+      }
+      columnText.add(decor(
+        name:   'Tétel:',
+        ratio:  3.0 / 4.0,
+        input:  Text(varString, style: const TextStyle(fontSize: 16))
+      ));
+      columnAmount.add(decor(
+        name:   'Mennyiség:',
+        ratio:  1.0 / 4.0,
+        input:  Text(ScanCheckStockState.rawData[0]['tetelek'][i]['keszlet'].toString(), style: const TextStyle(fontSize: 16))
+      ));
+    }}
+    return Expanded(child: SingleChildScrollView(child: Row(
+      mainAxisAlignment:  MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children:           [
+        Column(children: columnText),
+        Column(children: columnAmount)
+      ]
+    )));
+  }
+
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: (){switch(Global.currentRoute){
     case NextRoute.dataFormGiveDatas: return Row(mainAxisAlignment: MainAxisAlignment.end, children: [_drawButtonSave]);
     default:                          return Row(mainAxisAlignment: MainAxisAlignment.end, children: [_drawButtonQRCode]);
@@ -152,7 +199,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   // ---------- < Methods [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget _getWidget(dynamic input, int index){
     bool editable =           (input['editable'].toString() == '1');
-    controller[index].text =  (rawData[index]['value'] == null)? '' : rawData[index]['value'];
+    controller[index].text =  (rawData[index]['value'] == null)? '' : rawData[index]['value'].toString();
     double getWidth(int index) {int sorDB = 0; for(var item in rawData) {if(item['sor'] == rawData[index]['sor']) sorDB++;} return MediaQuery.of(context).size.width / sorDB - 22;}
 
     switch(input['input_field']){
@@ -279,7 +326,6 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
 
   Future get _buttonContinuePressed async {
     setState(() => buttonContinue = ButtonState.loading);
-    amount =                              rawData[1]['value'];
     ScanCheckStockState.taskState =       TaskState.scanDestinationStorage;
     buttonContinue =                      ButtonState.default0;
     Navigator.popUntil(context, ModalRoute.withName('/scanCheckStock'));

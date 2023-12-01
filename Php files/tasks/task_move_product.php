@@ -46,10 +46,9 @@ class Task{
     private function _executeKeszletmozgatasFelvitele(){
         $this->databaseManager = new DatabaseManager($this->sqlCommand->exec_keszletmozgatasFelvitele(), [
             'parameter' => json_encode(array(
-                'cikk_id' =>        $this->request['id'],
                 'raktar_honnan' =>  $this->request['storageFrom'],
                 'raktar_hova' =>    $this->request['storageTo'],
-                'mennyiseg' =>      $this->request['amount']
+                'cikkek' =>         $this->request['cikkek'],
             ))
         ]);
     }

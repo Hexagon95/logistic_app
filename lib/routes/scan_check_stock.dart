@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
-import 'package:logistic_app/routes/data_form.dart';
 import 'package:logistic_app/src/scanner_hardware.dart';
 
 class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
@@ -20,13 +19,14 @@ class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---
 
 class ScanCheckStockState extends State<ScanCheckStock>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
-  static List<dynamic> rawData =  List<dynamic>.empty(growable: true);
-  static dynamic messageData =    {};
-  static StockState stockState =  StockState.default0;
-  static String storageId =       '';
-  static String itemId =          '';
-  static bool storageFromExist =  true;
-  static bool storageToExist =    true;
+  static List<dynamic> rawData =    List<dynamic>.empty(growable: true);
+  static List<bool> selectionList = List<bool>.empty();
+  static dynamic messageData =      {};
+  static StockState stockState =    StockState.default0;
+  static String storageId =         '';
+  static String itemId =            '';
+  static bool storageFromExist =    true;
+  static bool storageToExist =      true;
   static Map<String, dynamic>? currentItem;
   static List<dynamic>? barcodeResult;
   static TaskState? taskState;
@@ -43,7 +43,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   ButtonState buttonGiveDatas =       ButtonState.disabled;
   bool isProcessIndicator =           false;
   int? _selected; int? get selected => _selected; set selected(int? value) {if(buttonContinueToForm != ButtonState.loading){
-    buttonContinueToForm =  (value == null)? ButtonState.disabled : ButtonState.default0;
+    buttonContinueToForm =  (selectionList.contains(true))? ButtonState.default0 : ButtonState.disabled;
     buttonGiveDatas =       (value == null)? ButtonState.disabled : ButtonState.default0;
     _selected =     value;
     selectedIndex = value;
@@ -125,41 +125,38 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     )    
   );
 
-  Widget get _drawInventory => GestureDetector(
-    onTap: () => setState(() => (buttonContinueToForm != ButtonState.loading)? selected = null : null),
-    child: Stack(children: [
-      Scaffold(
-        appBar: AppBar(
-          title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            (stockState == StockState.checkStock)? _drawButtonPreviousStorage : Container(),
-            Text(storageId),
-            (stockState == StockState.checkStock)? _drawButtonNextStorage : Container()
-          ]),
-          backgroundColor:  Global.getColorOfButton(ButtonState.default0),
-        ),
-        backgroundColor:  Colors.white,
-        body:             LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints viewportConstraints) {
-            return (rawData.isNotEmpty) 
-            ? Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              _drawDataTable,          
-              _drawBottomBar
-            ]) 
-            : const Center(child: Text('Nincs adat'));
-          }
-        )
+  Widget get _drawInventory => Stack(children: [
+    Scaffold(
+      appBar: AppBar(
+        title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          (stockState == StockState.checkStock)? _drawButtonPreviousStorage : Container(),
+          Text(storageId),
+          (stockState == StockState.checkStock)? _drawButtonNextStorage : Container()
+        ]),
+        backgroundColor:  Global.getColorOfButton(ButtonState.default0),
       ),
-      Padding(padding: const EdgeInsets.fromLTRB(0, 70, 0, 0), child: Container(
-        height:     25,
-        decoration: BoxDecoration(
-          color:        Global.getColorOfButton(ButtonState.default0),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow:    const[BoxShadow(color: Colors.grey, offset: Offset(5, 5), blurRadius: 5)]
-        ),
-        child:      Text(' Készlet: ${rawData[0]['tetelek'].length.toString()} ', style: TextStyle(color: Global.getColorOfIcon(ButtonState.default0), fontSize: 16, decoration: TextDecoration.none))
-      ))
-    ])
-  );
+      backgroundColor:  Colors.white,
+      body:             LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints viewportConstraints) {
+          return (rawData.isNotEmpty) 
+          ? Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            _drawDataTable,          
+            _drawBottomBar
+          ]) 
+          : const Center(child: Text('Nincs adat'));
+        }
+      )
+    ),
+    Padding(padding: const EdgeInsets.fromLTRB(0, 70, 0, 0), child: Container(
+      height:     25,
+      decoration: BoxDecoration(
+        color:        Global.getColorOfButton(ButtonState.default0),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow:    const[BoxShadow(color: Colors.grey, offset: Offset(5, 5), blurRadius: 5)]
+      ),
+      child:      Text(' Készlet: ${rawData[0]['tetelek'].length.toString()} ', style: TextStyle(color: Global.getColorOfIcon(ButtonState.default0), fontSize: 16, decoration: TextDecoration.none))
+    ))
+  ]);
 
 // ---------- < WidgetBuild [3] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawDataTable => (rawData[0]['tetelek'].isNotEmpty)
@@ -399,6 +396,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   List<DataRow> get _generateRows{
     bool isHiba(int index) => (rawData[0]['tetelek'][index]['hiba'].toString() == '1');
+    int? setSelected(i) {int count = 0; for(bool item in selectionList) {if(item) count++;} return(count == 1)? i : null;}
 
     List<DataRow> rows = List<DataRow>.empty(growable: true);
     for (var i = 0; i < rawData[0]['tetelek'].length; i++) {if(rawData[0]['tetelek'][i]['ip'].isNotEmpty){
@@ -408,8 +406,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             ? const MaterialStatePropertyAll(Color.fromARGB(20, 255, 0, 100))
             : const MaterialStatePropertyAll(Color.fromARGB(10, 255, 0, 0))
           : null,
-        onSelectChanged:  (value) => setState(() => selected = i),
-        selected:         (selected != null && selected == i),
+        onSelectChanged:  (value) => setState(() {selectionList[i] = value!; selected = setSelected(i);}),
+        selected:         (selectionList[i]),
+        //selected:         (selected != null && selected == i),
         cells:            _getCells(rawData[0]['tetelek'][i]),
       ));
     }}
@@ -458,8 +457,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   Future get _buttonContinueToFormPressed async{
     setState(() => buttonContinueToForm = ButtonState.loading);
     Global.routeNext =        NextRoute.dataFormMonetization;
-    DataManager dataManager = DataManager();
-    await dataManager.beginProcess;
     buttonContinueToForm =    ButtonState.default0;
     if(DataManager.isServerAvailable){
       await Navigator.pushNamed(context, '/dataForm');
@@ -496,6 +493,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     await dataManager.beginQuickCall;
     buttonPreviousStorage =   (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
     buttonNextStorage =       (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+    selected =                null;
     setState((){});
   }
 
@@ -535,9 +533,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       title:    '$storageId tárolóhely elhagyása?',
       content:  'El kívánja hagyni az agkutális tárolóhelyet: $storageId és szkennelni egy másikat?'
     )){      
-      case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);  return false;
-      case DialogResult.cancel:                                                     return false;
-      default:                  Global.routeBack;                                   return true;
+      case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);    return false;
+      case DialogResult.cancel:                                                       return false;
+      default:                  taskState = TaskState.scanStorage; Global.routeBack;  return true;
     }
     
     case TaskState.barcodeManual:
@@ -550,38 +548,78 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }}
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Future _triggerScan() async{switch(taskState){
+  Future _triggerScan() async{
+    List<dynamic> getSelectedItems() {
+      List<dynamic> varList = List<dynamic>.empty(growable: true);
+      for(int i = 0; i < selectionList.length; i++) {if(selectionList[i]){
+        varList.add({
+          'cikk_id':    rawData[0]['tetelek'][i]['id'],
+          'mennyiseg':  rawData[0]['tetelek'][i]['keszlet']
+        });
+      }}
+      return varList;
+    }
+    switch(taskState){
 
-    case TaskState.scanStorage:
-      DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
-      setState(() => isProcessIndicator = true);
-      storageId = scannerDatas!.value.scanData;
-      await dataManager.beginQuickCall;
-      if(storageFromExist){
-        buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
-        buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+      case TaskState.scanStorage:
+        DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
+        setState(() => isProcessIndicator = true);
+        storageId = scannerDatas!.value.scanData;
+        await dataManager.beginQuickCall;
+        if(storageFromExist){
+          buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+          buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+          setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+        }
+        else{
+          await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
+          setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
+        }
+        break;
+
+        case TaskState.scanDestinationStorage:
+          DataManager dataManager = DataManager(
+            quickCall:  QuickCall.scanDestinationStorage,
+            input:      {
+              'storageFrom':  storageId,
+              'storageTo':    scannerDatas!.value.scanData,
+              'cikkek':       getSelectedItems(),
+            }
+          );
+          if(!Global.isScannerDevice) await controller!.pauseCamera();
+          setState((){});
+          await dataManager.beginQuickCall;
+          if(storageToExist){
+            if(!Global.isScannerDevice) controller!.resumeCamera();
+            dataManager =           DataManager(quickCall: QuickCall.checkStock);
+            storageId =             scannerDatas!.value.scanData;
+            await dataManager.beginQuickCall;
+            buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+            buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+            setState(() => taskState = TaskState.inventory);
+          }
+          else{
+            await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
+            if(!Global.isScannerDevice) controller!.resumeCamera();
+            setState(() => taskState = TaskState.scanDestinationStorage);
+          }
+          break;
+
+      case TaskState.scanProduct:
+        DataManager dataManager = DataManager(quickCall: QuickCall.addItem);
+        isProcessIndicator = true;
+        itemId = scannerDatas!.value.scanData;
+        setState((){});
+        await dataManager.beginQuickCall;
+        dataManager = DataManager(quickCall: QuickCall.checkStock);
+        await dataManager.beginQuickCall;
         setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
-      }
-      else{
-        await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
-        setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
-      }
-      break;
+        if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
+        break;
 
-    case TaskState.scanProduct:
-      DataManager dataManager = DataManager(quickCall: QuickCall.addItem);
-      isProcessIndicator = true;
-      itemId = scannerDatas!.value.scanData;
-      setState((){});
-      await dataManager.beginQuickCall;
-      dataManager = DataManager(quickCall: QuickCall.checkStock);
-      await dataManager.beginQuickCall;
-      setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
-      if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
-      break;
-
-    default: break;
-  }}
+      default: break;
+    }
+  }
 
   List<DataCell> _getCells(Map<String, dynamic> row){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
@@ -607,28 +645,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     return cells;
   }
 
-  Future get _checkResult async{switch(taskState){
-
-    case TaskState.scanDestinationStorage:
-      DataManager dataManager = DataManager(
-        quickCall:  QuickCall.scanDestinationStorage,
-        input:      {
-          'storageFrom':  storageId,
-          'storageTo':    result,
-          'id':           rawData[0]['tetelek'][selectedIndex]['id'],
-          'amount':       DataFormState.amount,
-        }
-      );
-      if(!Global.isScannerDevice) await controller!.pauseCamera();
-      setState((){});
-      await dataManager.beginQuickCall;
-      if(storageToExist) {if(!Global.isScannerDevice) controller!.resumeCamera(); setState(() => taskState = TaskState.default0);}
-      else{
-        await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
-        if(!Global.isScannerDevice) controller!.resumeCamera();
-        setState(() => taskState = TaskState.scanDestinationStorage);
-      }
-      break;
+  Future get _checkResult async {switch(taskState){
 
     case TaskState.scanProduct:
       DataManager dataManager = DataManager(quickCall: QuickCall.addItem);
