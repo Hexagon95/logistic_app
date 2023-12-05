@@ -383,7 +383,7 @@ class DataManager{
             'bizonylat_id': data[1][ListOrdersState.getSelectedIndex!]['id']
           };
           if(kDebugMode)print(queryParameters);
-          Uri uriUrl =              Uri.parse('${urlPath}list_order_items.php');
+          Uri uriUrl =              Uri.parse('$urlPath${(input['orderList'])? 'list_order_items.php' : 'list_order_out_items.php'}');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(2)] =          await jsonDecode(response.body);
           if(kDebugMode)print(data[2]);
@@ -398,7 +398,7 @@ class DataManager{
             })
           };
           if(kDebugMode)print(queryParameters);
-          Uri uriUrl =              Uri.parse('${urlPath}finish_orders.php');
+          Uri uriUrl =              Uri.parse('$urlPath${(input['orderList'])? 'finish_orders.php' : 'finish_orders_out.php'}');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(3)] =          await jsonDecode(response.body);          
           if(kDebugMode)print(data[3]);

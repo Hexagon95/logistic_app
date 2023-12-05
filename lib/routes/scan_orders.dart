@@ -24,10 +24,11 @@ class ScanOrdersState extends State<ScanOrders>{
   static List<String> listOfStorages =  List<String>.empty(growable: true);
   static List<bool> progressOfTasks =   List<bool>.empty(growable: true);
   static int currentStorage =           0;
+  static bool isOrderList =               true;
   static int? currentTask;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  TaskState _taskState = TaskState.askStorage;
+  TaskState _taskState = (isOrderList)? TaskState.askStorage : TaskState.askProduct;
   TaskState get taskState => _taskState; set taskState(TaskState value){_taskState = value; switch(value){
 
     case TaskState.scanProduct:
@@ -162,7 +163,7 @@ class ScanOrdersState extends State<ScanOrders>{
 
   Widget get _drawProduckInventory => Scaffold(
     appBar: AppBar(
-      title:            const Center(child: Text('Kitárazás')),
+      title:            Center(child: Text((isOrderList)? 'Kitárazás' : 'Bevételezés')),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
     ),
     backgroundColor:  Colors.white,
@@ -187,7 +188,10 @@ class ScanOrdersState extends State<ScanOrders>{
   Widget get _drawDataTable => (rawData.isNotEmpty)
   ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
     SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
-      columns:            [DataColumn(label: Expanded(child: Center(child: Text(listOfStorages[currentStorage], style: const TextStyle(fontSize: 16)))))],
+      columns:            [DataColumn(label: Expanded(child: Center(child: Text(
+        (isOrderList)? listOfStorages[currentStorage] : rawData[0]['id'].toString(),
+        style: const TextStyle(fontSize: 16)
+      ))))],
       headingRowHeight:   30,
       rows:               _generateRows,
       showCheckboxColumn: true,
@@ -313,7 +317,7 @@ class ScanOrdersState extends State<ScanOrders>{
 
   List<DataRow> get _generateRows{
     List<DataRow> rows = List<DataRow>.empty(growable: true);
-    for(var item in pickUpList) {rows.add(DataRow(
+    for(var item in (isOrderList)? pickUpList : rawData[0]['tetelek']) {rows.add(DataRow(
       cells:            _getCells(item),
       selected:         (completedTasks.contains(item)),
       onSelectChanged:  (value) => setState((){})
@@ -522,20 +526,29 @@ class ScanOrdersState extends State<ScanOrders>{
   void get _buttonAskOkPressed => setState(() => taskState = (taskState == TaskState.askStorage)? TaskState.scanStorage : TaskState.scanProduct);
 
   Future get _buttonContinuePressed async{
-    bool allCompleted() {for(var item in pickUpList) {if(!completedTasks.contains(item)) return false;} return true;}
+    bool allCompleted() {for(var item in (isOrderList)? pickUpList : rawData[0]['tetelek']) {if(!completedTasks.contains(item)) return false;} return true;}
 
     buttonContinue = ButtonState.loading;
     setState((){});
     buttonContinue = ButtonState.default0;
-    if(allCompleted() || await Global.yesNoDialog(context,
-      title:    'Tovább lépés',
-      content:  'Nem került minden tétel kitárazásra, folytatja?'
-    )){
-      if(currentStorage < listOfStorages.length - 1){
-        currentStorage++;
-        setState(() => taskState = TaskState.askStorage);
+   if(isOrderList){
+      if(allCompleted() || await Global.yesNoDialog(context,
+        title:    'Tovább lépés',
+        content:  'Nem került minden tétel kitárazásra, folytatja?'
+      )){
+        if(currentStorage < listOfStorages.length - 1){
+          currentStorage++;
+          setState(() => taskState = TaskState.askStorage);
+        }
+        else {_endTask;}
       }
-      else {_endTask;}
+    }
+    else{
+      if(!allCompleted()) {await Global.showAlertDialog(context,
+        title:    'Tovább lépés',
+        content:  'Nem került minden tétel kitárazásra!'
+      );}
+      else{_endTask;}
     }
   }
 
@@ -572,7 +585,7 @@ class ScanOrdersState extends State<ScanOrders>{
   Future get _endTask async{
     controller =              null;
     Global.routeNext =        NextRoute.finishTasks;
-    DataManager dataManager = DataManager();
+    DataManager dataManager = DataManager(input: {'orderList': isOrderList});
     await dataManager.beginProcess;
     if(DataManager.isServerAvailable){
       completedTasks.clear();
@@ -602,7 +615,7 @@ class ScanOrdersState extends State<ScanOrders>{
       }
     break;
     
-    case TaskState.askProduct: for(var item in pickUpList){
+    case TaskState.askProduct: for(var item in (isOrderList)? pickUpList : rawData[0]['tetelek']){
       if(item['vonalkod'].toString() == scannerDatas!.value.scanData && !completedTasks.contains(item)) {
         completedTasks.add(item); break;
       }

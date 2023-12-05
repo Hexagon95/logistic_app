@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
+import 'package:logistic_app/routes/scan_orders.dart';
 
 class ListOrders extends StatefulWidget{
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -144,11 +145,26 @@ class ListOrdersState extends State<ListOrders>{
 
     case NextRoute.orderList:
       setState(() => buttonState = ButtonState.loading);
-      DataManager dataManager = DataManager();
+      DataManager dataManager = DataManager(input: {'orderList': true});
       Global.routeNext =        NextRoute.scanTasks;
       await dataManager.beginProcess;
       if(DataManager.isServerAvailable){
         buttonState = ButtonState.default0;
+        ScanOrdersState.isOrderList = true;
+        await Navigator.pushNamed(context, '/scanOrders');
+        setState((){});
+      }
+      else {setState(() {buttonState = ButtonState.default0; Global.routeNext = NextRoute.orderList;});}
+      break;
+
+    case NextRoute.orderOutList:
+      setState(() => buttonState = ButtonState.loading);
+      DataManager dataManager = DataManager(input: {'orderList': false});
+      Global.routeNext =        NextRoute.scanTasks;
+      await dataManager.beginProcess;
+      if(DataManager.isServerAvailable){
+        buttonState = ButtonState.default0;
+        ScanOrdersState.isOrderList = false;
         await Navigator.pushNamed(context, '/scanOrders');
         setState((){});
       }

@@ -16,6 +16,7 @@ class SqlCommand{
     public function select_tarhelyKeszlet()                     {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tarhely_keszlet] (0, :tarhely_id, :datum)";}
     public function select_tarhelyKeszletEllenorzes()           {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tarhely_keszlet_ellenorzes] (:tarhely_id)";}
     public function select_rendelesTetelek()                    {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Rendeles_tetelek] (:bizonylat_id)";}
+    public function select_tabletBevetelezesTetelek()           {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Bevetelezes_tetelek] (:bizonylat_id)";}
     public function select_kiszedesTetelek()                    {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Kiszedes_tetelek] (:bizonylat_id)";}
     public function select_tabletLeltarVan()                    {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_LeltarVan] ()";}
     public function select_abroncs_reszletezo()                 {return "SELECT * FROM [" . $this->customer . "].[local].[Abroncs_reszletezo] (:id)";}
@@ -24,6 +25,7 @@ class SqlCommand{
     public function select_vonalkod_old()                       {return "SELECT [id],[IP],[Teljes megnevezés] as megnevezes FROM [" . $this->customer . "].[dbo].[Torzs_cikk] WHERE [EAN] = :vonalkod";}
     public function exec_tabletFelvitel()                       {return "EXEC [" . $this->customer . "].[dbo].[TabletFelvitele] :eszkoz_id";}
     public function exec_finishOrders()                         {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Rendeles_Felvitele] :completed_orders";}
+    public function exec_finishOrdersOut()                      {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Bevetelezes_Felvitele] :completed_orders";}
     public function exec_finishPickUps()                        {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Kiszedes_Felvitele] :kiszedesi_lista";}
     public function exec_finishInventory()                      {return "EXEC [" . $this->customer . "].[dbo].[RaktarmozgasFelvitele] :input";}
     public function exec_deleteItem()                           {return "EXEC [" . $this->customer . "].[dbo].[NyitoleltarTorles] :cikk_id, :raktar_id";}
