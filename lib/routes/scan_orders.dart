@@ -48,7 +48,7 @@ class ScanOrdersState extends State<ScanOrders>{
       buttonSkip =            ButtonState.hidden;
     break;
   }}
-  List<dynamic> pickUpList =          List<dynamic>.empty();
+  List<dynamic> pickUpList =          List<dynamic>.empty(growable: true);
   ButtonState buttonContinue =        ButtonState.default0;
   ButtonState buttonAskOk =           ButtonState.default0;
   ButtonState buttonNoBarcode =       ButtonState.hidden;
@@ -575,9 +575,10 @@ class ScanOrdersState extends State<ScanOrders>{
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
     if(DataManager.isServerAvailable){
+      completedTasks.clear();
       Global.routeBack;
-      dataManager.beginProcess;
-      Navigator.popUntil(context, ModalRoute.withName('/menu'));
+      await dataManager.beginProcess;
+      Navigator.popUntil(context, ModalRoute.withName('/listOrders'));
       await Navigator.pushReplacementNamed(context, '/listOrders');
       setState((){});
     }

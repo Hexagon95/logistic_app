@@ -20,6 +20,7 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonPickUpList =    ButtonState.default0;
+  ButtonState buttonListOrdersOut = ButtonState.default0;
   ButtonState buttonListOrders =    ButtonState.default0;
   ButtonState buttonDeliveryNote =  ButtonState.default0;
   ButtonState buttonRevenue =       ButtonState.disabled;
@@ -49,6 +50,7 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
       body:             LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
           return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            filter(7, _drawButtonListOrdersOut),
             filter(1, _drawButtonPickUpList),
             filter(2, _drawButtonListOrders),
             filter(3, _drawButtonDeliveryNote),
@@ -73,6 +75,21 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonPickUpList))))
         ),
         Text((buttonPickUpList == ButtonState.loading)? 'Betöltés...' : menuList[0]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonPickUpList)))
+      ])
+    ))
+  );
+
+  Widget get _drawButtonListOrdersOut => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonListOrdersOut))),
+      onPressed:  (buttonListOrdersOut == ButtonState.default0)? () => _buttonListOrdersOutPressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonListOrdersOut == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonListOrdersOut))))
+        ),
+        Text((buttonListOrdersOut == ButtonState.loading)? 'Betöltés...' : menuList[6]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonListOrdersOut)))
       ])
     ))
   );
@@ -174,6 +191,16 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
     buttonPickUpList =        ButtonState.default0;
+    await Navigator.pushNamed(context, '/listOrders');
+    setState((){});
+  }
+
+  Future get _buttonListOrdersOutPressed async{
+    setState(() => buttonListOrdersOut = ButtonState.loading);
+    Global.routeNext =        NextRoute.orderOutList;
+    DataManager dataManager = DataManager();
+    await dataManager.beginProcess;
+    buttonListOrdersOut =     ButtonState.default0;
     await Navigator.pushNamed(context, '/listOrders');
     setState((){});
   }

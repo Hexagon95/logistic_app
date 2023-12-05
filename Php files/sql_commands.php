@@ -10,6 +10,7 @@ class SqlCommand{
     // ---------- <SQL Scripts> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     public function select_tabletLista()                        {return "SELECT * FROM [" . $this->customer . "].[dbo].[tablet_lista] WHERE [Eszkoz_id] = :eszkoz_id";}
     public function select_kiszedesiLista()                     {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Kiszedesek] ()";}
+    public function select_tabletBevetelezesek()                {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Bevetelezesek] ()";}
     public function select_rendelesek()                         {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Rendelesek] ()";}
     public function select_tarhely_Id()                         {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tarhely_id] (:input)";}
     public function select_tarhelyKeszlet()                     {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tarhely_keszlet] (0, :tarhely_id, :datum)";}

@@ -23,8 +23,8 @@ class DataManager{
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
-  static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
-  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
+  //static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
+  static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =                         true;
@@ -303,6 +303,17 @@ class DataManager{
           if(kDebugMode)print(data[1]);
           break;
 
+        case NextRoute.orderOutList:
+          var queryParameters = {       
+            'customer': data[0][1]['Ugyfel_id'].toString()
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =              Uri.parse('${urlPath}list_orders_out.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          data[check(1)] =          await jsonDecode(response.body);
+          if(kDebugMode)print(data[1]);
+          break;
+
         case NextRoute.orderList:
           var queryParameters = {       
             'customer': data[0][1]['Ugyfel_id'].toString()
@@ -506,6 +517,7 @@ class DataManager{
           break;        
 
         case NextRoute.pickUpList:
+        case NextRoute.orderOutList:
         case NextRoute.orderList:
           ListOrdersState.rawData = data[1];
           break;

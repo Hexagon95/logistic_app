@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
-enum NextRoute    {logIn,           menu,           orderList,              pickUpList,           deliveryNoteList,   checkStock, inventory,          pickUpData,
-  default0,       pickUpDataFinish, scanTasks,      finishTasks,            dataFormMonetization, dataFormGiveDatas
+enum NextRoute    {logIn,           menu,           orderList,              orderOutList,           pickUpList,     deliveryNoteList,     checkStock,
+  inventory,      pickUpData,       default0,       pickUpDataFinish,       scanTasks,              finishTasks,    dataFormMonetization, dataFormGiveDatas
 }
-enum ButtonState  {hidden,          loading,        disabled,               error,                default0}
-enum TaskState    {askStorage,      scanStorage,    askProduct,             scanProduct,          barcodeManual,      inventory,  listDeliveryNotes,  itemData,
-  default0,       wrongItem,        handleProduct,  scanDestinationStorage, showPDF,              signature,          dataForm,   dataList
+enum ButtonState  {hidden,          loading,        disabled,               error,                  default0}
+enum TaskState    {askStorage,      scanStorage,    askProduct,             scanProduct,            barcodeManual,  inventory,            listDeliveryNotes,
+  itemData,       default0,         wrongItem,      handleProduct,          scanDestinationStorage, showPDF,        signature,            dataForm,
+  dataList
 }
-enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,     checkStock,         addItem,    saveSignature,      scanDestinationStorage,
-  savePdf,         giveDatas,       chainGiveDatas, finishGiveDatas,        askAbroncs
+enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,       checkStock,     addItem,              saveSignature,
+  savePdf,        giveDatas,        chainGiveDatas, finishGiveDatas,        scanDestinationStorage, askAbroncs
 }
 enum DialogResult {cancel,          back,           mainMenu}
 enum StockState   {checkStock,      stockIn,        default0}
@@ -28,6 +29,7 @@ class Global{
       case NextRoute.logIn:                 _routes[check(0)] =   value;  break;
       case NextRoute.menu:                  _routes[check(1)] =   value;  break;
       case NextRoute.orderList:             _routes[check(2)] =   value;  break;
+      case NextRoute.orderOutList:          _routes[check(2)] =   value;  break;
       case NextRoute.pickUpList:            _routes[check(2)] =   value;  break;
       case NextRoute.deliveryNoteList:      _routes[check(2)] =   value;  break;
       case NextRoute.checkStock:            _routes[check(2)] =   value;  break;

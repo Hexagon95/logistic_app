@@ -25,9 +25,10 @@ class ListOrdersState extends State<ListOrders>{
     else if(rawData[value]['kesz'].toString() != '1') {buttonState = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
   }}
   String get title {switch(Global.currentRoute){
-    case NextRoute.pickUpList:  return 'Kiszedési lista';
+    case NextRoute.pickUpList:    return 'Kiszedési lista';
+    case NextRoute.orderOutList:  return 'Bevételezés';
     case NextRoute.orderList:
-    default:                    return 'Kitárazás';
+    default:                      return 'Kitárazás';
   }}
   int? get selectedIndex => _selectedIndex;  
 
@@ -105,9 +106,10 @@ class ListOrdersState extends State<ListOrders>{
   List<DataColumn> get _generateColumns{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
     for (var item in rawData[0].keys) {switch(item){
-      case 'sorszam': columns.add(const DataColumn(label: Text('Rendelés Sorszáma')));  break;
-      case 'vevo':    columns.add(const DataColumn(label: Text('Vevő Megnevezése')));   break;
-      case 'kesz':    columns.add(const DataColumn(label: Text('')));                   break;
+      case 'sorszam':   columns.add(const DataColumn(label: Text('Sorszám')));          break;
+      case 'kesz':      columns.add(const DataColumn(label: Text('')));                 break;
+      case 'vevo':
+      case 'szallito':  columns.add(const DataColumn(label: Text('Megnevezés')));       break;
       default:                                                                          break;
     }}
     return columns; 
@@ -161,6 +163,7 @@ class ListOrdersState extends State<ListOrders>{
     List<DataCell> cells = List<DataCell>.empty(growable: true);
     for (var item in row.keys) {switch(item){
       case 'sorszam':
+      case 'szallito':
       case 'vevo':    cells.add(DataCell(Text(row[item].toString())));  break;
       case 'kesz':    cells.add(DataCell((row[item].toString() == '1')
         ? Icon(Icons.check_circle, color: Global.getColorOfButton(ButtonState.default0), size: 30)
