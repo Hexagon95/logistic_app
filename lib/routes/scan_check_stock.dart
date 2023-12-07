@@ -25,12 +25,13 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   static StockState stockState =    StockState.default0;
   static String storageId =         '';
   static String itemId =            '';
+  static int? get selectedIndex {for(int i = 0; i < selectionList.length; i++) {if(selectionList[i]) return i;} return null;}
+  //static set selectedIndex(int? value) {if(value == null) return; selectionList[value] = !selectionList[value];}
   static bool storageFromExist =    true;
   static bool storageToExist =      true;
   static Map<String, dynamic>? currentItem;
   static List<dynamic>? barcodeResult;
   static TaskState? taskState;
-  static int? selectedIndex;
   static String? result;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -46,7 +47,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     buttonContinueToForm =  (selectionList.contains(true))? ButtonState.default0 : ButtonState.disabled;
     buttonGiveDatas =       (value == null)? ButtonState.disabled : ButtonState.default0;
     _selected =     value;
-    selectedIndex = value;
     setState((){});
   }}
   double? width;

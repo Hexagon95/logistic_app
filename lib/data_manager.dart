@@ -19,12 +19,12 @@ import 'package:flutter/foundation.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                           'v1.10.6';
+  static String versionNumber =                           'v1.10.7';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
-  //static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
-  static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
+  static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
+  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =                         true;
@@ -425,8 +425,8 @@ class DataManager{
           if(dataQuickCall[6][0]['success'] == 1){
             ScanCheckStockState.storageToExist =  true;
             ScanCheckStockState.result =          null;
-            ScanCheckStockState.selectedIndex =   null;
             DataFormState.amount =                null;
+            for(int i = 0; i < ScanCheckStockState.selectionList.length; i++) {ScanCheckStockState.selectionList[i] = false;}
           }
           else{
             ScanCheckStockState.storageToExist =  false;
