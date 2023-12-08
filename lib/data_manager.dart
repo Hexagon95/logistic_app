@@ -1,4 +1,5 @@
 // ignore_for_file: depend_on_referenced_packages, avoid_print
+import 'package:flutter/material.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/routes/menu.dart';
 import 'package:logistic_app/routes/log_in.dart';
@@ -530,7 +531,13 @@ class DataManager{
             
           }
           LogInMenuState.errorMessageBottomLine = data[0][0]['error'];
-          break;        
+          if(data[0][1]['szin'] != null){
+            List<int> inputColor = data[0][1]['szin'].toString().split(',').map(int.parse).toList();
+            Global.customColor[ButtonState.default0] = Color.fromRGBO(inputColor[0], inputColor[1], inputColor[2], 1.0);
+            Global.customColor[ButtonState.disabled] = Color.fromRGBO(inputColor[0], inputColor[1], inputColor[2], 0.25);
+            Global.customColor[ButtonState.loading] =  Global.invertColor(Global.getColorOfButton(ButtonState.default0));
+          }
+          break;
 
         case NextRoute.pickUpList:
         case NextRoute.orderOutList:

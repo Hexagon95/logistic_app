@@ -94,21 +94,22 @@ class Global{
   } 
 
   // ---------- < Global Methods > ----- ---------- ---------- ----------
-  static Color getColorOfButton(ButtonState buttonState){    
-    switch(buttonState){
-      case ButtonState.default0:  return const Color.fromRGBO(0, 180, 125, 1.0);
-      case ButtonState.disabled:  return const Color.fromRGBO(75, 255, 200, 1.0);
-      case ButtonState.loading:   return const Color.fromRGBO(0, 225, 0, 1.0);
-      case ButtonState.hidden:    return Colors.transparent;
-      default:                    return Colors.red;
-    }
-  }
+  static Color invertColor(Color input) => Color.fromRGBO((input.red - 255).abs(), (input.green - 255).abs(), (input.blue - 255).abs(), 1.0);
+
+  static Map<ButtonState, Color> customColor = {
+    ButtonState.default0: const Color.fromRGBO(0, 180, 125, 1.0),
+    ButtonState.disabled: const Color.fromRGBO(75, 255, 200, 1.0),
+    ButtonState.loading:  const Color.fromRGBO(0, 225, 0, 1.0),
+    ButtonState.hidden:   Colors.transparent,
+    ButtonState.error:    Colors.red
+  };
+  static Color getColorOfButton(ButtonState buttonState) => customColor[buttonState]!;
 
   static Color getColorOfIcon(ButtonState buttonState){    
     switch(buttonState){
       case ButtonState.default0:  return Colors.white;
       case ButtonState.disabled:  return const Color.fromRGBO(255, 255, 255, 0.3);
-      case ButtonState.loading:   return const Color.fromRGBO(0, 80, 0, 1.0);
+      case ButtonState.loading:   return const Color.fromRGBO(255, 255, 0, 1.0);
       case ButtonState.hidden:    return Colors.transparent;
       default:                    return Colors.red;
     }

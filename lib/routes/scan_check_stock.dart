@@ -481,8 +481,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   Future get _buttonPrintPressed async{
     setState(() => buttonPrint = ButtonState.loading);
     if(await Global.yesNoDialog(context,
-      title:    'Matricák nyomtatása',
-      content:  'Kinyomtat ${rawData[0]['tetelek'].length.toString()}db matricát?'
+      title:    'Címkék nyomtatása',
+      content:  'Kinyomtat ${rawData[0]['tetelek'].length.toString()}db címkét?'
     )){
       DataManager dataManager = DataManager(quickCall: QuickCall.print);
       await dataManager.beginQuickCall;
