@@ -294,7 +294,7 @@ class DataManager{
       switch(Global.currentRoute){
 
         case NextRoute.logIn:
-          var queryParameters = {       
+          var queryParameters = {
             'eszkoz_id':  identity.toString()
           };
           if(kDebugMode)print(queryParameters);
