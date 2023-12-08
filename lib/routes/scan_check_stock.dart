@@ -40,6 +40,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   ButtonState buttonPreviousStorage = ButtonState.default0;
   ButtonState buttonNextStorage =     ButtonState.default0;
   ButtonState buttonContinueToForm =  ButtonState.disabled;
+  ButtonState buttonPrint =           ButtonState.default0;
   ButtonState buttonAddItem =         ButtonState.default0;
   ButtonState buttonGiveDatas =       ButtonState.disabled;
   bool isProcessIndicator =           false;
@@ -223,6 +224,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     case TaskState.inventory: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         _drawButtonAddItem,
+        _drawButtonPrint,
         _drawButtonContinueToForm
       ])
     );
@@ -335,8 +337,20 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
       child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
         (buttonContinueToForm == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonContinueToForm)) : Container(),
-        Text(' Áru mozgatás ', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonContinueToForm))),
-        Icon(Icons.check_box_outlined, color: Global.getColorOfIcon(buttonContinueToForm), size: 30)
+        //Text(' Áru mozgatás ', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonContinueToForm))),
+        Icon(Icons.move_down, color: Global.getColorOfIcon(buttonContinueToForm), size: 30)
+      ]))
+    )
+    : Container()
+  ;
+
+  Widget get _drawButtonPrint => (stockState == StockState.checkStock)
+    ? TextButton(
+      onPressed:  () => (buttonPrint == ButtonState.default0)? _buttonPrintPressed : null,
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+      child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+        (buttonPrint == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonPrint)) : Container(),
+        Icon(Icons.print, color: Global.getColorOfIcon(buttonPrint), size: 30)
       ]))
     )
     : Container()
@@ -360,7 +374,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
       (buttonGiveDatas == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonGiveDatas)) : Container(),
-      Text(' Adatok ', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonGiveDatas))),
+      //Text(' Adatok ', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonGiveDatas))),
       Icon(Icons.edit_document, color: Global.getColorOfIcon(buttonGiveDatas), size: 30)
     ]))
   );
@@ -462,6 +476,18 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       await Navigator.pushNamed(context, '/dataForm');
     }
     else {setState((){});}
+  }
+
+  Future get _buttonPrintPressed async{
+    setState(() => buttonPrint = ButtonState.loading);
+    if(await Global.yesNoDialog(context,
+      title:    'Matricák nyomtatása',
+      content:  'Kinyomtat ${rawData[0]['tetelek'].length.toString()}db matricát?'
+    )){
+      DataManager dataManager = DataManager(quickCall: QuickCall.print);
+      await dataManager.beginQuickCall;
+    }
+    setState(() => buttonPrint = ButtonState.default0);
   }
 
   Future get _buttonOkPressed async{switch(taskState){

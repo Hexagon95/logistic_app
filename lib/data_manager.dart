@@ -19,12 +19,12 @@ import 'package:flutter/foundation.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                           'v1.10.7';
+  static String versionNumber =                           'v1.10.8';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
-  static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
-  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
+  //static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
+  static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =                         true;
@@ -245,7 +245,7 @@ class DataManager{
           break;
 
         case QuickCall.askAbroncs:
-        var queryParameters = {
+          var queryParameters = {
             'customer': data[0][1]['Ugyfel_id'].toString(),
             'id':       ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
           };
@@ -255,6 +255,21 @@ class DataManager{
           dataQuickCall[check(11)] = await jsonDecode(response.body);
           if(kDebugMode){
             String varString = dataQuickCall[11].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.print:
+          var queryParameters = {
+            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'tarhely':  ScanCheckStockState.storageId
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =              Uri.parse('${urlPath}print.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(12)] = await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[12].toString();
             print(varString);
           }
           break;
@@ -512,6 +527,7 @@ class DataManager{
           if(data[0].length > 1){
             if(data[0][1]['scanner'] != null) Global.isScannerDevice = (data[0][1]['scanner'].toString() == '1');
             MenuState.menuList = jsonDecode(data[0][1]['menu']);
+            
           }
           LogInMenuState.errorMessageBottomLine = data[0][0]['error'];
           break;        

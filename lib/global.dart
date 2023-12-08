@@ -13,7 +13,7 @@ enum TaskState    {askStorage,      scanStorage,    askProduct,             scan
   dataList
 }
 enum QuickCall    {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,       checkStock,     addItem,              saveSignature,
-  savePdf,        giveDatas,        chainGiveDatas, finishGiveDatas,        scanDestinationStorage, askAbroncs
+  savePdf,        giveDatas,        chainGiveDatas, finishGiveDatas,        scanDestinationStorage, askAbroncs,     print
 }
 enum DialogResult {cancel,          back,           mainMenu}
 enum StockState   {checkStock,      stockIn,        default0}

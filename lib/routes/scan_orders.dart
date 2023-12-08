@@ -501,7 +501,7 @@ class ScanOrdersState extends State<ScanOrders>{
       for (var i = 0; i < progressOfTasks.length; i++){
         if(progressOfTasks[i]) varString += '${rawData[i]['cikkszam']}\tMennyiség: ${rawData[i]['mennyiseg']}\tTárhely: ${rawData[i]['tarhely']}\n';
       }
-      if(varString.isEmpty) {Global.routeBack; return true;}
+      if(varString.isEmpty) {Global.routeBack; completedTasks.clear(); return true;}
       else{
         if( await Global.showAlertDialog(context,
           title:    'Termékek visszahelyezése',
@@ -546,7 +546,7 @@ class ScanOrdersState extends State<ScanOrders>{
     else{
       if(!allCompleted()) {await Global.showAlertDialog(context,
         title:    'Tovább lépés',
-        content:  'Nem került minden tétel kitárazásra!'
+        content:  'Nem került minden tétel bevételezésre!'
       );}
       else{_endTask;}
     }
