@@ -221,6 +221,7 @@ class DataManager{
             'customer': data[0][1]['Ugyfel_id'].toString(),
             'id':       ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
           };
+          if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}give_datas.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(9)] = await jsonDecode(response.body);
@@ -480,16 +481,21 @@ class DataManager{
         case QuickCall.giveDatas:
           DataFormState.rawData =           jsonDecode(dataQuickCall[9][0]['b'])['adatok'];
           DataFormState.listOfLookupDatas = <String, dynamic>{};
-          for(var item in DataFormState.rawData){
+          for(dynamic item in DataFormState.rawData){
+            if(item['id'] == 'id_208'){
+              if(kDebugMode)print('sflkjasdléfkj');
+            }
             if(!['select','search'].contains(item['input_field'])) continue;
-            DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(item['lookup_data']);
+            DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
           }
           if(kDebugMode)print(DataFormState.listOfLookupDatas);
           break;
 
         case QuickCall.chainGiveDatas:
-          for(var item in DataFormState.rawData[input['index']]['update_items']) {DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(item['lookup_data']);}
+          for(dynamic item in DataFormState.rawData[input['index']]['update_items']) {
+            DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));}
           for(int i = input['index'] + 1; i < DataFormState.rawData.length; i++) {DataFormState.rawData[i]['value'] = null;}
+          if(kDebugMode)print(DataFormState.listOfLookupDatas);
           DataFormState.listOfLookupDatas.forEach((key, value) {for(int i = 0; i < DataFormState.rawData.length; i++){
             if(DataFormState.rawData[i]['id'] == key){
               if(DataFormState.rawData[i]['input_field'] == 'text'){
@@ -497,7 +503,8 @@ class DataManager{
                 break;
               }
               if(['select','search'].contains(DataFormState.rawData[i]['input_field'])){
-                if(value[0]['id'] == null) {DataFormState.listOfLookupDatas[key] = List<dynamic>.empty();}
+                if(value[0]['id'] == null) {
+                  DataFormState.listOfLookupDatas[key] = List<dynamic>.empty();}
                 else {for(var item in value) {if(item['selected'] != null && item['selected'].toString() == '1') DataFormState.rawData[i]['value'] = item['id'];}}
                 break;
               }
@@ -528,15 +535,14 @@ class DataManager{
           if(data[0].length > 1){
             if(data[0][1]['scanner'] != null) Global.isScannerDevice = (data[0][1]['scanner'].toString() == '1');
             MenuState.menuList = jsonDecode(data[0][1]['menu']);
-            
+            if(data[0][1]['szin'] != null){
+              List<int> inputColor = data[0][1]['szin'].toString().split(',').map(int.parse).toList();
+              Global.customColor[ButtonState.default0] = Color.fromRGBO(inputColor[0], inputColor[1], inputColor[2], 1.0);
+              Global.customColor[ButtonState.disabled] = Color.fromRGBO(inputColor[0], inputColor[1], inputColor[2], 0.25);
+              Global.customColor[ButtonState.loading] =  Global.invertColor(Global.getColorOfButton(ButtonState.default0));
+            }
           }
           LogInMenuState.errorMessageBottomLine = data[0][0]['error'];
-          if(data[0][1]['szin'] != null){
-            List<int> inputColor = data[0][1]['szin'].toString().split(',').map(int.parse).toList();
-            Global.customColor[ButtonState.default0] = Color.fromRGBO(inputColor[0], inputColor[1], inputColor[2], 1.0);
-            Global.customColor[ButtonState.disabled] = Color.fromRGBO(inputColor[0], inputColor[1], inputColor[2], 0.25);
-            Global.customColor[ButtonState.loading] =  Global.invertColor(Global.getColorOfButton(ButtonState.default0));
-          }
           break;
 
         case NextRoute.pickUpList:
@@ -597,20 +603,35 @@ class DataManager{
   }
 
   // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Future<dynamic> _getLookupData(String input) async{
+  Future<dynamic> _getLookupData({required String input, required bool isPhp}) async{
     String sqlCommand = input.replaceAll("[id]", ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id'].toString());
     for(var item in DataFormState.rawData){
       String pattern = '[${item['id'].toString()}]';
       sqlCommand = sqlCommand.replaceAll(pattern, '\'${item['value'].toString()}\'');
     }
         
-    try{
-      Uri uriUrl =              Uri.parse('$sqlUrlLink$sqlCommand');
+    try {if(isPhp){
+      Uri uriUrl =              Uri.parse(Uri.encodeFull('$sqlUrlLink$sqlCommand').replaceAll('+', '%2b'));
+      if(kDebugMode)print(uriUrl.toString());
       http.Response response =  await http.post(uriUrl);
       dynamic result =          await jsonDecode(response.body);
       if(kDebugMode)print(result);
       return result;
     }
+    else{
+      if(sqlCommand.isEmpty) return [];
+      var queryParameters = {
+        'customer': data[0][1]['Ugyfel_id'].toString(),
+        'sql':      sqlCommand
+      };
+      if(kDebugMode)print(sqlCommand);
+      Uri uriUrl =              Uri.parse('${urlPath}select_sql.php');          
+      http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+      if(kDebugMode)print(response.body);
+      dynamic result =          await jsonDecode(response.body)[0]['result'];
+      if(kDebugMode)print(result);
+      return result;
+    }}
     catch(e) {print(e); return [];}
 
   }

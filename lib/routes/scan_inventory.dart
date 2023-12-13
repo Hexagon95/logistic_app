@@ -27,24 +27,21 @@ class ScanInventoryState extends State<ScanInventory>{
   static int? getSelectedIndex;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  TaskState taskState =     TaskState.default0;  
-  bool isProcessIndicator = false;
-  final GlobalKey qrKey =   GlobalKey(debugLabel: 'QR');
-  TextStyle formTextStyle = const TextStyle(fontSize: 14);
-
-  ButtonState buttonDelete = ButtonState.disabled;
-  int? _selectedIndex;
-  set selectedIndex(int? value){
-    if(buttonDelete != ButtonState.loading){
-      buttonDelete =      (value == null)? ButtonState.disabled : ButtonState.default0;
-      _selectedIndex =    value;
-      getSelectedIndex =  _selectedIndex;
-    }
-  }
-  int? get selectedIndex => _selectedIndex;
-  double? width;
-  double? qrScanCutOutSize;  
+  final GlobalKey qrKey =         GlobalKey(debugLabel: 'QR');
+  TaskState taskState =           TaskState.default0;  
+  TextStyle formTextStyle =       const TextStyle(fontSize: 14);
+  ButtonState buttonEditAmount =  ButtonState.disabled;
+  ButtonState buttonDelete =      ButtonState.disabled;
+  bool isProcessIndicator =       false;
   QRViewController? controller;
+  double? qrScanCutOutSize;  
+  double? width;
+  int? _selectedIndex; int? get selectedIndex => _selectedIndex; set selectedIndex(int? value) {if(buttonDelete != ButtonState.loading){
+    buttonDelete =      (value == null)? ButtonState.disabled : ButtonState.default0;
+    buttonEditAmount =  (value == null)? ButtonState.disabled : ButtonState.default0;
+    _selectedIndex =    value;
+    getSelectedIndex =  _selectedIndex;
+  }}
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
 
@@ -232,6 +229,7 @@ Widget get _drawBarcodeManual => Scaffold(
 
     case TaskState.inventory: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        _drawButtonEditAmount,
         _drawButtonDelete,
         _drawNewItem
       ])
@@ -352,6 +350,18 @@ Widget get _drawBarcodeManual => Scaffold(
     ])
   ));
 
+  Widget get _drawButtonEditAmount => Padding(padding: const EdgeInsets.all(5), child: TextButton(
+    onPressed:  () => (buttonEditAmount == ButtonState.default0)? _buttonEditAmountPressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Row(children: [
+      Visibility(visible: (buttonEditAmount == ButtonState.loading), child: _progressIndicator(Global.getColorOfIcon(buttonEditAmount))),
+      Icon(Icons.edit_note,
+        color: Global.getColorOfIcon(buttonEditAmount),
+        size: 30,      
+      )
+    ])
+  ));
+
   Widget get _drawFlash => TextButton(
     onPressed:  () => _toggleFlash,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
@@ -452,6 +462,13 @@ Widget get _drawBarcodeManual => Scaffold(
     await dataManager.beginQuickCall;
     await dataManager.beginProcess;
     setState(() {buttonDelete = ButtonState.default0;});
+  }
+  
+  Future get _buttonEditAmountPressed async{
+    setState(() => buttonEditAmount = ButtonState.loading);
+    int? varInt = await Global.integerDialog(context, title: 'Készlet módosítása', content: 'Mennyiség');
+    if(varInt != null) {rawData[selectedIndex!]['keszlet'] = (varInt > 0)? '$varInt.00' : '0.00';}
+    setState(() {buttonEditAmount = ButtonState.default0;});
   }
 
   void get _buttonBarcodeManualPressed => setState(() {controller!.stopCamera(); taskState = TaskState.barcodeManual;});
