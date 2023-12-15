@@ -15,10 +15,12 @@ class SqlCommand{
     public function select_tarhely_Id()                         {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tarhely_id] (:input)";}
     public function select_tarhelyKeszlet()                     {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tarhely_keszlet] (0, :tarhely_id, :datum)";}
     public function select_tarhelyKeszletEllenorzes()           {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tarhely_keszlet_ellenorzes] (:tarhely_id)";}
+    public function select_keszletellenorzesId()                {return "SELECT * FROM [" . $this->customer . "].[dbo].[Keszletellenorzes_Id] (:code)";}
     public function select_rendelesTetelek()                    {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Rendeles_tetelek] (:bizonylat_id)";}
     public function select_tabletBevetelezesTetelek()           {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Bevetelezes_tetelek] (:bizonylat_id)";}
     public function select_kiszedesTetelek()                    {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Kiszedes_tetelek] (:bizonylat_id)";}
     public function select_tabletLeltarVan()                    {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_LeltarVan] ()";}
+    public function select_tabletCikkInfo()                     {return "SELECT * FROM [" . $this->customer . "].[dbo].[Tablet_Cikk_info] (:id)";}
     public function select_abroncs_reszletezo()                 {return "SELECT * FROM [" . $this->customer . "].[local].[Abroncs_reszletezo] (:id)";}
     public function select_abroncsReszletezoPoziciokValasztas() {return "SELECT * FROM [" . $this->customer . "].[local].[Abroncs_reszletezo_poziciok_valasztas] (:id)";}
     public function select_vonalkod()                           {return "SELECT [id],[IP],[megnevezes] FROM [" . $this->customer . "].[local].[Cikk_kereses] (:vonalkod)";}

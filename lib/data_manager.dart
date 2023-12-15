@@ -20,7 +20,7 @@ import 'package:flutter/foundation.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                           'v1.10.8';
+  static String versionNumber =                           'v1.10.9';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
@@ -130,7 +130,7 @@ class DataManager{
         case QuickCall.checkStock:
           var queryParameters = {
             'customer':   data[0][1]['Ugyfel_id'].toString(),
-            'tarhely_id': ScanCheckStockState.storageId
+            'tarhely_id': ScanCheckStockState.storageId.toString()
           };
           Uri uriUrl =              Uri.parse('${urlPath}list_storage_check.php');          
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -272,6 +272,34 @@ class DataManager{
           dataQuickCall[check(12)] = await jsonDecode(response.body);
           if(kDebugMode){
             String varString = dataQuickCall[12].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.checkCode:
+          var queryParameters = {
+            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'code':     ScanCheckStockState.storageId.toString()
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}check_code.php');          
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(13)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[13].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.checkArticle:
+          var queryParameters = {
+            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'id':       dataQuickCall[13][0]['id'].toString()
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}check_article.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(14)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[14].toString();
             print(varString);
           }
           break;
@@ -492,10 +520,12 @@ class DataManager{
           break;
 
         case QuickCall.chainGiveDatas:
+          int getIndexFromId({required String id}) {for(int i = 0; i < DataFormState.rawData.length; i++) {if(DataFormState.rawData[i]['id'] == id) return i;} throw Exception('No such id in rawData: $id');}
+
           for(dynamic item in DataFormState.rawData[input['index']]['update_items']) {
-            DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));}
-          for(int i = input['index'] + 1; i < DataFormState.rawData.length; i++) {DataFormState.rawData[i]['value'] = null;}
-          if(kDebugMode)print(DataFormState.listOfLookupDatas);
+            DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
+            DataFormState.rawData[getIndexFromId(id: item['id'])]['value'] = null;
+          }
           DataFormState.listOfLookupDatas.forEach((key, value) {for(int i = 0; i < DataFormState.rawData.length; i++){
             if(DataFormState.rawData[i]['id'] == key){
               if(DataFormState.rawData[i]['input_field'] == 'text'){
@@ -503,19 +533,32 @@ class DataManager{
                 break;
               }
               if(['select','search'].contains(DataFormState.rawData[i]['input_field'])){
-                if(value[0]['id'] == null) {
-                  DataFormState.listOfLookupDatas[key] = List<dynamic>.empty();}
-                else {for(var item in value) {if(item['selected'] != null && item['selected'].toString() == '1') DataFormState.rawData[i]['value'] = item['id'];}}
+                if(value[0]['id'] == null) {DataFormState.listOfLookupDatas[key] = List<dynamic>.empty();}
+                else {for(var item in value){
+                  if(item['selected'] != null && item['selected'].toString() == '1') {DataFormState.rawData[i]['value'] = item['id']; break;}
+                }}
                 break;
               }
             }
           }});
-          if(kDebugMode)print(DataFormState.listOfLookupDatas);
+          //for(int i = input['index'] + 1; i < DataFormState.rawData.length; i++) {DataFormState.rawData[i]['value'] = null;}
+          //clearRawDatas(sor: int.parse(DataFormState.rawData[input['index']]['sor'].toString()));
           break;
 
         case QuickCall.askAbroncs:
           DataFormState.rawData2 =  [json.decode(dataQuickCall[11][0]['result'][0]['b'])];
           DataFormState.taskState = TaskState.dataList;
+          break;
+
+        case QuickCall.checkCode:
+          ScanCheckStockState.scannedCode =
+            (dataQuickCall[13][0]['tarhely'].toString() == '1')?  ScannedCodeIs.storage
+            : (dataQuickCall[13][0]['cikk'].toString() == '1')?   ScannedCodeIs.article
+            : ScannedCodeIs.unknown;
+          break;
+
+        case QuickCall.checkArticle:
+          ScanCheckStockState.rawData = jsonDecode(dataQuickCall[14][0]['tetelek']);
           break;
 
         default:break;

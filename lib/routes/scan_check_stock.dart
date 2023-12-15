@@ -19,16 +19,17 @@ class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---
 
 class ScanCheckStockState extends State<ScanCheckStock>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
-  static List<dynamic> rawData =    List<dynamic>.empty(growable: true);
-  static List<bool> selectionList = List<bool>.empty();
-  static dynamic messageData =      {};
-  static StockState stockState =    StockState.default0;
-  static String storageId =         '';
-  static String itemId =            '';
+  static List<dynamic> rawData =        List<dynamic>.empty(growable: true);
+  static List<bool> selectionList =     List<bool>.empty();
+  static dynamic messageData =          {};
+  static StockState stockState =        StockState.default0;
+  static ScannedCodeIs scannedCode =  ScannedCodeIs.unknown;
+  static String storageId =             '';
+  static String itemId =                '';
   static int? get selectedIndex {for(int i = 0; i < selectionList.length; i++) {if(selectionList[i]) return i;} return null;}
   //static set selectedIndex(int? value) {if(value == null) return; selectionList[value] = !selectionList[value];}
-  static bool storageFromExist =    true;
-  static bool storageToExist =      true;
+  static bool storageFromExist =        true;
+  static bool storageToExist =          true;
   static Map<String, dynamic>? currentItem;
   static List<dynamic>? barcodeResult;
   static TaskState? taskState;
@@ -50,6 +51,11 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     _selected =     value;
     setState((){});
   }}
+  BoxDecoration customBoxDecoration =       BoxDecoration(            
+    border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
+    color:        Colors.white,
+    borderRadius: const BorderRadius.all(Radius.circular(8))
+  );
   double? width;
   double? qrScanCutOutSize;
   QRViewController? controller;
@@ -130,9 +136,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     Scaffold(
       appBar: AppBar(
         title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          (stockState == StockState.checkStock)? _drawButtonPreviousStorage : Container(),
+          (stockState == StockState.checkStock && scannedCode == ScannedCodeIs.storage)? _drawButtonPreviousStorage : Container(),
           Text(storageId),
-          (stockState == StockState.checkStock)? _drawButtonNextStorage : Container()
+          (stockState == StockState.checkStock && scannedCode == ScannedCodeIs.storage)? _drawButtonNextStorage : Container()
         ]),
         backgroundColor:  Global.getColorOfButton(ButtonState.default0),
       ),
@@ -141,14 +147,15 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
           return (rawData.isNotEmpty) 
           ? Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            _drawDataTable,          
+            _drawDataTable,
             _drawBottomBar
           ]) 
           : const Center(child: Text('Nincs adat'));
         }
       )
     ),
-    Padding(padding: const EdgeInsets.fromLTRB(0, 70, 0, 0), child: Container(
+    (scannedCode != ScannedCodeIs.article)
+    ? Padding(padding: const EdgeInsets.fromLTRB(0, 70, 0, 0), child: Container(
       height:     25,
       decoration: BoxDecoration(
         color:        Global.getColorOfButton(ButtonState.default0),
@@ -157,20 +164,54 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       ),
       child:      Text(' Készlet: ${rawData[0]['tetelek'].length.toString()} ', style: TextStyle(color: Global.getColorOfIcon(ButtonState.default0), fontSize: 16, decoration: TextDecoration.none))
     ))
+    : Container()
   ]);
 
 // ---------- < WidgetBuild [3] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawDataTable => (rawData[0]['tetelek'].isNotEmpty)
-  ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
-    SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
-      columns:            _generateColumns,
-      columnSpacing:      25.0,
-      rows:               _generateRows,                
-      showCheckboxColumn: false,                
-      border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
-    ))
-  ))
-  : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));
+  Widget get _drawDataTable {switch(scannedCode){
+
+    case ScannedCodeIs.storage: return (rawData[0]['tetelek'].isNotEmpty)
+      ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
+        SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+          columns:            _generateColumns,
+          columnSpacing:      25.0,
+          rows:               _generateRows,                
+          showCheckboxColumn: false,                
+          border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
+        ))
+      ))
+      : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));  
+    
+    case ScannedCodeIs.article:
+      List<Widget> dataRows = List<Widget>.empty(growable: true);
+      for(dynamic item in rawData){
+        if(item['poziciok'] == null){
+          dataRows.add(Padding(padding: const EdgeInsets.all(2), child: Container(
+          decoration: customBoxDecoration,
+          padding:    const EdgeInsets.all(5),
+          child:      Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text(item['megnevezes'].toString()),
+            Text(item['ertek'].toString()),
+            Container()
+          ]))));
+        }
+        else{
+          dataRows.add(const Divider());
+          List<Widget> dataColumnsInTable = List<Widget>.empty(growable: true);
+          List<Widget> rowsOfTable =        List<Widget>.empty();
+          for(int i = 0; i < item['poziciok'][0]['adatok'].length; i++){
+            rowsOfTable = List<Widget>.empty(growable: true);
+            rowsOfTable.add(Text(item['poziciok'][0]['adatok'][i]['megnevezes']));
+            for(dynamic item2 in item['poziciok']) {rowsOfTable.add(Text(item2['adatok'][i]['ertek'].toString()));}
+            dataColumnsInTable.add(Column(children: rowsOfTable));
+          }
+          dataRows.add(Row(children: dataColumnsInTable));
+        }
+      }
+      return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, mainAxisSize: MainAxisSize.max, children: dataRows);
+
+    default: return Container();
+  }}
 
   Widget get _buildQrView => (!Global.isScannerDevice)
   ? QRView(
@@ -248,7 +289,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   // ---------- < WidgetBuild [4] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawTaskScanStorageText => const Padding(padding: EdgeInsets.all(5), child: Center(child: Text(
-    'Tárolóhely QR kódjának leolvasása',
+    'QR vagy Vonalkód leolvasása',
     style: TextStyle(color: Colors.white, fontSize: 16),
   )));
 
@@ -444,7 +485,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }  
 
   String get _getQRCodeScanTitle {switch(taskState){
-    case TaskState.scanStorage:             return 'Tárolóhely Azonosítása';
+    case TaskState.scanStorage:             return 'Azonosítás';
     case TaskState.scanDestinationStorage:  return 'Cél Tárolóhely Azonosítása';
     default:                                return 'Termék Azonosítása';
   }}
@@ -556,8 +597,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       return false;
     
     case TaskState.inventory: switch(await customDialog(context,
-      title:    '$storageId tárolóhely elhagyása?',
-      content:  'El kívánja hagyni az agkutális tárolóhelyet: $storageId és szkennelni egy másikat?'
+      title:    '$storageId ${(scannedCode == ScannedCodeIs.storage)? 'tárolóhely elhagyása?' : 'cikk elhagyása'}',
+      content:  'El kívánja hagyni az aktuális ${(scannedCode == ScannedCodeIs.storage)? 'tárolóhelyet' : 'cikket'}: $storageId és leolvas egy másikat?',
+      customButton: (scannedCode == ScannedCodeIs.storage)? 'Másik Tárolóhely' : 'Másik Cikk'
     )){      
       case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);    return false;
       case DialogResult.cancel:                                                       return false;
@@ -588,18 +630,38 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     switch(taskState){
 
       case TaskState.scanStorage:
-        DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
+        DataManager dataManager = DataManager(quickCall: QuickCall.checkCode);
         setState(() => isProcessIndicator = true);
         storageId = scannerDatas!.value.scanData;
         await dataManager.beginQuickCall;
-        if(storageFromExist){
-          buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
-          buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
-          setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
-        }
-        else{
-          await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
-          setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
+        switch(scannedCode){
+          
+          case ScannedCodeIs.storage:
+            dataManager = DataManager(quickCall: QuickCall.checkStock);
+            await dataManager.beginQuickCall;
+            if(storageFromExist){
+              buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+              buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+              setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+            }
+            else{
+              await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba!');
+              setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
+            }
+            break;
+
+          case ScannedCodeIs.article:
+            dataManager = DataManager(quickCall: QuickCall.checkArticle);
+            await dataManager.beginQuickCall;
+            setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+            break;
+
+          case ScannedCodeIs.unknown:
+            await Global.showAlertDialog(context, content: 'Ismeretlen vonal/QR kód!', title: 'Hiba!');
+            setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
+            break;
+
+          default:break;
         }
         break;
 
@@ -709,10 +771,10 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }}
 
 // ---------- < Dialogs > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Future<DialogResult> customDialog(BuildContext context, {String title = '', String content = ''}) async{
+  Future<DialogResult> customDialog(BuildContext context, {String title = '', String content = '', String? customButton}) async{
     Widget back = TextButton(
-      child: const Text('Másik Tárolóhely'),
-      onPressed: () => Navigator.pop(context, DialogResult.back)
+      child:      Text((customButton != null)? customButton : 'Másik Tárolóhely'),
+      onPressed:  () => Navigator.pop(context, DialogResult.back)
     );
 
     Widget mainMenu = TextButton(
