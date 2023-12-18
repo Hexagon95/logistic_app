@@ -35,7 +35,10 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   String get titleText {switch(Global.currentRoute){
     case NextRoute.dataFormGiveDatas: switch(taskState){
       case TaskState.dataList:  return 'Abroncsok kiválasztása';
-      default:                  return ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex!]['ip'];
+      default:                  return (ScanCheckStockState.scannedCode == ScannedCodeIs.storage)
+        ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex!]['ip']
+        : '${ScanCheckStockState.rawData[1]['ertek'].toString()} - ${ScanCheckStockState.rawData[2]['ertek'].toString()}'
+      ;
     }
     case NextRoute.dataFormMonetization:  return 'Ellenörzés';
     default:                              return 'Adja meg a mennyiséget';
@@ -137,22 +140,40 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     List<Widget> columnAmount = List<Widget>.empty(growable: true);
     String varString =          '';
 
-    for(int i = 0; i < ScanCheckStockState.selectionList.length; i++) {if(ScanCheckStockState.selectionList[i]){
-      varString = '';
-      for(String key in ScanCheckStockState.rawData[0]['tetelek'][i].keys){
-        if(!['id', 'hiba', 'keszlet'].contains(key)){varString += ScanCheckStockState.rawData[0]['tetelek'][i][key].toString();}
-      }
+    if(ScanCheckStockState.scannedCode == ScannedCodeIs.storage){
+      for(int i = 0; i < ScanCheckStockState.selectionList.length; i++) {if(ScanCheckStockState.selectionList[i]){
+        varString = '';
+        for(String key in ScanCheckStockState.rawData[0]['tetelek'][i].keys){
+          if(!['id', 'hiba', 'keszlet'].contains(key)) {varString += ScanCheckStockState.rawData[0]['tetelek'][i][key].toString();}
+        }
+        columnText.add(decor(
+          name:   'Tétel:',
+          ratio:  3.0 / 4.0,
+          input:  Text(varString, style: const TextStyle(fontSize: 16))
+        ));
+        columnAmount.add(decor(
+          name:   'Mennyiség:',
+          ratio:  1.0 / 4.0,
+          input:  Text(ScanCheckStockState.rawData[0]['tetelek'][i]['keszlet'].toString(), style: const TextStyle(fontSize: 16))
+        ));
+      }}
+    }
+    else{
       columnText.add(decor(
         name:   'Tétel:',
         ratio:  3.0 / 4.0,
-        input:  Text(varString, style: const TextStyle(fontSize: 16))
+        input:  Text(
+          '${ScanCheckStockState.rawData[1]['ertek'].toString()} - ${ScanCheckStockState.rawData[2]['ertek'].toString()} ${ScanCheckStockState.rawData[3]['ertek'].toString()}',
+          style:    const TextStyle(fontSize: 16),
+          softWrap: true,
+        )
       ));
       columnAmount.add(decor(
         name:   'Mennyiség:',
         ratio:  1.0 / 4.0,
-        input:  Text(ScanCheckStockState.rawData[0]['tetelek'][i]['keszlet'].toString(), style: const TextStyle(fontSize: 16))
+        input:  const Text('1', style: TextStyle(fontSize: 16))
       ));
-    }}
+    }
     return Expanded(child: SingleChildScrollView(child: Row(
       mainAxisAlignment:  MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,

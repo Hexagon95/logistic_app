@@ -20,12 +20,12 @@ import 'package:flutter/foundation.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                           'v1.10.9';
+  static String versionNumber =                           'v1.10.10';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
-  //static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
-  static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
+  static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
+  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =                         true;
@@ -219,7 +219,10 @@ class DataManager{
         case QuickCall.giveDatas:
           var queryParameters = {
             'customer': data[0][1]['Ugyfel_id'].toString(),
-            'id':       ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
+            'id':       (ScanCheckStockState.scannedCode == ScannedCodeIs.storage)
+              ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
+              : ScanCheckStockState.storageId.toString()
+            ,
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}give_datas.php');
@@ -249,7 +252,10 @@ class DataManager{
         case QuickCall.askAbroncs:
           var queryParameters = {
             'customer': data[0][1]['Ugyfel_id'].toString(),
-            'id':       ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
+            'id':       (ScanCheckStockState.scannedCode == ScannedCodeIs.storage)
+              ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
+              : ScanCheckStockState.storageId.toString()
+            ,
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}ask_abroncs.php');
@@ -264,7 +270,8 @@ class DataManager{
         case QuickCall.print:
           var queryParameters = {
             'customer': data[0][1]['Ugyfel_id'].toString(),
-            'tarhely':  ScanCheckStockState.storageId
+            'tarhely':  ScanCheckStockState.storageId,
+            'type':     (ScanCheckStockState.scannedCode == ScannedCodeIs.article)? 'article' : 'storage'
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}print.php');
@@ -510,9 +517,6 @@ class DataManager{
           DataFormState.rawData =           jsonDecode(dataQuickCall[9][0]['b'])['adatok'];
           DataFormState.listOfLookupDatas = <String, dynamic>{};
           for(dynamic item in DataFormState.rawData){
-            if(item['id'] == 'id_208'){
-              if(kDebugMode)print('sflkjasdléfkj');
-            }
             if(!['select','search'].contains(item['input_field'])) continue;
             DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
           }
@@ -647,7 +651,13 @@ class DataManager{
 
   // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future<dynamic> _getLookupData({required String input, required bool isPhp}) async{
-    String sqlCommand = input.replaceAll("[id]", ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id'].toString());
+    String sqlCommand = input.replaceAll(
+      "[id]",
+      (ScanCheckStockState.scannedCode == ScannedCodeIs.storage)
+        ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id'].toString()
+        : ScanCheckStockState.storageId.toString()
+      ,
+    );
     for(var item in DataFormState.rawData){
       String pattern = '[${item['id'].toString()}]';
       sqlCommand = sqlCommand.replaceAll(pattern, '\'${item['value'].toString()}\'');

@@ -43,7 +43,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   ButtonState buttonContinueToForm =  ButtonState.disabled;
   ButtonState buttonPrint =           ButtonState.default0;
   ButtonState buttonAddItem =         ButtonState.default0;
-  ButtonState buttonGiveDatas =       ButtonState.disabled;
+  ButtonState buttonGiveDatas =       ButtonState.default0;
   bool isProcessIndicator =           false;
   int? _selected; int? get selected => _selected; set selected(int? value) {if(buttonContinueToForm != ButtonState.loading){
     buttonContinueToForm =  (selectionList.contains(true))? ButtonState.default0 : ButtonState.disabled;
@@ -64,7 +64,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   ScanCheckStockState(){
-    taskState ??= TaskState.default0;
+    taskState ??=     TaskState.default0;
     if(Global.isScannerDevice){
       scannerDatas =    ValueNotifier(ScannerDatas(dateTime: '', scanData: '', symbology: ''));
       scannerHardware = ScannerHardware(scannerDatas: scannerDatas!, profileName: 'ScanCheckStock');
@@ -137,7 +137,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       appBar: AppBar(
         title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           (stockState == StockState.checkStock && scannedCode == ScannedCodeIs.storage)? _drawButtonPreviousStorage : Container(),
-          Text(storageId),
+          Text((scannedCode == ScannedCodeIs.article)? 'Cikk' : storageId),
           (stockState == StockState.checkStock && scannedCode == ScannedCodeIs.storage)? _drawButtonNextStorage : Container()
         ]),
         backgroundColor:  Global.getColorOfButton(ButtonState.default0),
@@ -189,26 +189,39 @@ class ScanCheckStockState extends State<ScanCheckStock>{
           dataRows.add(Padding(padding: const EdgeInsets.all(2), child: Container(
           decoration: customBoxDecoration,
           padding:    const EdgeInsets.all(5),
-          child:      Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(item['megnevezes'].toString()),
-            Text(item['ertek'].toString()),
+          child:      Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            SizedBox(width: 120, child: Text(item['megnevezes'].toString())),
+            SizedBox(width: MediaQuery.of(context).size.width - 140, child: Text(
+              item['ertek'].toString(),
+              softWrap: true,
+              style:    const TextStyle(fontWeight: FontWeight.bold))
+              ),
             Container()
           ]))));
         }
         else{
-          dataRows.add(const Divider());
+          //dataRows.add(const Divider());
           List<Widget> dataColumnsInTable = List<Widget>.empty(growable: true);
           List<Widget> rowsOfTable =        List<Widget>.empty();
           for(int i = 0; i < item['poziciok'][0]['adatok'].length; i++){
             rowsOfTable = List<Widget>.empty(growable: true);
-            rowsOfTable.add(Text(item['poziciok'][0]['adatok'][i]['megnevezes']));
-            for(dynamic item2 in item['poziciok']) {rowsOfTable.add(Text(item2['adatok'][i]['ertek'].toString()));}
+            rowsOfTable.add(Padding(
+              padding:  const EdgeInsets.fromLTRB(0, 0, 0, 10),
+              child:    Text(item['poziciok'][0]['adatok'][i]['megnevezes'], style: const TextStyle(fontWeight: FontWeight.bold))
+            ));
+            for(dynamic item2 in item['poziciok']) {rowsOfTable.add(Padding(
+              padding:  const EdgeInsets.fromLTRB(0, 0, 0, 5),
+              child:    Text(item2['adatok'][i]['ertek'].toString())
+            ));}
             dataColumnsInTable.add(Column(children: rowsOfTable));
           }
-          dataRows.add(Row(children: dataColumnsInTable));
+          dataRows.add(Padding(
+            padding:  const EdgeInsets.all(20),
+            child:    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: dataColumnsInTable)
+          ));
         }
       }
-      return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, mainAxisSize: MainAxisSize.max, children: dataRows);
+      return Expanded(child: SingleChildScrollView(child: Column(children: dataRows)));
 
     default: return Container();
   }}
@@ -242,42 +255,52 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     default:                      return Container();
   }}
 
-  Widget get _drawBottomBar{ switch(taskState){
+  Widget get _drawBottomBar{
+    if(scannedCode == ScannedCodeIs.article){
+      if(buttonGiveDatas ==       ButtonState.disabled) buttonGiveDatas =       ButtonState.default0;
+      if(buttonContinueToForm ==  ButtonState.disabled) buttonContinueToForm =  ButtonState.default0;
+    }
+    else if(!selectionList.contains(true)){
+      buttonGiveDatas =       ButtonState.disabled;
+      buttonContinueToForm =  ButtonState.disabled;
+    }
+    switch(taskState){
 
-    case TaskState.scanProduct:
-    case TaskState.scanStorage: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-          _drawFlash,
-          _drawFlipCamera,        
-        ]),
-        (taskState == TaskState.scanStorage)? _drawButtonBarcodeManual : Container(),
-        const SizedBox(height: 1)
-      ])
-    );
-    
-    case TaskState.barcodeManual: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [        
-        _drawButtonOk
-      ])
-    );
+      case TaskState.scanProduct:
+      case TaskState.scanStorage: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            _drawFlash,
+            _drawFlipCamera,        
+          ]),
+          (taskState == TaskState.scanStorage)? _drawButtonBarcodeManual : Container(),
+          const SizedBox(height: 1)
+        ])
+      );
+      
+      case TaskState.barcodeManual: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [        
+          _drawButtonOk
+        ])
+      );
 
-    case TaskState.inventory: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        _drawButtonAddItem,
-        _drawButtonPrint,
-        _drawButtonContinueToForm
-      ])
-    );
+      case TaskState.inventory: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          _drawButtonAddItem,
+          _drawButtonPrint,
+          _drawButtonContinueToForm
+        ])
+      );
 
-    case TaskState.itemData: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        _drawButtonOk
-      ])
-    );
+      case TaskState.itemData: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          _drawButtonOk
+        ])
+      );
 
-    default: return Container();
-  }}
+      default: return Container();
+    }
+  }
 
   Widget get _drawErrorMessaggeBottomline => Visibility(
     visible:  !DataManager.isServerAvailable,
@@ -513,17 +536,14 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     setState(() => buttonContinueToForm = ButtonState.loading);
     Global.routeNext =        NextRoute.dataFormMonetization;
     buttonContinueToForm =    ButtonState.default0;
-    if(DataManager.isServerAvailable){
-      await Navigator.pushNamed(context, '/dataForm');
-    }
-    else {setState((){});}
+    await Navigator.pushNamed(context, '/dataForm');
   }
 
   Future get _buttonPrintPressed async{
     setState(() => buttonPrint = ButtonState.loading);
     if(await Global.yesNoDialog(context,
-      title:    'Címkék nyomtatása',
-      content:  'Kinyomtat ${rawData[0]['tetelek'].length.toString()}db címkét?'
+      title:    (scannedCode == ScannedCodeIs.article)? 'Címke nyomtatása' : 'Címkék nyomtatása',
+      content:  (scannedCode == ScannedCodeIs.article)? 'Címke nyomtatása?' : 'Kinyomtat ${rawData[0]['tetelek'].length.toString()}db címkét?'
     )){
       DataManager dataManager = DataManager(quickCall: QuickCall.print);
       await dataManager.beginQuickCall;
@@ -596,15 +616,20 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       setState(() => taskState = TaskState.inventory);
       return false;
     
-    case TaskState.inventory: switch(await customDialog(context,
-      title:    '$storageId ${(scannedCode == ScannedCodeIs.storage)? 'tárolóhely elhagyása?' : 'cikk elhagyása'}',
-      content:  'El kívánja hagyni az aktuális ${(scannedCode == ScannedCodeIs.storage)? 'tárolóhelyet' : 'cikket'}: $storageId és leolvas egy másikat?',
-      customButton: (scannedCode == ScannedCodeIs.storage)? 'Másik Tárolóhely' : 'Másik Cikk'
-    )){      
-      case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);    return false;
-      case DialogResult.cancel:                                                       return false;
-      default:                  taskState = TaskState.scanStorage; Global.routeBack;  return true;
-    }
+    case TaskState.inventory: 
+      if(scannedCode == ScannedCodeIs.storage) {switch(await customDialog(context,
+        title:    '$storageId tárolóhely elhagyása?',
+        content:  'El kívánja hagyni az aktuális tárolóhelyet: $storageId és leolvas egy másikat?',
+        customButton: (scannedCode == ScannedCodeIs.storage)? 'Másik Tárolóhely' : 'Másik Cikk'
+      )){      
+        case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);    return false;
+        case DialogResult.cancel:                                                       return false;
+        default:                  taskState = TaskState.scanStorage; Global.routeBack;  return true;
+      }}
+      else {
+        setState(() => taskState = TaskState.scanStorage);
+        return false;
+      }
     
     case TaskState.barcodeManual:
       setState(() => taskState = TaskState.scanStorage);
@@ -668,16 +693,26 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         case TaskState.scanDestinationStorage:
           DataManager dataManager = DataManager(
             quickCall:  QuickCall.scanDestinationStorage,
-            input:      {
+            input:      (scannedCode == ScannedCodeIs.storage)
+            ? {
               'storageFrom':  storageId,
               'storageTo':    scannerDatas!.value.scanData,
               'cikkek':       getSelectedItems(),
+            }
+            : {
+              'storageFrom':  rawData[5]['ertek'].toString(),
+              'storageTo':    scannerDatas!.value.scanData,
+              'cikkek':       [{
+                'cikk_id':    storageId,
+                'mennyiseg':  1
+              }]
             }
           );
           if(!Global.isScannerDevice) await controller!.pauseCamera();
           setState((){});
           await dataManager.beginQuickCall;
           if(storageToExist){
+            scannedCode = ScannedCodeIs.storage;
             if(!Global.isScannerDevice) controller!.resumeCamera();
             dataManager =           DataManager(quickCall: QuickCall.checkStock);
             storageId =             scannerDatas!.value.scanData;

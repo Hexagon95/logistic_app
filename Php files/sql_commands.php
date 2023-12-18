@@ -38,6 +38,7 @@ class SqlCommand{
 	public function exec_bizonylatDokumentumFelvitele()         {return "EXEC [" . $this->customer . "].[dbo].[BizonylatDokumentumFelvitele] :parameter";}
     public function exec_abroncs_reszletezo_felvitele()         {return "EXEC [" . $this->customer . "].[local].[Abroncs_reszletezo_felvitele_temp] :parameter";}
     public function exec_barcodePrintTarhelyCikkek()            {return "EXEC [" . $this->customer . "].[local].[Barcode_print_tarhely_cikkek] :tarhely";}
+    public function exec_barcodePrintFelvitele()                {return "EXEC [" . $this->customer . "].[local].[Barcode_print_Felvitele] :tarhely";}
 	public function exec_tabletBetarolasFelvitele()             {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, :kimenet";}
     //public function exec_tabletBetarolasFelvitele()         {return "DECLARE @RC varchar(max); DECLARE @X varchar(max); EXEC @RC = [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, @X OUTPUT; SELECT @X;";}
     //public function exec_tabletBetarolasFelvitele()         {return "EXEC [" . $this->customer . "].[dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id";}
