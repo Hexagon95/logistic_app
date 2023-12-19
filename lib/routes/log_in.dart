@@ -75,7 +75,26 @@ class LogInMenuState extends State<LogInMenuFrame>{
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get _enterPressed async{
-    buttonState =             ButtonState.loading;
+    errorMessageBottomLine = '';
+    setState(() => buttonState = ButtonState.loading);
+    DataManager dataManager = DataManager();
+    await dataManager.beginProcess;
+    if(errorMessageBottomLine.isNotEmpty){
+      await Global.showAlertDialog(context, title: 'Hiba!', content: errorMessageBottomLine);
+      setState(() => buttonState = ButtonState.default0);
+      return;
+    }    
+    Global.routeNext = NextRoute.menu;
+    await dataManager.beginProcess;
+    buttonState =             ButtonState.default0;
+    if(errorMessageBottomLine.isEmpty) {await Navigator.pushNamed(context, '/menu');}
+    else{
+      await Global.showAlertDialog(context, title: 'Hiba', content: errorMessageBottomLine);
+      Global.routeBack;
+    }
+    setState((){});
+
+    /*buttonState =             ButtonState.loading;
     setState((){});
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
@@ -88,7 +107,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
       }
       else {Global.showAlertDialog(context, title: 'Hiba', content: errorMessageBottomLine);}
     }
-    setState((){});    
+    setState((){});*/
   }
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ----------

@@ -20,15 +20,16 @@ import 'package:flutter/foundation.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String versionNumber =                           'v1.10.10';
+  static String versionNumber =                           'v1.10.11';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
-  static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
-  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
+  //static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
+  static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =                         true;
+  static String? customer;
   static Identity? identity;
 
   // ---------- < Variables [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -74,7 +75,7 @@ class DataManager{
 
         case QuickCall.askBarcode:
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(), 
+            'customer':   customer, 
             'vonalkod':   ScanInventoryState.result!
           };
           if(kDebugMode)print(queryParameters);
@@ -87,7 +88,7 @@ class DataManager{
         case QuickCall.deleteItem:
           var varJson = jsonDecode(data[1][0]['keszlet']);
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'customer':   customer,
             'cikk_id':    ScanInventoryState.rawData[ScanInventoryState.getSelectedIndex!]['kod'],
             'raktar_id':  varJson[0]['tarhely_id'].toString()
           };
@@ -102,7 +103,7 @@ class DataManager{
         case QuickCall.saveInventory:
           var varJson = jsonDecode(data[1][0]['keszlet']);
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'customer':   customer,
             'datum':      dataQuickCall[3][0]['leltar_van'],
             'cikk_id':    dataQuickCall[0][0]['result'][0]['id'].toString(),
             'raktar_id':  varJson[0]['tarhely_id'].toString(),
@@ -118,7 +119,7 @@ class DataManager{
 
         case QuickCall.askInventoryDate:
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString()
+            'customer':   customer
           };
           Uri uriUrl =                  Uri.parse('${urlPath}ask_inventory_date.php');          
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -129,7 +130,7 @@ class DataManager{
 
         case QuickCall.checkStock:
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'customer':   customer,
             'tarhely_id': ScanCheckStockState.storageId.toString()
           };
           Uri uriUrl =              Uri.parse('${urlPath}list_storage_check.php');          
@@ -147,7 +148,7 @@ class DataManager{
 
             case 'signature': queryParameters = {
               'mode':     'signature',
-              'customer': data[0][1]['Ugyfel_id'].toString(),
+              'customer': customer,
               'id':       ListDeliveryNoteState.getSelectedId,
               'alairas':  ListDeliveryNoteState.signatureBase64,
               'alairo':   ListDeliveryNoteState.signatureTextController.text
@@ -155,7 +156,7 @@ class DataManager{
 
             case 'deliveryNote': queryParameters = {
               'mode':       'deliveryNote',
-              'customer':   data[0][1]['Ugyfel_id'].toString(),
+              'customer':   customer,
               'id':         ListDeliveryNoteState.getSelectedId,
               'fuvarlevel': ListDeliveryNoteState.signatureTextController.text
             }; break;
@@ -173,7 +174,7 @@ class DataManager{
 
         case QuickCall.scanDestinationStorage:
           var queryParameters =         input;
-          queryParameters['customer'] = data[0][1]['Ugyfel_id'].toString();
+          queryParameters['customer'] = customer;
           Uri uriUrl =                  Uri.parse('${urlPath}move_product.php');
           http.Response response =      await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(6)] =     await jsonDecode(response.body);
@@ -185,7 +186,7 @@ class DataManager{
 
         case QuickCall.savePdf:
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'customer':   customer,
             'id':         ListDeliveryNoteState.getSelectedId,
             'pdf':        base64Encode(File(ListDeliveryNoteState.pdfPath!).readAsBytesSync())
           };
@@ -201,7 +202,7 @@ class DataManager{
 
         case QuickCall.addItem:
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'customer':   customer,
             'tarhely_id': ScanCheckStockState.storageId.toString(),
             'cikk_id':    ScanCheckStockState.itemId.toString(),
             'mennyiseg':  1,
@@ -218,7 +219,7 @@ class DataManager{
 
         case QuickCall.giveDatas:
           var queryParameters = {
-            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'customer': customer,
             'id':       (ScanCheckStockState.scannedCode == ScannedCodeIs.storage)
               ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
               : ScanCheckStockState.storageId.toString()
@@ -236,7 +237,7 @@ class DataManager{
 
         case QuickCall.finishGiveDatas:
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'customer':   customer,
             'parameter':  jsonEncode([DataFormState.rawData, DataFormState.rawData2])
           };
           if(kDebugMode)print(queryParameters);
@@ -251,7 +252,7 @@ class DataManager{
 
         case QuickCall.askAbroncs:
           var queryParameters = {
-            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'customer': customer,
             'id':       (ScanCheckStockState.scannedCode == ScannedCodeIs.storage)
               ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
               : ScanCheckStockState.storageId.toString()
@@ -269,7 +270,7 @@ class DataManager{
 
         case QuickCall.print:
           var queryParameters = {
-            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'customer': customer,
             'tarhely':  ScanCheckStockState.storageId,
             'type':     (ScanCheckStockState.scannedCode == ScannedCodeIs.article)? 'article' : 'storage'
           };
@@ -285,7 +286,7 @@ class DataManager{
 
         case QuickCall.checkCode:
           var queryParameters = {
-            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'customer': customer,
             'code':     ScanCheckStockState.storageId.toString()
           };
           Uri uriUrl =                Uri.parse('${urlPath}check_code.php');          
@@ -299,7 +300,7 @@ class DataManager{
 
         case QuickCall.checkArticle:
           var queryParameters = {
-            'customer': data[0][1]['Ugyfel_id'].toString(),
+            'customer': customer,
             'id':       dataQuickCall[13][0]['id'].toString()
           };
           Uri uriUrl =                Uri.parse('${urlPath}check_article.php');
@@ -331,6 +332,7 @@ class DataManager{
 
         case NextRoute.logIn:
           var queryParameters = {
+            'customer':   customer,
             'eszkoz_id':  identity.toString()
           };
           if(kDebugMode)print(queryParameters);
@@ -345,7 +347,7 @@ class DataManager{
 
         case NextRoute.pickUpList:
           var queryParameters = {       
-            'customer': data[0][1]['Ugyfel_id'].toString()
+            'customer': customer
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_pick_ups.php');
@@ -357,7 +359,7 @@ class DataManager{
 
         case NextRoute.orderOutList:
           var queryParameters = {       
-            'customer': data[0][1]['Ugyfel_id'].toString()
+            'customer': customer
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_orders_out.php');
@@ -368,7 +370,7 @@ class DataManager{
 
         case NextRoute.orderList:
           var queryParameters = {       
-            'customer': data[0][1]['Ugyfel_id'].toString()
+            'customer': customer
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_orders.php');
@@ -379,7 +381,7 @@ class DataManager{
 
         case NextRoute.deliveryNoteList:
           var queryParameters = {
-            'customer':     data[0][1]['Ugyfel_id'].toString(),
+            'customer':     customer,
             'dolgozo_kod':  data[0][1]['dolgozo_kod'].toString()
           };
           Uri uriUrl =              Uri.parse('${urlPath}list_delivery_notes.php');
@@ -393,7 +395,7 @@ class DataManager{
 
         case NextRoute.inventory:
           var queryParameters = {
-            'customer':   data[0][1]['Ugyfel_id'].toString(),
+            'customer':   customer,
             'tarhely_id': ScanInventoryState.storageId,
             'datum':      dataQuickCall[3][0]['leltar_van']
           };
@@ -407,7 +409,7 @@ class DataManager{
 
         case NextRoute.pickUpData:
           var queryParameters = {
-            'customer':     data[0][1]['Ugyfel_id'].toString(),
+            'customer':     customer,
             'bizonylat_id': data[1][ListOrdersState.getSelectedIndex!]['id']
           };
           if(kDebugMode)print(queryParameters);
@@ -419,7 +421,7 @@ class DataManager{
 
         case NextRoute.pickUpDataFinish:          
           var queryParameters = {
-            'customer':         data[0][1]['Ugyfel_id'].toString(),
+            'customer':         customer,
             'kiszedesi_lista':  json.encode(_kiszedesiLista)
           };
           if(kDebugMode)print(queryParameters);
@@ -431,7 +433,7 @@ class DataManager{
 
         case NextRoute.scanTasks:
           var queryParameters = {
-            'customer':     data[0][1]['Ugyfel_id'].toString(),
+            'customer':     customer,
             'bizonylat_id': data[1][ListOrdersState.getSelectedIndex!]['id']
           };
           if(kDebugMode)print(queryParameters);
@@ -443,7 +445,7 @@ class DataManager{
 
         case NextRoute.finishTasks:
           var queryParameters = {
-            'customer':         data[0][1]['Ugyfel_id'].toString(),
+            'customer':         customer,
             'completed_tasks':  json.encode({
               'id':       data[1][ListOrdersState.getSelectedIndex!]['id'],
               'tetelek':  _cropCompletedTasks
@@ -580,6 +582,7 @@ class DataManager{
 
         case NextRoute.logIn:
           if(data[0].length > 1){
+            customer = data[0][1]['Ugyfel_id'].toString();
             if(data[0][1]['scanner'] != null) Global.isScannerDevice = (data[0][1]['scanner'].toString() == '1');
             MenuState.menuList = jsonDecode(data[0][1]['menu']);
             if(data[0][1]['szin'] != null){
@@ -674,7 +677,7 @@ class DataManager{
     else{
       if(sqlCommand.isEmpty) return [];
       var queryParameters = {
-        'customer': data[0][1]['Ugyfel_id'].toString(),
+        'customer': customer,
         'sql':      sqlCommand
       };
       if(kDebugMode)print(sqlCommand);

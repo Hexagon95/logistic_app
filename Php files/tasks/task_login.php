@@ -18,7 +18,8 @@ class Task{
     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
         $this->sqlCommand =         new SqlCommand();
-        $this->databaseManager =    new DatabaseManager($this->sqlCommand->select_tabletLista(), [
+        $this->databaseManager =    new DatabaseManager(
+            $this->sqlCommand->select_tabletLista(),[
             'eszkoz_id' =>      $this->request['eszkoz_id']
         ]);
         $this->result = array([

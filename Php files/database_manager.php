@@ -19,7 +19,7 @@ class DatabaseManager{
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _connect($pdoDatabase){
         try {            
-            $this->conn = new PDO("sqlsrv:Server=$this->pdoServer;Database=$pdoDatabase;", $this->pdoUser, $this->pdoPassword);            
+            $this->conn = new PDO("sqlsrv:Server=$this->pdoServer;Database=$pdoDatabase;", $this->pdoUser, $this->pdoPassword);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
         catch (\Throwable $th) {            
