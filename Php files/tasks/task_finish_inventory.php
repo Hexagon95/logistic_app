@@ -17,7 +17,7 @@ class Task{
     private function _inizialite(){
         $date = new DateTime();
         $this->request =            json_decode(file_get_contents('php://input'), true);
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);
+        $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->exec_finishInventory(),
             ['input' => json_encode([
@@ -28,7 +28,8 @@ class Task{
                 'raktar_id' =>  $this->request['raktar_id'],
                 'mennyiseg' =>  $this->request['mennyiseg'],
                 'megjegyzes'=>  ''
-            ])]
+            ])],
+            $this->request['customer']
         );
         $this->result = $this->databaseManager->getData();
     }

@@ -1,0 +1,1 @@
+Update [mosaic].[dbo].[Eszkozok] SET [Ugyfel_id] = 'mercarius' Where [Eszkoz_id] = 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3' AND [Felhasznalo_id] = 1

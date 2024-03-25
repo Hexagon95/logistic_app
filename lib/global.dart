@@ -4,21 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
-enum NextRoute      {logIn,           menu,           orderList,              orderOutList,           pickUpList,             deliveryNoteList,     checkStock,
-  inventory,        pickUpData,       default0,       pickUpDataFinish,       scanTasks,              finishTasks,            dataFormMonetization, dataFormGiveDatas
+enum NextRoute{               logIn,                menu,         orderList,            orderOutList,       pickUpList,               deliveryNoteList,
+  checkStock,                 inventory,            pickUpData,   default0,             pickUpDataFinish,   scanTasks,                finishTasks,
+  dataFormMonetization,       dataFormGiveDatas,    deliveryOut,  incomingDeliveryNote 
 }
-enum ButtonState    {hidden,          loading,        disabled,               error,                  default0}
-enum TaskState      {askStorage,      scanStorage,    askProduct,             scanProduct,            barcodeManual,          inventory,            listDeliveryNotes,
-  itemData,         default0,         wrongItem,      handleProduct,          scanDestinationStorage, showPDF,                signature,            dataForm,
-  dataList
+enum ButtonState{             hidden,               loading,      disabled,             error,              default0}
+enum TaskState{               askStorage,           scanStorage,  askProduct,           scanProduct,        barcodeManual,            inventory,
+  listDeliveryNotes,          itemData,             default0,     wrongItem,            handleProduct,      scanDestinationStorage,   showPDF,
+  signature,                  dataForm,             dataList
 }
-enum QuickCall      {askBarcode,      deleteItem,     saveInventory,          askInventoryDate,       checkCode,              checkStock,           addItem,
-saveSignature,      savePdf,          giveDatas,      chainGiveDatas,         finishGiveDatas,        scanDestinationStorage, askAbroncs,           print,
-checkArticle
+enum QuickCall{               askBarcode,           deleteItem,   saveInventory,        askInventoryDate,   checkCode,                checkStock,
+  addItem,                    saveSignature,        savePdf,      giveDatas,            chainGiveDatas,     finishGiveDatas,          scanDestinationStorage,
+  askAbroncs,                 print,                checkArticle, newEntry,             verzio,             tabletBelep,              addNewDeliveryNote,
+  addNewDeliveryNoteFinished, askDeliveryNotesScan, 
 }
-enum DialogResult   {cancel,          back,           mainMenu}
-enum StockState     {checkStock,      stockIn,        default0}
-enum ScannedCodeIs  {storage,         article,        unknown}
+enum DialogResult{            cancel,               back,         mainMenu}
+enum StockState{              checkStock,           stockIn,      default0}
+enum ScannedCodeIs{           storage,              article,      unknown}
+enum InDelNoteState{          addItem,              listItems,    addNew,               default0}
 
 class Global{
   // ---------- < Variables [Static] > - ---------- ---------- ----------
@@ -31,6 +34,8 @@ class Global{
       case NextRoute.logIn:                 _routes[check(0)] =   value;  break;
       case NextRoute.menu:                  _routes[check(1)] =   value;  break;
       case NextRoute.orderList:             _routes[check(2)] =   value;  break;
+      case NextRoute.deliveryOut:           _routes[check(2)] =   value;  break;
+      case NextRoute.incomingDeliveryNote:  _routes[check(2)] =   value;  break;
       case NextRoute.orderOutList:          _routes[check(2)] =   value;  break;
       case NextRoute.pickUpList:            _routes[check(2)] =   value;  break;
       case NextRoute.deliveryNoteList:      _routes[check(2)] =   value;  break;
@@ -183,6 +188,10 @@ class Global{
     }
     return items;
   }
+
+  static dynamic where(List<dynamic> input, String entry, String value) {for(dynamic item in input){
+    if(item[entry] == value) return item;
+  }}
 
   // ---------- < Methods [1] > -------- ---------- ---------- ----------
   static void get _printRoutes{

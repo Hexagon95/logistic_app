@@ -21,25 +21,33 @@ class Task{
 
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _executeSignature(){
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);        
-        $this->databaseManager =    new DatabaseManager($this->sqlCommand->exec_bizonylatAlairasFelvitele(), [
-            'parameter' => json_encode(array(
-                'id' =>         $this->request['id'],
-                'alairas' =>    $this->request['alairas'],
-                'alairo' =>     $this->request['alairo']
-            )),
-        ]);
+        $this->sqlCommand =         new SqlCommand();
+        $this->databaseManager =    new DatabaseManager(
+            $this->sqlCommand->exec_bizonylatAlairasFelvitele(),
+            [
+                'parameter' => json_encode(array(
+                    'id' =>         $this->request['id'],
+                    'alairas' =>    $this->request['alairas'],
+                    'alairo' =>     $this->request['alairo']
+                ))
+            ],
+            $this->request['customer']
+        );
         $this->result = $this->databaseManager->getData();
     }
 
     private function _executeDeliveryNote(){
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);        
-        $this->databaseManager =    new DatabaseManager($this->sqlCommand->exec_bizonylatFuvarlevelszamFelvitele(), [
-            'parameter' => json_encode(array(
-                'id' =>         $this->request['id'],
-                'fuvarlevel' => $this->request['fuvarlevel'],
-            )),
-        ]);
+        $this->sqlCommand =         new SqlCommand();
+        $this->databaseManager =    new DatabaseManager(
+            $this->sqlCommand->exec_bizonylatFuvarlevelszamFelvitele(),
+            [
+                'parameter' => json_encode(array(
+                    'id' =>         $this->request['id'],
+                    'fuvarlevel' => $this->request['fuvarlevel'],
+                )),
+            ],
+            $this->request['customer']
+        );
         $this->result = $this->databaseManager->getData();
     }
 }

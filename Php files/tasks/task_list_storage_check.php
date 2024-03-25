@@ -23,21 +23,31 @@ class Task{
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);        
+        $this->sqlCommand =         new SqlCommand();
     }
 
     private function _checkStorage(){
-        $this->databaseManager =        new DatabaseManager($this->sqlCommand->select_tarhely_Id(), [
-            'input' => $this->request['tarhely_id'],
-        ]);
+        $this->databaseManager =        new DatabaseManager(
+            $this->sqlCommand->select_tarhely_Id1(),
+            [
+                'raktar_id' =>  $this->request['raktar_id'],
+                'input' =>      $this->request['tarhely_id'],
+            ],
+            $this->request['customer']
+        );
         $this->result =                 $this->databaseManager->getData();
-        if($this->result[0]['id'] == 0) throw new Exception('invalid_storage_exception');
+        if($this->result[0]['id'] == 0) {echo $this->result; throw new Exception('invalid_storage_exception');}
     }
 
     private function _executeTask(){
-        $this->databaseManager =    new DatabaseManager($this->sqlCommand->select_tarhelyKeszletEllenorzes(), [
-            'tarhely_id' => $this->request['tarhely_id'],
-        ]);
+        $this->databaseManager =    new DatabaseManager(
+            $this->sqlCommand->select_tarhelyKeszletEllenorzes1(),
+            [
+                'raktar_id' =>  $this->request['raktar_id'],
+                'tarhely_id' => $this->request['tarhely_id']
+            ],
+            $this->request['customer']
+        );
         $this->result =             $this->databaseManager->getData();
     }
 }

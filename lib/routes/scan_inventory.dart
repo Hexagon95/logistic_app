@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, recursive_getters
+// ignore_for_file: use_build_context_synchronously, recursive_getters, deprecated_member_use
 
 import 'dart:developer';
 import 'dart:io';
@@ -71,7 +71,8 @@ class ScanInventoryState extends State<ScanInventory>{
   Widget get _drawQrScanRoute => Scaffold(
     appBar: AppBar(
       title:            Center(child: Text((taskState == TaskState.scanStorage)? 'Tárolóhely Azonosítása' : 'Termék Azonosítása')),
-      backgroundColor:  Global.getColorOfButton(ButtonState.default0)
+      backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     body:   Stack(children: [
       Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
@@ -95,6 +96,7 @@ Widget get _drawBarcodeManual => Scaffold(
     appBar: AppBar(
       title:            const Center(child: Padding(padding: EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Vonalkód Manuálisan'))),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     backgroundColor:  Colors.white,
     body:             LayoutBuilder(
@@ -113,6 +115,7 @@ Widget get _drawBarcodeManual => Scaffold(
       appBar: AppBar(
         title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Tárhely: $storageId'))),
         backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+        foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
       ),
       backgroundColor:  Colors.white,
       body:             LayoutBuilder(
@@ -132,6 +135,7 @@ Widget get _drawBarcodeManual => Scaffold(
     appBar: AppBar(
       title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Készlet megadás IP: ${barcodeResult![0]['IP'].toString()}'))),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     backgroundColor:  Colors.white,
     body:             LayoutBuilder(
@@ -148,6 +152,7 @@ Widget get _drawBarcodeManual => Scaffold(
     appBar: AppBar(
       title:            const Center(child: Padding(padding: EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Készlet megadás'))),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     backgroundColor:  Colors.white,
     body:             LayoutBuilder(

@@ -1,4 +1,6 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+import 'package:flutter/foundation.dart';
+import 'package:ota_update/ota_update.dart';
 import 'package:flutter/material.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/global.dart';
@@ -13,10 +15,12 @@ class LogInMenuFrame extends StatefulWidget{
 
 class LogInMenuState extends State<LogInMenuFrame>{
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <LogInMenuState>
-  static String errorMessageBottomLine =  '';  
+  static String errorMessageBottomLine =  '';
+  static bool updateNeeded =              false;
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonState = ButtonState.default0;
+  OtaEvent? currentEvent;
   late double _width;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -38,7 +42,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
               mainAxisAlignment:  MainAxisAlignment.center,
               children:           [Text(DataManager.serverErrorText, style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)))]
             )))
-          ])          
+          ])
         )
       )
     );
@@ -47,14 +51,14 @@ class LogInMenuState extends State<LogInMenuFrame>{
   Widget _logInMenu(){
     _width = MediaQuery.of(context).size.width - 50;
     if(_width > 400) _width = 400;
-    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children:[      
+    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children:[
       const Padding(
         padding:  EdgeInsets.fromLTRB(0, 0, 0, 20),
         child:    Text('LogisticApp', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Color.fromRGBO(0, 180, 125, 1.0)), textAlign: TextAlign.center)
       ),
       Padding(
         padding:  const EdgeInsets.all(10),
-        child:    Text(DataManager.versionNumber, style: const TextStyle(fontSize: 14))
+        child:    Text('v${DataManager.thisVersion}', style: const TextStyle(fontSize: 14))
       ),
       Padding(
         padding:  const EdgeInsets.fromLTRB(20, 40, 20, 40),
@@ -70,6 +74,9 @@ class LogInMenuState extends State<LogInMenuFrame>{
           ])
         ))
       ),
+      updateNeeded
+        ? Text('Új verzió érhető el\n${currentEvent?.status} : ${currentEvent?.value}', style: const TextStyle(fontSize: 16))
+        : Container()
     ]));
   }
 
@@ -77,38 +84,49 @@ class LogInMenuState extends State<LogInMenuFrame>{
   Future get _enterPressed async{
     errorMessageBottomLine = '';
     setState(() => buttonState = ButtonState.loading);
-    DataManager dataManager = DataManager();
-    await dataManager.beginProcess;
-    if(errorMessageBottomLine.isNotEmpty){
-      await Global.showAlertDialog(context, title: 'Hiba!', content: errorMessageBottomLine);
-      setState(() => buttonState = ButtonState.default0);
-      return;
-    }    
-    Global.routeNext = NextRoute.menu;
-    await dataManager.beginProcess;
-    buttonState =             ButtonState.default0;
-    if(errorMessageBottomLine.isEmpty) {await Navigator.pushNamed(context, '/menu');}
-    else{
-      await Global.showAlertDialog(context, title: 'Hiba', content: errorMessageBottomLine);
-      Global.routeBack;
-    }
-    setState((){});
-
-    /*buttonState =             ButtonState.loading;
-    setState((){});
-    DataManager dataManager = DataManager();
-    await dataManager.beginProcess;
-    buttonState =             ButtonState.default0;
-    if(DataManager.isServerAvailable){
-      if(errorMessageBottomLine.isEmpty){
-        Global.routeNext = NextRoute.menu;
-        await dataManager.beginProcess;
-        if(DataManager.isServerAvailable) await Navigator.pushNamed(context, '/menu');
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(!updateNeeded){
+      await DataManager(input: {'number': 0}).beginProcess;
+      if(errorMessageBottomLine.isNotEmpty){
+        await Global.showAlertDialog(context, title: 'Hiba!', content: errorMessageBottomLine);
+        setState(() => buttonState = ButtonState.default0);
+        return;
       }
-      else {Global.showAlertDialog(context, title: 'Hiba', content: errorMessageBottomLine);}
+      await DataManager(input: {'number': 4}).beginProcess;
+      if(errorMessageBottomLine.isNotEmpty){
+        await Global.showAlertDialog(context, title: 'Hiba!', content: errorMessageBottomLine);
+        setState(() => buttonState = ButtonState.default0);
+        return;
+      }
+      await DataManager(quickCall: QuickCall.tabletBelep).beginQuickCall;
+      Global.routeNext = NextRoute.menu;
+      await DataManager().beginProcess;
+      buttonState =             ButtonState.default0;
+      if(errorMessageBottomLine.isEmpty) {await Navigator.pushNamed(context, '/menu');}
+      else{
+        await Global.showAlertDialog(context, title: 'Hiba', content: errorMessageBottomLine);
+        Global.routeBack;
+      }
+      setState((){});
     }
-    setState((){});*/
+    else{
+      setState(() => buttonState = ButtonState.disabled);
+      tryOtaUpdate();
+    }
   }
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future<void> tryOtaUpdate() async {
+    try {
+      if(kDebugMode)print('ABI Platform: ${await OtaUpdate().getAbi()}');
+      OtaUpdate().execute(
+        'https://app.mosaic.hu/ota/logistic_app/${DataManager.actualVersion}/app-release.apk',
+        destinationFilename: 'app-release.apk',
+      ).listen(
+        (OtaEvent event) {setState(() => currentEvent = event);}
+      );
+    } catch (e) {
+      if(kDebugMode)print('Failed to make OTA update. Details: $e');
+    }
+  }
 }

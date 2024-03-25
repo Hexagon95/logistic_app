@@ -28,7 +28,7 @@ class ListOrdersState extends State<ListOrders>{
   String get title {switch(Global.currentRoute){
     case NextRoute.pickUpList:    return 'Kiszedési lista';
     case NextRoute.orderOutList:  return 'Bevételezés';
-    case NextRoute.orderList:
+    case NextRoute.deliveryOut:   return 'Kiszállítás';
     default:                      return 'Kitárazás';
   }}
   int? get selectedIndex => _selectedIndex;  
@@ -44,6 +44,7 @@ class ListOrdersState extends State<ListOrders>{
         appBar: AppBar(
           title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text(title))),
           backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+          foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
         ),
         backgroundColor:  Colors.white,
         body:             LayoutBuilder(
@@ -144,27 +145,15 @@ class ListOrdersState extends State<ListOrders>{
       break;
 
     case NextRoute.orderList:
-      setState(() => buttonState = ButtonState.loading);
-      DataManager dataManager = DataManager(input: {'orderList': true});
-      Global.routeNext =        NextRoute.scanTasks;
-      await dataManager.beginProcess;
-      if(DataManager.isServerAvailable){
-        buttonState = ButtonState.default0;
-        ScanOrdersState.isOrderList = true;
-        await Navigator.pushNamed(context, '/scanOrders');
-        setState((){});
-      }
-      else {setState(() {buttonState = ButtonState.default0; Global.routeNext = NextRoute.orderList;});}
-      break;
-
+    case NextRoute.deliveryOut:
     case NextRoute.orderOutList:
       setState(() => buttonState = ButtonState.loading);
-      DataManager dataManager = DataManager(input: {'orderList': false});
-      Global.routeNext =        NextRoute.scanTasks;
+      ScanOrdersState.varRoute =  Global.currentRoute;
+      DataManager dataManager =   DataManager(input: {'route': ScanOrdersState.varRoute});
+      Global.routeNext =          NextRoute.scanTasks;
       await dataManager.beginProcess;
       if(DataManager.isServerAvailable){
         buttonState = ButtonState.default0;
-        ScanOrdersState.isOrderList = false;
         await Navigator.pushNamed(context, '/scanOrders');
         setState((){});
       }

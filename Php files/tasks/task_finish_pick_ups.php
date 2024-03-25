@@ -13,10 +13,11 @@ class Task{
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);
+        $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->exec_finishPickUps(),
-            ['kiszedesi_lista' => $this->request['kiszedesi_lista']]
+            ['kiszedesi_lista' => $this->request['kiszedesi_lista']],
+            $this->request['customer']
         );        
     }
 }

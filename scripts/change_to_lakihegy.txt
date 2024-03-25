@@ -1,0 +1,2 @@
+UPDATE [mercarius].[dbo].[Tablet] SET [raktar_id] = 594176 WHERE [id] = 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3';
+UPDATE [mercarius_test].[dbo].[Tablet] SET [raktar_id] = 594176 WHERE [id] = 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3';

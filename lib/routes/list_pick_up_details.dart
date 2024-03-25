@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +36,7 @@ class ListPickUpDetailsState extends State<ListPickUpDetails>{
         appBar: AppBar(
           title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Rendelés: $orderNumber'))),
           backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+          foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
         ),
         backgroundColor:  Colors.white,
         body:             LayoutBuilder(

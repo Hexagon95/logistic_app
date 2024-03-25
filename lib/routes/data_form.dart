@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
 
 import '../global.dart';
 import 'package:logistic_app/data_manager.dart';
@@ -19,6 +19,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   static List<dynamic> rawData2 =                 List<dynamic>.empty();
   static Map<String, dynamic> listOfLookupDatas = <String, dynamic>{};
   static TaskState taskState =                    TaskState.dataForm;
+  static String carId =                           '';
   static String title =                           '';
   static int? amount;
 
@@ -36,7 +37,9 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     case NextRoute.dataFormGiveDatas: switch(taskState){
       case TaskState.dataList:  return 'Abroncsok kiválasztása';
       default:                  return (ScanCheckStockState.scannedCode == ScannedCodeIs.storage)
-        ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex!]['ip']
+        ? (ScanCheckStockState.selectedIndex != null)
+          ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['ip']
+          : 'Új cikk hozzáadása'
         : '${ScanCheckStockState.rawData[1]['ertek'].toString()} - ${ScanCheckStockState.rawData[2]['ertek'].toString()}'
       ;
     }
@@ -66,6 +69,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
           appBar: AppBar(
             title:            Center(child: Text(titleText)),
             backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+            foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
           ),
           backgroundColor:  Colors.white,
           body:             LayoutBuilder(
@@ -115,7 +119,6 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
     SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
       columns:            _generateColumns,
-      columnSpacing:      25.0,
       rows:               _generateRows,                
       showCheckboxColumn: false,                
       border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
@@ -163,7 +166,8 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
         name:   'Tétel:',
         ratio:  3.0 / 4.0,
         input:  Text(
-          '${ScanCheckStockState.rawData[1]['ertek'].toString()} - ${ScanCheckStockState.rawData[2]['ertek'].toString()} ${ScanCheckStockState.rawData[3]['ertek'].toString()}',
+          //'${ScanCheckStockState.rawData[1]['ertek'].toString()} - ${ScanCheckStockState.rawData[2]['ertek'].toString()} ${ScanCheckStockState.rawData[3]['ertek'].toString()}',
+          '${Global.where(ScanCheckStockState.rawData, 'megnevezes', 'Rendszám')['ertek'].toString()} - ${Global.where(ScanCheckStockState.rawData, 'megnevezes', 'Pozíció')['ertek'].toString()} ${Global.where(ScanCheckStockState.rawData, 'megnevezes', 'Megnevezés')['ertek'].toString()}',
           style:    const TextStyle(fontSize: 16),
           softWrap: true,
         )
@@ -228,7 +232,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       case 'search':
         List<String> items =    List<String>.empty(growable: true);
         for(var item in listOfLookupDatas[input['id']]) {items.add(item['megnevezes'].toString());}
-        return (items.isNotEmpty)
+        return (items.isNotEmpty && editable)
         ? Stack(alignment: AlignmentDirectional.centerStart, children: [
             Visibility(visible: (rawData[index]['value'] == null), child: Padding(padding: const EdgeInsets.all(10), child: Text(
               rawData[index]['name'],
@@ -269,7 +273,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
         List<dynamic>? lookupData =             listOfLookupDatas[input['id']];
         if(lookupData != null) for(var item in lookupData) {items.add(DropdownMenuItem(value: item['id'].toString(), child: Text(item['megnevezes'], textAlign: TextAlign.start)));}
         String? selectedItem =    (isInLookupData(rawData[index]['value'].toString(), lookupData))? rawData[index]['value'].toString() : null;
-        return (lookupData != null && lookupData.isNotEmpty)
+        return (lookupData != null && lookupData.isNotEmpty && editable)
         ? Stack(children: [
             SizedBox(height: 55, width: getWidth(index), child: Padding(padding: const EdgeInsets.all(15), child: DropdownButtonHideUnderline(child: DropdownButton<String>(
             value:      selectedItem,
@@ -354,15 +358,18 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   }
 
   Future get _buttonSavePressed async {switch(taskState){
+
     case TaskState.dataForm:
       setState(() {buttonSave = ButtonState.loading; enableInteraction = false;});
       DataManager dataManager = DataManager(quickCall: QuickCall.askAbroncs);
       await dataManager.beginQuickCall;
-      setState((){buttonSave = ButtonState.default0; enableInteraction = true;});
+      // ignore: recursive_getters
+      if(carId.isEmpty && ScanCheckStockState.storageId == DataManager.newEntryId) {taskState = TaskState.dataList; await _buttonSavePressed;}
+      else {setState(() {buttonSave = ButtonState.default0; enableInteraction = true;});}
       break;
 
     case TaskState.dataList:
-      setState(() {buttonSave = ButtonState.loading; enableInteraction = false;});
+      if(carId.isNotEmpty) setState(() {buttonSave = ButtonState.loading; enableInteraction = false;});
       DataManager dataManager = DataManager(quickCall: QuickCall.finishGiveDatas);
       await dataManager.beginQuickCall;
       dataManager =             DataManager(quickCall: QuickCall.checkStock);
@@ -380,9 +387,11 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
 
     case TaskState.dataList:
       setState(() => taskState = TaskState.dataForm);
-      return false;
+      return false;    
 
-    default: return true;
+    default:
+      setState(() => ScanCheckStockState.storageId = ScanCheckStockState.savedStorageId);
+      return true;
   }}
 
   // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -425,6 +434,9 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
 
   Future _handleSelectChange(String? newValue, int index) async{ if(enableInteraction){
     enableInteraction = false;
+    if(newValue == null) {rawData[index]['kod'] = null;}
+    else {for(dynamic item in listOfLookupDatas[rawData[index]['id']]) {if(item['megnevezes'] == newValue) rawData[index]['kod'] = item['id'];}}
+    if(rawData[index]['id'] == 'id_34' && rawData[index]['kod'] != null) carId = rawData[index]['kod'].toString();
     setState(() => rawData[index]['value'] = newValue);
     DataManager dataManager = DataManager(quickCall: QuickCall.chainGiveDatas, input: {'index': index});
     await dataManager.beginQuickCall;

@@ -22,13 +22,16 @@ class Task{
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);        
+        $this->sqlCommand =         new SqlCommand();        
     }
 
     private function _checkStorage(){
         $this->databaseManager =        new DatabaseManager(
             $this->sqlCommand->select_tabletCikkInfo(),
-            ['id' => $this->request['id']],
+            [
+                'id' =>         $this->request['id'],
+                'raktar_id' =>  $this->request['raktar_id']
+            ],
             $this->request['customer']
         );
         $this->result =                 $this->databaseManager->getData();

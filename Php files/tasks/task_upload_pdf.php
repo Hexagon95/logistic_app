@@ -45,8 +45,12 @@ class Task{
 	}
 	
     function _executeBizonylatDokumentumFelvitele(){
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);        
-        $this->databaseManager =    new DatabaseManager($this->sqlCommand->exec_bizonylatDokumentumFelvitele(),[ 'parameter' => json_encode($this->files, JSON_PRETTY_PRINT) ]  );
+        $this->sqlCommand =         new SqlCommand();
+        $this->databaseManager =    new DatabaseManager(
+			$this->sqlCommand->exec_bizonylatDokumentumFelvitele(),
+			['parameter' => json_encode($this->files, JSON_PRETTY_PRINT)],
+			$this->request['customer']
+		);
         $this->result = $this->databaseManager->getData();
     }	
 	
@@ -78,4 +82,3 @@ class Task{
 		return str_shuffle($str);
 	}	
 }
-?>

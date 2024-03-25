@@ -16,8 +16,12 @@ class Task{
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);
-        $this->databaseManager =    new DatabaseManager($this->sqlCommand->select_rendelesek());
+        $this->sqlCommand =         new SqlCommand();
+        $this->databaseManager =    new DatabaseManager(
+            $this->sqlCommand->select_rendelesek1(),
+            ['raktar_id' => $this->request['raktar_id']],
+            $this->request['customer']
+        );
         $this->result =             $this->databaseManager->getData();
     }
 }

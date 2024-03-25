@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, recursive_getters
+// ignore_for_file: use_build_context_synchronously, recursive_getters, deprecated_member_use
 
 import 'dart:io';
 import 'dart:developer';
@@ -23,12 +23,12 @@ class ScanOrdersState extends State<ScanOrders>{
   static List<dynamic> completedTasks = List<dynamic>.empty(growable: true);
   static List<String> listOfStorages =  List<String>.empty(growable: true);
   static List<bool> progressOfTasks =   List<bool>.empty(growable: true);
+  static NextRoute varRoute =           NextRoute.default0;
   static int currentStorage =           0;
-  static bool isOrderList =               true;
   static int? currentTask;
  
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  TaskState _taskState = (isOrderList)? TaskState.askStorage : TaskState.askProduct;
+  TaskState _taskState = (varRoute == NextRoute.orderList)? TaskState.askStorage : TaskState.askProduct;
   TaskState get taskState => _taskState; set taskState(TaskState value){_taskState = value; switch(value){
 
     case TaskState.scanProduct:
@@ -50,7 +50,7 @@ class ScanOrdersState extends State<ScanOrders>{
     break;
   }}
   List<dynamic> pickUpList =          List<dynamic>.empty(growable: true);
-  ButtonState buttonContinue =        ButtonState.default0;
+  ButtonState buttonContinue =        ButtonState.disabled;
   ButtonState buttonAskOk =           ButtonState.default0;
   ButtonState buttonNoBarcode =       ButtonState.hidden;
   ButtonState buttonOkHandleProduct = ButtonState.hidden;
@@ -112,7 +112,11 @@ class ScanOrdersState extends State<ScanOrders>{
     case true:
       String qrCodeScannerScan = 'Szkennelje be az alábbi tárhelyet:';
       return Scaffold(
-        appBar: AppBar(title: const Center(child: Text('Kitárazás')), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
+        appBar: AppBar(
+          title:            const Center(child: Text('Kitárazás')),
+          backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+          foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
+        ),
         body:   Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.max, children: [
           Text(qrCodeScannerScan, style: const TextStyle(fontSize: 16)),
           Text(listOfStorages[currentStorage], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
@@ -130,7 +134,11 @@ class ScanOrdersState extends State<ScanOrders>{
       :'Kérem olvassa le a vonalkódját az alábbi terméknek:\n${rawData[currentTask!]['cikkszam']}\n${rawData[currentTask!]['megnevezes']}';
       //: 'A(z) ${rawData[currentTask!]['cikkszam']} cikkszámú termék vonalkódjának leolvasása.';
       return Scaffold(
-        appBar: AppBar(title: const Text('Rendelések Összeszedése'), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
+        appBar: AppBar(
+          title:            const Text('Rendelések Összeszedése'),
+          backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+          foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
+        ),
         body:   Center(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
           Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(cameraScan, style: const TextStyle(fontSize: 16)),
@@ -143,7 +151,11 @@ class ScanOrdersState extends State<ScanOrders>{
   }}
 
   Widget get _drawQrScanRoute => Scaffold(
-    appBar: AppBar(title: const Text('Rendelések Összeszedése'), backgroundColor:  Global.getColorOfButton(ButtonState.default0)),
+    appBar: AppBar(
+      title:            const Text('Rendelések Összeszedése'),
+      backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
+    ),
     body:   Stack(children: [
       Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
         Expanded(child: _buildQrView),
@@ -163,8 +175,15 @@ class ScanOrdersState extends State<ScanOrders>{
 
   Widget get _drawProduckInventory => Scaffold(
     appBar: AppBar(
-      title:            Center(child: Text((isOrderList)? 'Kitárazás' : 'Bevételezés')),
+      title:            Center(child: Text((){switch(varRoute){
+        case NextRoute.orderList:     return 'Kitárazás';
+        case NextRoute.deliveryOut:   return 'Kiszállítás';
+        case NextRoute.orderOutList:  return 'Bevételezés';
+        default:                      return '';
+      }}(),
+      style: const TextStyle(color: Colors.white),)),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     backgroundColor:  Colors.white,
     body:             LayoutBuilder(
@@ -189,10 +208,17 @@ class ScanOrdersState extends State<ScanOrders>{
   ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
     SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
       columns:            [DataColumn(label: Expanded(child: Center(child: Text(
-        (isOrderList)? listOfStorages[currentStorage] : rawData[0]['id'].toString(),
+        (){switch(varRoute){
+          case NextRoute.orderList:     return listOfStorages[currentStorage];
+          case NextRoute.deliveryOut:
+          case NextRoute.orderOutList:  return rawData[0]['id'].toString();
+          default: return '';
+        }}(),
         style: const TextStyle(fontSize: 16)
       ))))],
       headingRowHeight:   30,
+      dataRowMinHeight:   30,
+      dataRowMaxHeight:   70,
       rows:               _generateRows,
       showCheckboxColumn: true,
       border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
@@ -317,7 +343,7 @@ class ScanOrdersState extends State<ScanOrders>{
 
   List<DataRow> get _generateRows{
     List<DataRow> rows = List<DataRow>.empty(growable: true);
-    for(var item in (isOrderList)? pickUpList : rawData[0]['tetelek']) {rows.add(DataRow(
+      for(var item in (varRoute == NextRoute.orderList)? pickUpList : rawData[0]['tetelek']) {rows.add(DataRow(
       cells:            _getCells(item),
       selected:         (completedTasks.contains(item)),
       onSelectChanged:  (value) => setState((){})
@@ -335,7 +361,8 @@ class ScanOrdersState extends State<ScanOrders>{
   // ---------- < WidgetBuild [5] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   List<DataCell> _getCells(Map<String, dynamic> item) => [DataCell(Column(children: [
     Text(item['cikkszam'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-    Text(item['megnevezes'])
+    Text(item['megnevezes']),
+    Text('(${item['cikk_id'].toString()})', style: const TextStyle(fontWeight: FontWeight.bold))
   ]))];
 
   Widget _progressIndicator(Color colorInput) => Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: SizedBox(
@@ -526,28 +553,30 @@ class ScanOrdersState extends State<ScanOrders>{
   void get _buttonAskOkPressed => setState(() => taskState = (taskState == TaskState.askStorage)? TaskState.scanStorage : TaskState.scanProduct);
 
   Future get _buttonContinuePressed async{
-    bool allCompleted() {for(var item in (isOrderList)? pickUpList : rawData[0]['tetelek']) {if(!completedTasks.contains(item)) return false;} return true;}
-
-    buttonContinue = ButtonState.loading;
-    setState((){});
-    buttonContinue = ButtonState.default0;
-   if(isOrderList){
+    bool allCompleted() {for(var item in (varRoute == NextRoute.orderList)? pickUpList : rawData[0]['tetelek']) {if(!completedTasks.contains(item)) return false;} return true;}
+    
+    setState(() => buttonContinue = ButtonState.loading);
+   if(varRoute == NextRoute.orderList){
       if(allCompleted() || await Global.yesNoDialog(context,
         title:    'Tovább lépés',
         content:  'Nem került minden tétel kitárazásra, folytatja?'
       )){
         if(currentStorage < listOfStorages.length - 1){
           currentStorage++;
+          buttonContinue = ButtonState.default0;
           setState(() => taskState = TaskState.askStorage);
         }
         else {_endTask;}
       }
     }
     else{
-      if(!allCompleted()) {await Global.showAlertDialog(context,
-        title:    'Tovább lépés',
-        content:  'Nem került minden tétel bevételezésre!'
-      );}
+      if(!allCompleted()){
+        await Global.showAlertDialog(context,
+          title:    'Tovább lépés',
+          content:  'Nem került minden tétel bevételezésre!'
+        );
+        buttonContinue = ButtonState.default0;
+      }
       else{_endTask;}
     }
   }
@@ -583,46 +612,58 @@ class ScanOrdersState extends State<ScanOrders>{
   }
 
   Future get _endTask async{
-    controller =              null;
-    Global.routeNext =        NextRoute.finishTasks;
-    DataManager dataManager = DataManager(input: {'orderList': isOrderList});
-    await dataManager.beginProcess;
-    if(DataManager.isServerAvailable){
+    if(await Global.yesNoDialog(context,
+      title:    'Lezárás',
+      content:  'Le kívánja zárni a munkát?'
+    )){
+      controller =              null;
+      Global.routeNext =        NextRoute.finishTasks;
+      DataManager dataManager = DataManager(input: {'route': varRoute});
+      await dataManager.beginProcess;
       completedTasks.clear();
       Global.routeBack;
+      Global.currentRoute;
       await dataManager.beginProcess;
+      buttonContinue = ButtonState.default0;
       Navigator.popUntil(context, ModalRoute.withName('/listOrders'));
       await Navigator.pushReplacementNamed(context, '/listOrders');
       setState((){});
     }
-    else {setState((){}); Future.delayed(const Duration(seconds: 5), () => _endTask);}
+    else {setState(() => buttonContinue = ButtonState.default0);}
   }
 
-
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Future _triggerScan() async{switch(taskState){
+  Future _triggerScan() async{
+    bool contains(List<dynamic> listBase, List<dynamic> listExam) {for(dynamic item in listExam) {if(!listBase.contains(item)) return false;} return true;}
+    String getVonalkodOf(String inputId) {for(dynamic item in rawData) {if(item['tarhely'].toString() == inputId)return item['tarhely_vonalkod'].toString();} return '';}
 
-    case TaskState.askStorage:
-      if(scannerDatas!.value.scanData == listOfStorages[currentStorage]){
-        isProperStorageCode = true;
-        pickUpList =          List<dynamic>.empty(growable: true);
-        for(var item in rawData) {if(item['tarhely'].toString() == listOfStorages[currentStorage]) pickUpList.add(item);}
-        setState(() => taskState = TaskState.askProduct);
-      }
-      else{
-        isProperStorageCode = false;
-        setState((){});
-      }
-    break;
-    
-    case TaskState.askProduct: for(var item in (isOrderList)? pickUpList : rawData[0]['tetelek']){
-      if(item['vonalkod'].toString() == scannerDatas!.value.scanData && !completedTasks.contains(item)) {
-        completedTasks.add(item); break;
-      }
-    } setState((){}); break;
+    switch(taskState){
 
-    default: break;
-  }}
+      case TaskState.askStorage:
+        if(scannerDatas!.value.scanData.trim() == getVonalkodOf(listOfStorages[currentStorage].toString())){
+          isProperStorageCode = true;
+          pickUpList =          List<dynamic>.empty(growable: true);
+          for(var item in rawData) {if(item['tarhely'].toString() == listOfStorages[currentStorage]) pickUpList.add(item);}
+          setState(() => taskState = TaskState.askProduct);
+        }
+        else{
+          isProperStorageCode = false; 
+          setState((){});
+        }
+      break;
+      
+      case TaskState.askProduct: for(var item in (varRoute == NextRoute.orderList)? pickUpList : rawData[0]['tetelek']){
+        if(item['vonalkod'].toString() == scannerDatas!.value.scanData.trim() && !completedTasks.contains(item)) {
+          completedTasks.add(item);
+          if(varRoute == NextRoute.orderList) {buttonContinue = (contains(completedTasks, pickUpList))? ButtonState.default0 : ButtonState.disabled;}
+          else {buttonContinue = (contains(completedTasks, rawData[0]['tetelek']))? ButtonState.default0 : ButtonState.disabled;}
+          break;
+        }
+      } setState((){}); break;
+
+      default: break;
+    }
+  }
 
   void get _checkResult{switch(taskState){
 

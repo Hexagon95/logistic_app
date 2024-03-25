@@ -16,10 +16,11 @@ class Task{
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);
+        $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->exec_abroncs_reszletezo_felvitele(),
-            ['parameter' => $this->request['parameter']]
+            ['parameter' => $this->request['parameter']],
+            $this->request['customer']
         );
         $this->result =             $this->databaseManager->getData();
     }

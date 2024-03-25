@@ -2,8 +2,6 @@
 class DatabaseManager{
     // ---------- <Variables [1]> ----- ---------- ---------- ---------- ---------- ---------- ---------- ----------    
     private $pdoServer =   "localhost";
-    private $pdoDatabase = "mosaic";
-    //private $pdoDatabase = "mosaic_test";
     private $pdoUser =     "app";
     private $pdoPassword = "Dh!Flmn2J6uJ";
     private $data;
@@ -12,15 +10,15 @@ class DatabaseManager{
     public $conn;
     
     // ---------- <Constructors> ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
-    function __construct($queryString, $parameters = []){        
-        $this->_connect();
+    function __construct($queryString, $parameters = [], $pdoDatabase = "mosaic"){        
+        $this->_connect($pdoDatabase);
         $this->_executeQuery($queryString, $parameters);
     }
 
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-    private function _connect(){
+    private function _connect($pdoDatabase){
         try {            
-            $this->conn = new PDO("sqlsrv:Server=$this->pdoServer;Database=$this->pdoDatabase;", $this->pdoUser, $this->pdoPassword);            
+            $this->conn = new PDO("sqlsrv:Server=$this->pdoServer;Database=$pdoDatabase;", $this->pdoUser, $this->pdoPassword);            
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
         catch (\Throwable $th) {            

@@ -22,13 +22,16 @@ class Task{
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
-        $this->sqlCommand =         new SqlCommand($this->request['customer']);        
+        $this->sqlCommand =         new SqlCommand();
     }
 
     private function _checkStorage(){
         $this->databaseManager =        new DatabaseManager(
-            $this->sqlCommand->select_keszletellenorzesId(),
-            ['code' => $this->request['code']],
+            $this->sqlCommand->select_keszletellenorzesId1(),
+            [   
+                'raktar_id' =>  $this->request['raktar_id'],
+                'code' =>       $this->request['code']
+            ],
             $this->request['customer']
         );
         $this->result =                 $this->databaseManager->getData();

@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, recursive_getters
+// ignore_for_file: use_build_context_synchronously, recursive_getters, deprecated_member_use
 
 import 'dart:io';
 import 'dart:developer';
@@ -23,9 +23,15 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   static List<bool> selectionList =     List<bool>.empty();
   static dynamic messageData =          {};
   static StockState stockState =        StockState.default0;
-  static ScannedCodeIs scannedCode =  ScannedCodeIs.unknown;
+  static ScannedCodeIs scannedCode =    ScannedCodeIs.unknown;
   static String storageId =             '';
+  static String savedStorageId =        '';
   static String itemId =                '';
+  static List<String> get selectedIds{
+    List<String> varListString = List<String>.empty(growable: true);
+    for(int i = 0; i < selectionList.length; i++){if(selectionList[i])varListString.add(rawData[0]['tetelek'][i]['id'].toString());}
+    return varListString;
+  }
   static int? get selectedIndex {for(int i = 0; i < selectionList.length; i++) {if(selectionList[i]) return i;} return null;}
   //static set selectedIndex(int? value) {if(value == null) return; selectionList[value] = !selectionList[value];}
   static bool storageFromExist =        true;
@@ -43,10 +49,13 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   ButtonState buttonContinueToForm =  ButtonState.disabled;
   ButtonState buttonPrint =           ButtonState.default0;
   ButtonState buttonAddItem =         ButtonState.default0;
+  ButtonState buttonNewEntry =        ButtonState.default0;
   ButtonState buttonGiveDatas =       ButtonState.default0;
   bool isProcessIndicator =           false;
+  bool scanOngoing =                  false;
   int? _selected; int? get selected => _selected; set selected(int? value) {if(buttonContinueToForm != ButtonState.loading){
     buttonContinueToForm =  (selectionList.contains(true))? ButtonState.default0 : ButtonState.disabled;
+    buttonNewEntry =        (selectionList.contains(true))? ButtonState.disabled : ButtonState.default0;
     buttonGiveDatas =       (value == null)? ButtonState.disabled : ButtonState.default0;
     _selected =     value;
     setState((){});
@@ -56,6 +65,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     color:        Colors.white,
     borderRadius: const BorderRadius.all(Radius.circular(8))
   );
+  bool blockAllInteractions = false;
   double? width;
   double? qrScanCutOutSize;
   QRViewController? controller;
@@ -96,7 +106,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   Widget get _drawQrScanRoute => Scaffold(
     appBar: AppBar(
       title:            Center(child: Text(_getQRCodeScanTitle)),
-      backgroundColor:  Global.getColorOfButton(ButtonState.default0)
+      backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     body:   Stack(children: [
       Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
@@ -120,6 +131,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     appBar: AppBar(
       title:            const Center(child: Padding(padding: EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Vonalkód Manuálisan'))),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     backgroundColor:  Colors.white,
     body:             LayoutBuilder(
@@ -137,10 +149,11 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       appBar: AppBar(
         title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           (stockState == StockState.checkStock && scannedCode == ScannedCodeIs.storage)? _drawButtonPreviousStorage : Container(),
-          Text((scannedCode == ScannedCodeIs.article)? 'Cikk' : storageId),
+          Text((scannedCode == ScannedCodeIs.article)? 'Cikk' : DataManager.dataQuickCall[4][0]['tarhely_nev'].toString()),
           (stockState == StockState.checkStock && scannedCode == ScannedCodeIs.storage)? _drawButtonNextStorage : Container()
         ]),
         backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+        foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
       ),
       backgroundColor:  Colors.white,
       body:             LayoutBuilder(
@@ -199,7 +212,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             Container()
           ]))));
         }
-        else{
+        else if(item['poziciok'].isNotEmpty){
           //dataRows.add(const Divider());
           List<Widget> dataColumnsInTable = List<Widget>.empty(growable: true);
           List<Widget> rowsOfTable =        List<Widget>.empty();
@@ -264,6 +277,10 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       buttonGiveDatas =       ButtonState.disabled;
       buttonContinueToForm =  ButtonState.disabled;
     }
+    buttonGiveDatas =       isButtonAvailable('Button_Szerkesztes')?  buttonGiveDatas :       ButtonState.disabled;
+    buttonPrint =           isButtonAvailable('Button_Nyomtatas')?    buttonPrint :           ButtonState.disabled;
+    buttonContinueToForm =  isButtonAvailable('Button_Athelyezes')?   buttonContinueToForm :  ButtonState.disabled;
+
     switch(taskState){
 
       case TaskState.scanProduct:
@@ -285,7 +302,14 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       );
 
       case TaskState.inventory: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: (scannedCode == ScannedCodeIs.storage)
+        ? [
+          _drawButtonAddItem,
+          _drawButtonNewEntry,
+          _drawButtonPrint,
+          _drawButtonContinueToForm
+        ]
+        : [
           _drawButtonAddItem,
           _drawButtonPrint,
           _drawButtonContinueToForm
@@ -433,6 +457,18 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     : _drawButtonGiveDatas
   ;
 
+  Widget get _drawButtonNewEntry => (stockState == StockState.checkStock)
+    ? TextButton(
+      onPressed:  () => (buttonNewEntry == ButtonState.default0)? _buttonNewEntryPressed : null,
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+      child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+        (buttonNewEntry == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonNewEntry)) : Container(),
+        Icon(Icons.note_add, color: Global.getColorOfIcon(buttonNewEntry), size: 30)
+      ]))
+    )
+    : Container()
+  ;
+
   Widget get _drawButtonGiveDatas => TextButton(
     onPressed:  () => (buttonGiveDatas == ButtonState.default0)? _buttonGiveDatasPressed : null,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
@@ -484,7 +520,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             ? const MaterialStatePropertyAll(Color.fromARGB(20, 255, 0, 100))
             : const MaterialStatePropertyAll(Color.fromARGB(10, 255, 0, 0))
           : null,
-        onSelectChanged:  (value) => setState(() {selectionList[i] = value!; selected = setSelected(i);}),
+        onSelectChanged:  (value) => (!blockAllInteractions)? setState(() {selectionList[i] = value!; selected = setSelected(i);}) : null,
         selected:         (selectionList[i]),
         //selected:         (selected != null && selected == i),
         cells:            _getCells(rawData[0]['tetelek'][i]),
@@ -533,6 +569,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   void get _buttonBarcodeManualPressed => setState(() {if(!Global.isScannerDevice) controller!.pauseCamera(); taskState = TaskState.barcodeManual;});
 
   Future get _buttonContinueToFormPressed async{
+    if(blockAllInteractions) return;
     setState(() => buttonContinueToForm = ButtonState.loading);
     Global.routeNext =        NextRoute.dataFormMonetization;
     buttonContinueToForm =    ButtonState.default0;
@@ -540,10 +577,13 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }
 
   Future get _buttonPrintPressed async{
+    int amountOfVignettes() => (selectionList.contains(true))? selectedIds.length : rawData[0]['tetelek'].length;
+
+    if(blockAllInteractions) return;
     setState(() => buttonPrint = ButtonState.loading);
     if(await Global.yesNoDialog(context,
       title:    (scannedCode == ScannedCodeIs.article)? 'Címke nyomtatása' : 'Címkék nyomtatása',
-      content:  (scannedCode == ScannedCodeIs.article)? 'Címke nyomtatása?' : 'Kinyomtat ${rawData[0]['tetelek'].length.toString()}db címkét?'
+      content:  (scannedCode == ScannedCodeIs.article)? 'Címke nyomtatása?' : 'Kinyomtat ${amountOfVignettes().toString()}db címkét?'
     )){
       DataManager dataManager = DataManager(quickCall: QuickCall.print);
       await dataManager.beginQuickCall;
@@ -551,31 +591,36 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     setState(() => buttonPrint = ButtonState.default0);
   }
 
-  Future get _buttonOkPressed async{switch(taskState){
+  Future get _buttonOkPressed async{
+    if(blockAllInteractions) return;
+    switch(taskState){
 
-    case TaskState.barcodeManual:
-      _checkResult;
-      return;
+      case TaskState.barcodeManual:
+        _checkResult;
+        return;
 
-    case TaskState.itemData:
-      void insertCurrentItem(){
-        for (var i = 0; i < rawData.length; i++){
-          if(rawData[i]['cikkszam'].toString() == currentItem!['cikkszam'].toString()) {rawData[i] = currentItem; return;}
+      case TaskState.itemData:
+        void insertCurrentItem(){
+          for (var i = 0; i < rawData.length; i++){
+            if(rawData[i]['cikkszam'].toString() == currentItem!['cikkszam'].toString()) {rawData[i] = currentItem; return;}
+          }
         }
-      }
-      insertCurrentItem();
-      DataManager dataManager = DataManager(quickCall: QuickCall.saveInventory);
-      await dataManager.beginQuickCall;
-      await dataManager.beginProcess;
-      setState(() => taskState = TaskState.inventory);
-      return;
+        insertCurrentItem();
+        DataManager dataManager = DataManager(quickCall: QuickCall.saveInventory);
+        await dataManager.beginQuickCall;
+        await dataManager.beginProcess;
+        setState(() => taskState = TaskState.inventory);
+        return;
 
-    default:return;
-  }}
+      default:return;
+    }
+  }
 
   Future get _buttonPreviousStoragePressed async{
+    rawData;
+    if(blockAllInteractions) return;
     setState(() => buttonPreviousStorage = ButtonState.loading);
-    storageId =               rawData[0]['elozo_tarhely'];
+    savedStorageId =               rawData[0]['elozo_tarhely'];
     DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
     await dataManager.beginQuickCall;
     buttonPreviousStorage =   (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
@@ -585,8 +630,10 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }
 
   Future get _buttonNextStoragePressed async{
+    rawData;
+    if(blockAllInteractions) return;
     setState(() => buttonNextStorage = ButtonState.loading);
-    storageId =               rawData[0]['kovetkezo_tarhely'];
+    savedStorageId =               rawData[0]['kovetkezo_tarhely'];
     DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
     await dataManager.beginQuickCall;
     buttonPreviousStorage =   (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
@@ -595,6 +642,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }
 
   Future get _buttonGiveDatasPressed async{
+    if(blockAllInteractions) return;
     setState(() => buttonGiveDatas = ButtonState.loading);
     DataManager dataManager = DataManager(quickCall: QuickCall.giveDatas);
     await dataManager.beginQuickCall;
@@ -606,42 +654,66 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     }
   }
 
-  Future<bool> get _handlePop async{switch(taskState){
+  Future get _buttonNewEntryPressed async{
+    if(blockAllInteractions) return;
+    setState((){
+      buttonNewEntry = ButtonState.loading;
+      blockAllInteractions = true;
+    });
+    DataManager dataManager = DataManager(quickCall: QuickCall.newEntry);
+    await dataManager.beginQuickCall;
+    buttonNewEntry =          ButtonState.default0;
+    blockAllInteractions =    false;
+    if(DataManager.isServerAvailable){
+      Global.routeNext = NextRoute.dataFormGiveDatas;
+      setState((){});
+      await Navigator.pushNamed(context, '/dataForm');
+    }
+    else {setState((){});}
+  }
 
-    case TaskState.scanDestinationStorage:
-      setState(() => taskState = TaskState.inventory);
-      return false;
-    
-    case TaskState.scanProduct:
-      setState(() => taskState = TaskState.inventory);
-      return false;
-    
-    case TaskState.inventory: 
-      if(scannedCode == ScannedCodeIs.storage) {switch(await customDialog(context,
-        title:    '$storageId tárolóhely elhagyása?',
-        content:  'El kívánja hagyni az aktuális tárolóhelyet: $storageId és leolvas egy másikat?',
-        customButton: (scannedCode == ScannedCodeIs.storage)? 'Másik Tárolóhely' : 'Másik Cikk'
-      )){      
-        case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);    return false;
-        case DialogResult.cancel:                                                       return false;
-        default:                  taskState = TaskState.scanStorage; Global.routeBack;  return true;
-      }}
-      else {
+  Future<bool> get _handlePop async{
+    if(blockAllInteractions) return false;
+    switch(taskState){
+
+      case TaskState.scanDestinationStorage:
+        setState(() => taskState = TaskState.inventory);
+        return false;
+      
+      case TaskState.scanProduct:
+        setState(() => taskState = TaskState.inventory);
+        return false;
+      
+      case TaskState.inventory: 
+        if(scannedCode == ScannedCodeIs.storage) {switch(await customDialog(context,
+          title:    '$storageId tárolóhely elhagyása?',
+          content:  'El kívánja hagyni az aktuális tárolóhelyet: $storageId és leolvas egy másikat?',
+          customButton: (scannedCode == ScannedCodeIs.storage)? 'Másik Tárolóhely' : 'Másik Cikk'
+        )){      
+          case DialogResult.back:   setState(() => taskState = TaskState.scanStorage);    return false;
+          case DialogResult.cancel:                                                       return false;
+          default:                  taskState = TaskState.scanStorage; Global.routeBack;  return true;
+        }}
+        else {
+          setState(() => taskState = TaskState.scanStorage);
+          return false;
+        }
+      
+      case TaskState.barcodeManual:
         setState(() => taskState = TaskState.scanStorage);
         return false;
-      }
-    
-    case TaskState.barcodeManual:
-      setState(() => taskState = TaskState.scanStorage);
-      return false;
 
-    default:
-      if(!Global.isScannerDevice) await controller?.pauseCamera();
-      return true;
-  }}
+      default:
+        if(!Global.isScannerDevice) await controller?.pauseCamera();
+        return true;
+    }
+  }
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  bool isButtonAvailable(String name) => (rawData.isNotEmpty && rawData.last[name] != null)? (rawData.last[name].toString() == '1') : true;
+
   Future _triggerScan() async{
+    if(scanOngoing) return; scanOngoing = true;
     List<dynamic> getSelectedItems() {
       List<dynamic> varList = List<dynamic>.empty(growable: true);
       for(int i = 0; i < selectionList.length; i++) {if(selectionList[i]){
@@ -657,7 +729,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       case TaskState.scanStorage:
         DataManager dataManager = DataManager(quickCall: QuickCall.checkCode);
         setState(() => isProcessIndicator = true);
-        storageId = scannerDatas!.value.scanData;
+        storageId =       scannerDatas!.value.scanData.trim();
+        savedStorageId =  storageId;
         await dataManager.beginQuickCall;
         switch(scannedCode){
           
@@ -691,17 +764,22 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         break;
 
         case TaskState.scanDestinationStorage:
+          String getStorageFrom(){
+            dynamic item = Global.where(rawData, 'megnevezes', 'Tárhely');
+            return (item['barcode'] == null)? item['ertek'].toString() : item['barcode'].toString();
+          }
           DataManager dataManager = DataManager(
             quickCall:  QuickCall.scanDestinationStorage,
             input:      (scannedCode == ScannedCodeIs.storage)
             ? {
               'storageFrom':  storageId,
-              'storageTo':    scannerDatas!.value.scanData,
+              'storageTo':    scannerDatas!.value.scanData.trim(),
               'cikkek':       getSelectedItems(),
             }
             : {
-              'storageFrom':  rawData[5]['ertek'].toString(),
-              'storageTo':    scannerDatas!.value.scanData,
+              //'storageFrom':  rawData[5]['ertek'].toString(),
+              'storageFrom':  getStorageFrom(),
+              'storageTo':    scannerDatas!.value.scanData.trim(),
               'cikkek':       [{
                 'cikk_id':    storageId,
                 'mennyiseg':  1
@@ -715,7 +793,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             scannedCode = ScannedCodeIs.storage;
             if(!Global.isScannerDevice) controller!.resumeCamera();
             dataManager =           DataManager(quickCall: QuickCall.checkStock);
-            storageId =             scannerDatas!.value.scanData;
+            storageId =             scannerDatas!.value.scanData.trim();
+            savedStorageId =        storageId;
             await dataManager.beginQuickCall;
             buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
             buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
@@ -731,7 +810,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       case TaskState.scanProduct:
         DataManager dataManager = DataManager(quickCall: QuickCall.addItem);
         isProcessIndicator = true;
-        itemId = scannerDatas!.value.scanData;
+        itemId = scannerDatas!.value.scanData.trim();
         setState((){});
         await dataManager.beginQuickCall;
         dataManager = DataManager(quickCall: QuickCall.checkStock);
@@ -742,6 +821,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
       default: break;
     }
+    scanOngoing = false;
   }
 
   List<DataCell> _getCells(Map<String, dynamic> row){
@@ -789,7 +869,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
       if(!Global.isScannerDevice) await controller!.pauseCamera(); 
       setState(() => isProcessIndicator = true);
-      storageId = result!;             
+      storageId =       result!.trim();
+      savedStorageId =  storageId;
       await dataManager.beginQuickCall;
       if(storageFromExist){
         buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;

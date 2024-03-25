@@ -1,0 +1,3 @@
+UPDATE [mosaic].[dbo].[Parameters]
+SET [verzio_logistic_app] = '1.19'
+WHERE [id] = 1

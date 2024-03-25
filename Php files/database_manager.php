@@ -2,7 +2,6 @@
 class DatabaseManager{
     // ---------- <Variables [1]> ----- ---------- ---------- ---------- ---------- ---------- ---------- ----------    
     private $pdoServer =   "localhost";
-    //private $pdoDatabase = "mosaic_test";
     private $pdoUser =     "app";
     private $pdoPassword = "Dh!Flmn2J6uJ";
     private $conn;

@@ -2,6 +2,7 @@
 
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
+import 'package:logistic_app/routes/incoming_deliverynote.dart';
 import 'package:logistic_app/routes/scan_check_stock.dart';
 import 'package:flutter/material.dart';
 
@@ -19,14 +20,16 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   static String errorMessageBottomLine =  '';
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  ButtonState buttonPickUpList =    ButtonState.default0;
-  ButtonState buttonListOrdersOut = ButtonState.default0;
-  ButtonState buttonListOrders =    ButtonState.default0;
-  ButtonState buttonDeliveryNote =  ButtonState.default0;
-  ButtonState buttonRevenue =       ButtonState.disabled;
-  ButtonState buttonCheckStock =    ButtonState.default0;
-  ButtonState buttonStockIn =       ButtonState.default0;
-  ButtonState buttonInventory =     ButtonState.default0;
+  ButtonState buttonPickUpList =            ButtonState.default0;
+  ButtonState buttonDeliveryOut =           ButtonState.default0;
+  ButtonState buttonIncomingDeliveryNote =  ButtonState.default0;
+  ButtonState buttonListOrdersOut =         ButtonState.default0;
+  ButtonState buttonListOrders =            ButtonState.default0;
+  ButtonState buttonDeliveryNote =          ButtonState.default0;
+  ButtonState buttonRevenue =               ButtonState.disabled;
+  ButtonState buttonCheckStock =            ButtonState.default0;
+  ButtonState buttonStockIn =               ButtonState.default0;
+  ButtonState buttonInventory =             ButtonState.default0;
   late double _width;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -43,8 +46,9 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     if(_width > 400) _width = 400;
     return Scaffold(
       appBar: AppBar(
-        title:            const Center(child: Text('Logistic App')),
+        title:            Center(child: Text(DataManager.raktarMegnevezes)),
         backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+        foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
       ),
       backgroundColor:  Colors.white,
       body:             LayoutBuilder(
@@ -53,6 +57,9 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
             filter(7, _drawButtonListOrdersOut),
             filter(1, _drawButtonPickUpList),
             filter(2, _drawButtonListOrders),
+            filter(8, _drawDeliveryOut),
+            filter(9, _drawButtonIncomingDeliveryNote),
+            const SizedBox(height: 20),
             filter(3, _drawButtonDeliveryNote),
             filter(4, _drawButtonCheckStock),
             filter(5, _drawButtonStockIn),
@@ -75,6 +82,36 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonPickUpList))))
         ),
         Text((buttonPickUpList == ButtonState.loading)? 'Betöltés...' : menuList[0]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonPickUpList)))
+      ])
+    ))
+  );
+
+  Widget get _drawDeliveryOut => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryOut))),
+      onPressed:  (buttonDeliveryOut == ButtonState.default0)? () => _buttonDeliveryOutPressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonDeliveryOut == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonDeliveryOut))))
+        ),
+        Text((buttonDeliveryOut == ButtonState.loading)? 'Betöltés...' : menuList[7]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDeliveryOut)))
+      ])
+    ))
+  );
+
+  Widget get _drawButtonIncomingDeliveryNote => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonIncomingDeliveryNote))),
+      onPressed:  (buttonIncomingDeliveryNote == ButtonState.default0)? () => _buttonIncomingDeliveryNotePressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonIncomingDeliveryNote == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonIncomingDeliveryNote))))
+        ),
+        Text((buttonIncomingDeliveryNote == ButtonState.loading)? 'Betöltés...' : menuList[8]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonIncomingDeliveryNote)))
       ])
     ))
   );
@@ -195,6 +232,25 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     setState((){});
   }
 
+  Future get _buttonDeliveryOutPressed async{
+    setState(() => buttonPickUpList = ButtonState.loading);
+    Global.routeNext =        NextRoute.deliveryOut;
+    await DataManager().beginProcess;
+    buttonPickUpList =        ButtonState.default0;
+    await Navigator.pushNamed(context, '/listOrders');
+    setState((){});
+  }
+
+  Future get _buttonIncomingDeliveryNotePressed async{
+    setState(() => buttonIncomingDeliveryNote = ButtonState.loading);
+    Global.routeNext =                    NextRoute.incomingDeliveryNote;
+    await DataManager().beginProcess;
+    buttonIncomingDeliveryNote =          ButtonState.default0;
+    IncomingDeliveryNoteState.taskState = InDelNoteState.default0;
+    await Navigator.pushNamed(context, '/incomingDeliveryNote');
+    setState((){});
+  }
+
   Future get _buttonListOrdersOutPressed async{
     setState(() => buttonListOrdersOut = ButtonState.loading);
     Global.routeNext =        NextRoute.orderOutList;
@@ -227,8 +283,6 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
       setState((){});
     }
   }
-
-  //void get _buttonRevenuePressed {}
 
   Future get _buttonCheckStockPressed async{
     setState(() => buttonCheckStock = ButtonState.loading);

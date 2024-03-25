@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, recursive_getters
+// ignore_for_file: use_build_context_synchronously, recursive_getters, deprecated_member_use
 
 import 'dart:convert';
 import 'dart:io';
@@ -87,6 +87,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       appBar: AppBar(
         title:            const Center(child: Padding(padding: EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Szállítólevél átvétel'))),
         backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+        foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
       ),
       backgroundColor:  Colors.white,
       body:             LayoutBuilder(
@@ -106,6 +107,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     appBar: AppBar(
       title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Sorszám: ${rawData[selectedIndex!]['Sorszám']}'))),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     body: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       (pdfPath == null)
@@ -119,6 +121,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     appBar:           AppBar(
       title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text('Sorszám: ${rawData[selectedIndex!]['Sorszám']}'))),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+      foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
     ),
     backgroundColor:  (isSignatureDisabled)? Colors.grey : Colors.white,
     body:             OrientationBuilder(builder: (context, orientation) {
