@@ -397,11 +397,21 @@ class DataManager{
           dataQuickCall[check(16)] =  await jsonDecode(response.body);
           break;
 
+        case QuickCall.addDeliveryNoteItem:
+          var queryParameters = {
+            'customer':     customer,
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString()
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item.php');          
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(17)] =  await jsonDecode(await jsonDecode(response.body)[0]['b'])['adatok'];
+          break;
+
         default:break;
       }
     }
     catch(e) {
-      if(kDebugMode)print('$e');
+      if(kDebugMode)print('$e, $quickCall');
       isServerAvailable = false;
     }
     finally{
@@ -647,7 +657,7 @@ class DataManager{
           }
           if(kDebugMode)print(DataFormState.listOfLookupDatas);
           break;
-
+        
         case QuickCall.chainGiveDatas:
           int getIndexFromId({required String id}) {for(int i = 0; i < DataFormState.rawData.length; i++) {if(DataFormState.rawData[i]['id'] == id) return i;} throw Exception('No such id in rawData: $id');}
 
@@ -697,6 +707,55 @@ class DataManager{
           }}
           break;
 
+        case QuickCall.chainGiveDatasDeliveryNote:
+          int getIndexFromId({required String id}) {for(int i = 0; i < IncomingDeliveryNoteState.rawDataDataForm.length; i++) {if(IncomingDeliveryNoteState.rawDataDataForm[i]['id'] == id) return i;} throw Exception('No such id in rawData: $id');}
+
+          if(IncomingDeliveryNoteState.rawDataDataForm[input['index']]['update_items'] == null) return;
+          for(dynamic item in IncomingDeliveryNoteState.rawDataDataForm[input['index']]['update_items']) {
+            switch(item['callback']){
+
+              case 'refresh':
+                dynamic result = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
+                if(result.isNotEmpty){
+                  IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['value'] =  result[0]['megnevezes'];
+                  IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['kod'] =    result[0]['id'];
+                }
+                else{
+                  IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['value'] =  null;
+                  IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['kod'] =    null;
+                }
+                break;
+
+              default:
+                IncomingDeliveryNoteState.listOfLookupDatas[item['id']] = await _getLookupDataDeliveryNote(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
+                IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['value'] =  null;
+                break;
+            }
+          }
+          for(MapEntry<String, dynamic> item in IncomingDeliveryNoteState.listOfLookupDatas.entries) {for(int i = 0; i < IncomingDeliveryNoteState.rawDataDataForm.length; i++){
+            try{
+              if(IncomingDeliveryNoteState.rawDataDataForm[i]['id'] == item.key){
+                if(IncomingDeliveryNoteState.rawDataDataForm[i]['input_field'] == 'text'){
+                  IncomingDeliveryNoteState.rawDataDataForm[i]['value'] = (item.value[0]['id'] == null)? '' : item.value[0]['id'].toString();
+                  break;
+                }
+                if(['select','search'].contains(IncomingDeliveryNoteState.rawDataDataForm[i]['input_field'])){
+                  if(item.value.isEmpty || item.value[0]['id'] == null){
+                    IncomingDeliveryNoteState.listOfLookupDatas[item.key] = List<dynamic>.empty();
+                  }
+                  else {for(var item in item.value){
+                    if(item['selected'] != null && item['selected'].toString() == '1') {IncomingDeliveryNoteState.rawDataDataForm[i]['value'] = item['id']; break;}
+                  }}
+                  break;
+                }
+              }
+            }
+            catch(e){
+              if(kDebugMode) print('${item.key}\n$e');
+            }
+          }}
+          break;
+
         case QuickCall.askAbroncs:
           DataFormState.rawData2 =            [json.decode(dataQuickCall[11][0]['result'][0]['b'])];
           if(DataFormState.carId.isNotEmpty || ScanCheckStockState.storageId != newEntryId)  DataFormState.taskState = TaskState.dataList;
@@ -713,8 +772,12 @@ class DataManager{
           ScanCheckStockState.rawData = jsonDecode(dataQuickCall[14][0]['tetelek']);
           break;
 
+        case QuickCall.addDeliveryNoteItem:
         case QuickCall.addNewDeliveryNote:
-          IncomingDeliveryNoteState.rawDataDataForm = json.decode(dataQuickCall[15][0]['b'])['adatok'];
+          IncomingDeliveryNoteState.rawDataDataForm = (quickCall == QuickCall.addNewDeliveryNote)
+            ? json.decode(dataQuickCall[15][0]['b'])['adatok']
+            : IncomingDeliveryNoteState.rawDataDataForm = dataQuickCall[17]
+          ;
           IncomingDeliveryNoteState.controller =      List<TextEditingController>.empty(growable: true);
           for(int i = 0; i < IncomingDeliveryNoteState.rawDataDataForm.length; i++){
             IncomingDeliveryNoteState.controller.add(TextEditingController(text: ''));
@@ -869,7 +932,8 @@ class DataManager{
   }
 
   Future<dynamic> _getLookupDataDeliveryNote({required String input, required bool isPhp}) async{
-    for(var item in DataFormState.rawData){
+    input = input.replaceAll("[id]", '0');
+    for(var item in IncomingDeliveryNoteState.rawDataDataForm ){
       String pattern =  '[${item['id'].toString()}]';
       input =           input.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
       pattern =         '[jellemzo_${item['jellemzo_id'].toString()}]';
@@ -878,6 +942,7 @@ class DataManager{
         
     try {if(isPhp){
       Uri uriUrl =              Uri.parse(Uri.encodeFull('$sqlUrlLink$input').replaceAll('+', '%2b'));
+      //uriUrl =                  Uri.parse(Uri.encodeFull('$sqlUrlLink$input').replaceAll('&', '%26'));
       if(kDebugMode)print(uriUrl.toString());
       http.Response response =  await http.post(uriUrl);
       dynamic result =          await jsonDecode(response.body);

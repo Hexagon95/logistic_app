@@ -10,11 +10,11 @@ class SqlCommand{
     public function select_tabletLista()                            {return "SELECT * FROM [dbo].[tablet_lista] WHERE [Eszkoz_id] = :eszkoz_id";}
     public function select_kiszedesiLista()                         {return "SELECT * FROM [dbo].[Tablet_Kiszedesek] ()";}
     public function select_tabletBevetelezesek()                    {return "SELECT * FROM [dbo].[Tablet_Bevetelezesek] ()";}
-    public function select_tabletBevetelezesek1()                   {return "SELECT * FROM [dbo].[Tablet_Bevetelezesek1] (:raktar_id)";}
+    public function select_tabletBevetelezesek1()                   {return "SELECT * FROM [dbo].[Tablet_Bevetelezesek] (:raktar_id)";}
     public function select_tabletKiszallitasok()                    {return "SELECT * FROM [dbo].[Tablet_Kiszallitasok] (:raktar_id)";}
     public function select_tabletBejovoszallitolevel()              {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel] (:raktar_id)";}
     public function select_rendelesek()                             {return "SELECT * FROM [dbo].[Tablet_Rendelesek] ()";}
-    public function select_rendelesek1()                            {return "SELECT * FROM [dbo].[Tablet_Rendelesek1] (:raktar_id)";}
+    public function select_rendelesek1()                            {return "SELECT * FROM [dbo].[Tablet_Rendelesek] (:raktar_id)";}
     public function select_tarhely_Id()                             {return "SELECT * FROM [dbo].[Tarhely_id] (:input)";}
     public function select_tarhely_Id1()                            {return "SELECT * FROM [dbo].[Tarhely_id] (:raktar_id, :input)";}
     public function select_tarhelyKeszlet()                         {return "SELECT * FROM [dbo].[Tarhely_keszlet] (0, :tarhely_id, :datum)";}
@@ -24,6 +24,7 @@ class SqlCommand{
     public function select_keszletellenorzesId1()                   {return "SELECT * FROM [dbo].[Keszletellenorzes_Id] (:raktar_id, :code)";}
     public function select_rendelesTetelek()                        {return "SELECT * FROM [dbo].[Tablet_Rendeles_tetelek] (:bizonylat_id)";}
     public function select_tabletBejovoszallitolevelTetelek()       {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel_tetelek] (:bizonylat_id)";}
+    public function select_Tablet_Bejovoszallitolevel_tetelek_uj()  {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel_tetelek_uj] (:bizonylat_id, 0)";}
     public function select_tabletKiszallitasTetelek()               {return "SELECT * FROM [dbo].[Tablet_Kiszallitas_tetelek] (:bizonylat_id)";}
     public function select_tabletBevetelezesTetelek()               {return "SELECT * FROM [dbo].[Tablet_Bevetelezes_tetelek] (:bizonylat_id)";}
     public function select_kiszedesTetelek()                        {return "SELECT * FROM [dbo].[Tablet_Kiszedes_tetelek] (:bizonylat_id)";}

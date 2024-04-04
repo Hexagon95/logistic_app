@@ -1,4 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
@@ -39,7 +40,6 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
 
-
   // ---------- < WidgetBuild > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
   Widget build(BuildContext context){    
@@ -62,6 +62,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
             return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               (){switch(taskState){
                 case InDelNoteState.default0: return  _drawListDeliveryNotes;
+                case InDelNoteState.addItem:
                 case InDelNoteState.addNew:   return  _drawDataForm;
                 default:                      return  Container();
               }}(),
@@ -249,6 +250,15 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       });
       break;
 
+    case InDelNoteState.listItems:
+      setState(() => buttonAdd = ButtonState.loading);
+      await DataManager(quickCall: QuickCall.addDeliveryNoteItem).beginQuickCall;
+      setState((){
+        buttonAdd = ButtonState.default0;
+        taskState = InDelNoteState.addItem;
+      });
+      break;
+
     default: break;
   }}
 
@@ -300,6 +310,43 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     }}
 
     switch(input['input_field']){
+
+      case 'search':
+        List<String> items =    List<String>.empty(growable: true);
+        for(var item in listOfLookupDatas[input['id']]) {items.add(item['megnevezes'].toString());}
+        return (items.isNotEmpty && editable)
+        ? Stack(alignment: AlignmentDirectional.centerStart, children: [
+            Visibility(visible: (rawDataDataForm[index]['value'] == null), child: Padding(padding: const EdgeInsets.all(10), child: Text(
+              rawDataDataForm[index]['name'],
+              style: const TextStyle(color: Colors.grey, fontSize: 16),
+            ))),
+            SizedBox(height: 55, width: getWidth(index), child: DropdownSearch<String>(
+              items:                  items,
+              selectedItem:           controller[index].text,
+              popupProps:             const PopupProps.menu(showSearchBox: true),
+              onChanged:              (String? newValue) => _handleSelectChange(newValue, index),
+              dropdownButtonProps:    const DropdownButtonProps(
+                icon:                     Row(mainAxisSize: MainAxisSize.min, children:[Icon(Icons.search), Icon(Icons.arrow_downward)]),
+                padding:                  EdgeInsets.symmetric(vertical: 16),
+              ),
+              dropdownDecoratorProps: const DropDownDecoratorProps(
+                baseStyle:                TextStyle(color: Colors.black),
+                textAlign:                TextAlign.start,
+                textAlignVertical:        TextAlignVertical.center,
+                dropdownSearchDecoration: InputDecoration(border: InputBorder.none)
+              ),
+            ))
+          ])
+        : SizedBox(height: 55, width: getWidth(index), child: TextFormField(
+          enabled:      false,          
+          controller:   controller[index],
+          decoration:   InputDecoration(
+            contentPadding: const EdgeInsets.all(10),
+            labelText:      rawDataDataForm[index]['name'],
+            border:         InputBorder.none,
+          ),
+          onChanged:  null,
+        ));
 
       case 'select':
         bool isInLookupData(String input, List<dynamic>? list) {if(list != null)for(var item in list) {if(item['id'].toString() == input) return true;} return false;}
@@ -371,17 +418,17 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
   // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future _handleSelectChange(String? newValue, int index) async{
-    ButtonState setButtonContinue(){
-      for(var item in rawDataDataForm){
-        if(item['value'] == null || item['value'].toString().isEmpty){
-          return ButtonState.disabled;
-        }
-      }
+    ButtonState setButton(){
+      for(var item in rawDataDataForm) {if(item['value'] == null || item['value'].toString().isEmpty) {return ButtonState.disabled;}}
       return ButtonState.default0;
     }
+    if(newValue == null) {rawDataDataForm[index]['kod'] = null;}
+    else {for(dynamic item in listOfLookupDatas[rawDataDataForm[index]['id']]) {if(item['megnevezes'] == newValue) rawDataDataForm[index]['kod'] = item['id'];}}
+    DataManager dataManager = DataManager(quickCall: QuickCall.chainGiveDatasDeliveryNote, input: {'index': index});
+    await dataManager.beginQuickCall;
     setState((){
       rawDataDataForm[index]['value'] = newValue;
-      buttonContinue =                  setButtonContinue();
+      buttonContinue =                  setButton();
     });
   }
 }
