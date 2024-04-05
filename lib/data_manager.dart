@@ -407,6 +407,17 @@ class DataManager{
           dataQuickCall[check(17)] =  await jsonDecode(await jsonDecode(response.body)[0]['b'])['adatok'];
           break;
 
+        case QuickCall.addItemFinished:
+          var queryParameters = {
+            'customer':     customer,
+            'bizonylat_id': int.parse(IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString()),
+            'parameter':    jsonEncode(IncomingDeliveryNoteState.rawDataDataForm),
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item_finished.php');          
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(18)] =  await jsonDecode(response.body);
+          break;
+
         default:break;
       }
     }
@@ -596,7 +607,7 @@ class DataManager{
     }
     catch(e) {
       if(kDebugMode)print('$e');
-      isServerAvailable = false;
+      //isServerAvailable = false;
     }
     finally{
       await _decision;        

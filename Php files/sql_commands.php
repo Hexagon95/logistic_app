@@ -56,5 +56,6 @@ class SqlCommand{
     public function exec_barcodePrintFelvitele()                    {return "EXEC [local].[Barcode_print_Felvitele] :tarhely";}
 	public function exec_tabletBetarolasFelvitele()                 {return "EXEC [dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, :kimenet";}
     public function exec_tabletBejovoszallitolevelUjFelvitele()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :output";}
+    public function exec_tabletBejovoszallitolevelUjTetelFelvitele(){return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :output";}
     public function exec_tabletBelep()                              {return "EXEC [mosaic].[dbo].[TabletBelep] :eszkoz_id, :verzio";}
 }

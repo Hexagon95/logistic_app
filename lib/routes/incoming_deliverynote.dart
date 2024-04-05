@@ -44,7 +44,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   @override
   Widget build(BuildContext context){    
     return WillPopScope(onWillPop: _handlePop, child: GestureDetector(
-      onTap:  () => setState(() => selectedIndex = null),
+      //onTap:  () => setState(() => selectedIndex = null),
       child:  Scaffold(
         appBar: AppBar(
           title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text((){switch(taskState){
@@ -118,6 +118,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     case InDelNoteState.default0:   return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_drawButtonAdd,_drawButtonContinue]);
     case InDelNoteState.addNew:     return  Row(mainAxisAlignment: MainAxisAlignment.end, children: [_drawButtonContinue]);
     case InDelNoteState.listItems:  return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_drawButtonAdd, _drawButtonEdit, _drawButtonRemove]);
+    case InDelNoteState.addItem:    return  Row(mainAxisAlignment: MainAxisAlignment.end, children: [_drawButtonContinue]);
     default:                        return  Container();
   }}());
 
@@ -283,6 +284,17 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       });
       break;
 
+    case InDelNoteState.addItem:
+      setState(() => buttonContinue = ButtonState.loading);
+      await DataManager(quickCall: QuickCall.addItemFinished).beginQuickCall;
+      await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
+      setState((){
+        taskState =       InDelNoteState.listItems;
+        buttonContinue =  ButtonState.default0;
+      });
+
+      break;
+
     default:break;
   }}
 
@@ -294,6 +306,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
     case InDelNoteState.listItems:
       setState(() => taskState = InDelNoteState.default0);
+      return false;
+
+    case InDelNoteState.addItem:
+      setState(() => taskState = InDelNoteState.listItems);
       return false;
 
     default: setState((){}); return true;
