@@ -29,13 +29,13 @@ class DatabaseManager{
     private function _executeQuery($queryString, $parameters){
         try {
             $sqlQuery = $this->conn->prepare($queryString);
+            $sqlQuery->bindParam(':rendszam', $parameters['rendszam'], PDO::PARAM_STR);
             $sqlQuery->bindParam(':bizonylat_id', $parameters['bizonylat_id'], PDO::PARAM_STR);
-            $sqlQuery->bindParam(':parameter', $parameters['parameter'], PDO::PARAM_STR);
 			$sqlQuery->bindParam(':output', $this->data, PDO::PARAM_STR|PDO::PARAM_INPUT_OUTPUT, 4000);
             $sqlQuery->execute();
         }
         catch (\Throwable $th){
-            $this->data = json_encode(array(['Execution failed' => $th->getMessage()]));
+            echo $th->getMessage();
         }
     }
 }

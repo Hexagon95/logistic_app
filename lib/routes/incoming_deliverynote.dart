@@ -6,7 +6,7 @@ import 'package:logistic_app/data_manager.dart';
 
 class IncomingDeliveryNote extends StatefulWidget{
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  const IncomingDeliveryNote({Key? key}) : super(key: key);
+  const IncomingDeliveryNote({Key? key}) : super(key: key); 
 
   @override
   State<IncomingDeliveryNote> createState() => IncomingDeliveryNoteState();
@@ -17,19 +17,21 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   static Map<String, dynamic> listOfLookupDatas = <String, dynamic>{};
   static List<TextEditingController> controller = List<TextEditingController>.empty(growable: true);
   static List<dynamic> rawDataListDeliveryNotes = List<dynamic>.empty(growable: true);
+  static List<dynamic> rawDataListItems         = List<dynamic>.empty(growable: true);
   static List<dynamic> rawDataDataForm =          List<dynamic>.empty(growable: true);
   static InDelNoteState taskState =               InDelNoteState.default0;
   static int? getSelectedIndex;
 
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  ButtonState buttonAdd =       ButtonState.default0;
+  ButtonState buttonAdd =       ButtonState.disabled;
   ButtonState buttonEdit =      ButtonState.default0;
   ButtonState buttonRemove =    ButtonState.default0;
   ButtonState buttonContinue =  ButtonState.disabled;
+  ButtonState buttonPrint =     ButtonState.default0;
   int? _selectedIndex;
   set selectedIndex(int? value) {if(buttonContinue != ButtonState.loading){
-    if(value == null) {buttonContinue = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
-    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    if(value == null) {buttonContinue = ButtonState.disabled; buttonAdd = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; buttonAdd = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
   }}
   int? get selectedIndex => _selectedIndex;
    BoxDecoration customBoxDecoration =       BoxDecoration(            
@@ -61,10 +63,11 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
           builder: (BuildContext context, BoxConstraints viewportConstraints) {
             return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               (){switch(taskState){
-                case InDelNoteState.default0: return  _drawListDeliveryNotes;
+                case InDelNoteState.default0:   return  _drawListDeliveryNotes(rawDataListDeliveryNotes);
                 case InDelNoteState.addItem:
-                case InDelNoteState.addNew:   return  _drawDataForm;
-                default:                      return  Container();
+                case InDelNoteState.addNew:     return  _drawDataForm;
+                case InDelNoteState.listItems:  return  _drawListDeliveryNotes(rawDataListItems);
+                default:                        return  Container();
               }}(),
               _drawNoConnection,
               _drawBottomBar
@@ -76,11 +79,11 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   }  
   
   // ---------- < Widgets [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawListDeliveryNotes => rawDataListDeliveryNotes.isNotEmpty
+  Widget _drawListDeliveryNotes(List<dynamic> rawData) => rawData.isNotEmpty
     ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child: 
         SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
-          columns:            _generateColumns,
-          rows:               _generateRows,
+          columns:            _generateColumns(rawData),
+          rows:               _generateRows(rawData),
           showCheckboxColumn: false,                
           border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
         ))
@@ -115,10 +118,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   )));
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: (){switch(taskState){
-    case InDelNoteState.default0:   return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_drawButtonAdd,_drawButtonContinue]);
-    case InDelNoteState.addNew:     return  Row(mainAxisAlignment: MainAxisAlignment.end, children: [_drawButtonContinue]);
-    case InDelNoteState.listItems:  return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_drawButtonAdd, _drawButtonEdit, _drawButtonRemove]);
-    case InDelNoteState.addItem:    return  Row(mainAxisAlignment: MainAxisAlignment.end, children: [_drawButtonContinue]);
+    case InDelNoteState.default0:   return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue]);
+    case InDelNoteState.addNew:     return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
+    case InDelNoteState.listItems:  return  Row(mainAxisAlignment: MainAxisAlignment.start, children:         [_drawButtonAdd]);
+    case InDelNoteState.addItem:    return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
     default:                        return  Container();
   }}());
 
@@ -215,24 +218,42 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     ])
   );
 
+  Widget get _drawButtonPrint => TextButton(
+    onPressed:  () => (buttonPrint == ButtonState.default0)? _buttonPrintPressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+      (buttonPrint == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonPrint)) : Container(),
+      Icon(Icons.print, color: Global.getColorOfIcon(buttonPrint), size: 30)
+    ]))
+  );
+
+  // ---------- < Widgets [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget _progressIndicator(Color colorInput) => Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: SizedBox(
+    width:  20,
+    height: 20,
+    child:  CircularProgressIndicator(color: colorInput)
+  ));
+
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  List<DataColumn> get _generateColumns{
+  List<DataColumn> _generateColumns(List<dynamic> rawData){
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
-    for (var item in rawDataListDeliveryNotes[0].keys) {switch(item){
-      case 'sorszam':   columns.add(const DataColumn(label: Text('Sorszám')));          break;
-      case 'kesz':      columns.add(const DataColumn(label: Text('')));                 break;
+    for (var item in rawData[0].keys) {switch(item){
+      case 'cikkszam':
+      case 'sorszam':     columns.add(const DataColumn(label: Text('Sorszám')));    break;
+      case 'kesz':        columns.add(const DataColumn(label: Text('')));           break;
       case 'vevo':
-      case 'szallito':  columns.add(const DataColumn(label: Text('Megnevezés')));       break;
-      default:                                                                          break;
+      case 'megnevezes':
+      case 'szallito':    columns.add(const DataColumn(label: Text('Megnevezés'))); break;
+      default:                                                                      break;
     }}
     return columns; 
   }
 
-  List<DataRow> get _generateRows{
+  List<DataRow> _generateRows(List<dynamic> rawData){
     List<DataRow> rows = List<DataRow>.empty(growable: true);
-    for (var i = 0; i < rawDataListDeliveryNotes.length; i++) {
+    for (var i = 0; i < rawData.length; i++) {
       rows.add(DataRow(
-        cells:            _getCells(rawDataListDeliveryNotes[i]),
+        cells:            _getCells(rawData[i]),
         selected:         (i == selectedIndex),
         onSelectChanged:  (bool? selected) => setState(() => selectedIndex = i)
       )); 
@@ -243,12 +264,16 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   Future get _buttonAddPressed async{ switch(taskState){
 
     case InDelNoteState.default0:
-      setState(() => buttonAdd = ButtonState.loading);
-      await DataManager(quickCall: QuickCall.addNewDeliveryNote).beginQuickCall;
-      setState((){
-        buttonAdd = ButtonState.default0;
-        taskState = InDelNoteState.addNew;
-      });
+      String? varString = await Global.plateNuberDialog(context, title: 'Adja meg a Rendszámot.', content: 'Rendszám');
+      if(varString != null){
+        setState(() => buttonAdd = ButtonState.loading);
+        await DataManager(quickCall: QuickCall.plateNumberCheck, input: {'rendszam': varString}).beginQuickCall;
+        await DataManager(quickCall: QuickCall.addNewDeliveryNote).beginQuickCall;
+        setState((){
+          buttonAdd = ButtonState.default0;
+          taskState = InDelNoteState.addNew;
+        });
+      }
       break;
 
     case InDelNoteState.listItems:
@@ -297,6 +322,9 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
     default:break;
   }}
+
+  Future get _buttonPrintPressed async{
+  }
 
   Future<bool>_handlePop() async{ switch(taskState){
 
@@ -403,6 +431,20 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
           onChanged:  null,
         ));
 
+      case 'number':
+      case 'integer': return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
+        enabled:            editable,          
+        controller:         controller[index],
+        onChanged:          (value) => _checkInteger(value, input, index),
+        decoration:         InputDecoration(
+          contentPadding:     const EdgeInsets.all(10),
+          labelText:          input['name'],
+          border:             InputBorder.none,
+        ),
+        style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+        keyboardType: TextInputType.number,
+      ));
+
       default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
         enabled:          editable,
         controller:       controller[index],
@@ -421,7 +463,9 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   List<DataCell> _getCells(Map<String, dynamic> row){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
     for (var item in row.keys) {switch(item){
+      case 'cikkszam':
       case 'sorszam':
+      case 'megnevezes':
       case 'szallito':
       case 'vevo':    cells.add(DataCell(Text(row[item].toString())));  break;
       case 'kesz':    cells.add(DataCell((row[item].toString() == '1')
@@ -434,17 +478,52 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
   // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future _handleSelectChange(String? newValue, int index) async{
-    ButtonState setButton(){
-      for(var item in rawDataDataForm) {if(item['value'] == null || item['value'].toString().isEmpty) {return ButtonState.disabled;}}
-      return ButtonState.default0;
-    }
+    rawDataDataForm[index]['value'] = newValue;
     if(newValue == null) {rawDataDataForm[index]['kod'] = null;}
     else {for(dynamic item in listOfLookupDatas[rawDataDataForm[index]['id']]) {if(item['megnevezes'] == newValue) rawDataDataForm[index]['kod'] = item['id'];}}
     DataManager dataManager = DataManager(quickCall: QuickCall.chainGiveDatasDeliveryNote, input: {'index': index});
     await dataManager.beginQuickCall;
     setState((){
-      rawDataDataForm[index]['value'] = newValue;
-      buttonContinue =                  setButton();
+      buttonContinue = setButton();
     });
   }
+
+  void _checkInteger(String value, dynamic input, int index){ //Check if integer and is between 0 and limit.
+    if(input['limit'] == null) {setState(() {rawDataDataForm[index]['value'] = value; setButton();}); return;}
+    int? varInt;
+    try{varInt = int.parse(value);}
+    // ignore: empty_catches
+    catch(e){}
+    finally{
+      if(varInt != null) {
+        if(varInt < 1) {controller[index].text = '1'; input['value'] = 1;}
+        else if(varInt > input['limit']) {
+          controller[index].text =  input['limit'].toString();
+          input['value'] =          input['limit'];
+        }
+        else {input['value'] = varInt;}
+      }
+      else if(value != '') {controller[index].text = input['value'].toString();}
+    }
+  }
+
+  // ---------- < Methods [4] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  ButtonState setButton() {switch(taskState){
+
+    case InDelNoteState.addNew:
+      return (
+        (rawDataDataForm[2]['value'] != null && rawDataDataForm[2]['value'].isNotEmpty)
+        && ((
+          rawDataDataForm[0]['value'] != null && rawDataDataForm[0]['value'].isNotEmpty)
+          || (rawDataDataForm[1]['value'] != null && rawDataDataForm[1]['value'].isNotEmpty
+        ))
+      )
+        ? ButtonState.default0
+        : ButtonState.disabled
+      ;
+    
+    default:
+      for(var item in rawDataDataForm) {if(item['value'] == null || item['value'].toString().isEmpty) {return ButtonState.disabled;}}
+      return ButtonState.default0;
+  }}
 }

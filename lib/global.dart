@@ -16,7 +16,7 @@ enum TaskState{               askStorage,           scanStorage,        askProdu
 enum QuickCall{               askBarcode,           deleteItem,         saveInventory,        askInventoryDate,   checkCode,                checkStock,
   addItem,                    saveSignature,        savePdf,            giveDatas,            chainGiveDatas,     finishGiveDatas,          scanDestinationStorage,
   askAbroncs,                 print,                checkArticle,       newEntry,             verzio,             tabletBelep,              addNewDeliveryNote,
-  addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished
+  addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck
 }
 enum DialogResult{            cancel,               back,               mainMenu}
 enum StockState{              checkStock,           stockIn,            default0}
@@ -127,6 +127,44 @@ class Global{
         ),
         style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
         keyboardType: TextInputType.number,
+      )),
+      actions:  [okButton, cancel]
+    );
+
+    // --------- < Return > ---- -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    return await showDialog(
+      context:            context,
+      builder:            (BuildContext context) => infoRegistry,
+      barrierDismissible: false
+    );
+  }
+
+  static Future<String?> plateNuberDialog(BuildContext context, {String title = '', String content = ''}) async{
+    // --------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    String? varString;
+    BoxDecoration customBoxDecoration =       BoxDecoration(            
+      border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
+      color:        Colors.white,
+      borderRadius: const BorderRadius.all(Radius.circular(8))
+    );
+
+    // --------- < Widgets [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    Widget okButton = TextButton(child: const Text('Ok'),     onPressed: () => Navigator.pop(context, varString));
+    Widget cancel =   TextButton(child: const Text('Mégsem'), onPressed: () => Navigator.pop(context, null));
+
+    // --------- < Methods [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+
+    // --------- < Display > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    AlertDialog infoRegistry = AlertDialog(
+      title:    Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+      content:  Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+        onChanged:    (value) => varString = value,
+        decoration:   InputDecoration(
+          contentPadding: const EdgeInsets.all(10),
+          labelText:      content,
+          border:         InputBorder.none,
+        ),
+        style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
       )),
       actions:  [okButton, cancel]
     );

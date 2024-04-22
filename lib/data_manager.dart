@@ -21,7 +21,7 @@ import 'package:flutter/foundation.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.23';
+  static String thisVersion =                             '1.24';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -394,7 +394,8 @@ class DataManager{
           };
           Uri uriUrl =                Uri.parse('${urlPath}ask_delivery_notes_scan.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-          dataQuickCall[check(16)] =  await jsonDecode(response.body);
+          dynamic varDynamic = await jsonDecode(response.body)[0]['tetelek'];
+          dataQuickCall[check(16)] =  (varDynamic == null)? [] : await jsonDecode(varDynamic);
           break;
 
         case QuickCall.addDeliveryNoteItem:
@@ -410,12 +411,25 @@ class DataManager{
         case QuickCall.addItemFinished:
           var queryParameters = {
             'customer':     customer,
-            'bizonylat_id': int.parse(IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString()),
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString(),
             'parameter':    jsonEncode(IncomingDeliveryNoteState.rawDataDataForm),
           };
           Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item_finished.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(response.body);
           dataQuickCall[check(18)] =  await jsonDecode(response.body);
+          break;
+
+        case QuickCall.plateNumberCheck:
+          var queryParameters = {
+            'customer':     customer,
+            'rendszam':     input['rendszam'],
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString(),
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}plate_number_check.php');          
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(response.body);
+          dataQuickCall[check(19)] =  await jsonDecode(await jsonDecode(response.body));
           break;
 
         default:break;
@@ -423,6 +437,7 @@ class DataManager{
     }
     catch(e) {
       if(kDebugMode)print('$e, $quickCall');
+      quickCall;
       isServerAvailable = false;
     }
     finally{
@@ -799,6 +814,10 @@ class DataManager{
             IncomingDeliveryNoteState.listOfLookupDatas[item['id']] = await _getLookupDataDeliveryNote(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
           }
           if(kDebugMode)print(IncomingDeliveryNoteState.listOfLookupDatas);
+          break;
+
+        case QuickCall.askDeliveryNotesScan:
+          IncomingDeliveryNoteState.rawDataListItems = (dataQuickCall[16].isNotEmpty)? dataQuickCall[16][0]['tetelek'] : [];
           break;
 
         default:break;
