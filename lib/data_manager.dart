@@ -429,7 +429,7 @@ class DataManager{
           Uri uriUrl =                Uri.parse('${urlPath}plate_number_check.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
-          dataQuickCall[check(19)] =  await jsonDecode(await jsonDecode(response.body));
+          dataQuickCall[check(19)] =  [{'result': response.body.replaceAll(RegExp(r'[^\w\s]+'), '')}];
           break;
 
         default:break;
@@ -818,6 +818,10 @@ class DataManager{
 
         case QuickCall.askDeliveryNotesScan:
           IncomingDeliveryNoteState.rawDataListItems = (dataQuickCall[16].isNotEmpty)? dataQuickCall[16][0]['tetelek'] : [];
+          break;
+
+        case QuickCall.plateNumberCheck:
+          IncomingDeliveryNoteState.plateNumberTest = dataQuickCall[19][0]['result'];
           break;
 
         default:break;

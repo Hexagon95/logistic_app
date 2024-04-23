@@ -20,18 +20,19 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   static List<dynamic> rawDataListItems         = List<dynamic>.empty(growable: true);
   static List<dynamic> rawDataDataForm =          List<dynamic>.empty(growable: true);
   static InDelNoteState taskState =               InDelNoteState.default0;
+  static String plateNumberTest =                 '';
   static int? getSelectedIndex;
 
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  ButtonState buttonAdd =       ButtonState.disabled;
+  ButtonState buttonAdd =       ButtonState.default0;
   ButtonState buttonEdit =      ButtonState.default0;
   ButtonState buttonRemove =    ButtonState.default0;
   ButtonState buttonContinue =  ButtonState.disabled;
   ButtonState buttonPrint =     ButtonState.default0;
   int? _selectedIndex;
   set selectedIndex(int? value) {if(buttonContinue != ButtonState.loading){
-    if(value == null) {buttonContinue = ButtonState.disabled; buttonAdd = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
-    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; buttonAdd = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    if(value == null) {buttonContinue = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
   }}
   int? get selectedIndex => _selectedIndex;
    BoxDecoration customBoxDecoration =       BoxDecoration(            
@@ -264,25 +265,40 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   Future get _buttonAddPressed async{ switch(taskState){
 
     case InDelNoteState.default0:
-      String? varString = await Global.plateNuberDialog(context, title: 'Adja meg a Rendszámot.', content: 'Rendszám');
-      if(varString != null){
-        setState(() => buttonAdd = ButtonState.loading);
-        await DataManager(quickCall: QuickCall.plateNumberCheck, input: {'rendszam': varString}).beginQuickCall;
-        await DataManager(quickCall: QuickCall.addNewDeliveryNote).beginQuickCall;
-        setState((){
-          buttonAdd = ButtonState.default0;
-          taskState = InDelNoteState.addNew;
-        });
-      }
+      await DataManager(quickCall: QuickCall.addNewDeliveryNote).beginQuickCall;
+      setState((){
+        buttonAdd = ButtonState.default0;
+        taskState = InDelNoteState.addNew;
+      });
       break;
 
     case InDelNoteState.listItems:
-      setState(() => buttonAdd = ButtonState.loading);
-      await DataManager(quickCall: QuickCall.addDeliveryNoteItem).beginQuickCall;
-      setState((){
-        buttonAdd = ButtonState.default0;
-        taskState = InDelNoteState.addItem;
-      });
+      String? varString = await Global.plateNuberDialog(context, title: 'Adja meg a Rendszámot.', content: 'Rendszám');
+      if(varString != null){
+        setState(() => buttonAdd = ButtonState.loading);
+        plateNumberTest = '';
+        await DataManager(quickCall: QuickCall.plateNumberCheck, input: {'rendszam': varString}).beginQuickCall;
+        switch(plateNumberTest){
+
+          case 'NOK':
+            await DataManager(quickCall: QuickCall.addDeliveryNoteItem).beginQuickCall;
+            setState((){
+              buttonAdd = ButtonState.default0;
+              taskState = InDelNoteState.addItem;
+            });
+            break;
+
+          case 'OK':
+            await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
+            setState(() => buttonAdd = ButtonState.default0);
+            break;
+
+          default:
+            if(plateNumberTest.isNotEmpty) await Global.showAlertDialog(context, title: 'Hiba', content: plateNumberTest);
+            setState(() => buttonAdd = ButtonState.default0);
+            break;
+        }
+      }
       break;
 
     default: break;
