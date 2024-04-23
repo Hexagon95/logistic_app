@@ -432,6 +432,18 @@ class DataManager{
           dataQuickCall[check(19)] =  [{'result': response.body.replaceAll(RegExp(r'[^\w\s]+'), '')}];
           break;
 
+        case QuickCall.printBarcodeDeliveryNote:
+          var queryParameters = {
+            'customer':     customer,
+            'raktar_id':    raktarId,
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString(),
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}print_barcode_delivery_note.php');          
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(response.body);
+          dataQuickCall[check(20)] =  jsonDecode(response.body);
+          break;
+
         default:break;
       }
     }

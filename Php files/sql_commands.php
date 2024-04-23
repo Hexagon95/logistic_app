@@ -52,8 +52,9 @@ class SqlCommand{
 	public function exec_bizonylatDokumentumFelvitele()             {return "EXEC [dbo].[BizonylatDokumentumFelvitele] :parameter";}
     public function exec_abroncs_reszletezo_felvitele()             {return "EXEC [local].[Abroncs_reszletezo_felvitele_temp] :parameter";}
     public function exec_abroncs_reszletezo_felvitele1()            {return "EXEC [local].[Abroncs_reszletezo_felvitele_temp1] :parameter";}
-    public function exec_barcodePrintTarhelyCikkek()                {return "EXEC [local].[Barcode_print_tarhely_cikkek] :tarhely, :idk";}
+    public function exec_barcodePrintTarhelyCikkek()                {return "EXEC [local].[Barcode_print_tarhely_cikkek] :bizonylat_id, :raktar_id, '[]'";}
     public function exec_barcodePrintFelvitele()                    {return "EXEC [local].[Barcode_print_Felvitele] :tarhely";}
+    public function exec_barcodePrintBizonylatCikkek()              {return "EXEC [local].[Barcode_print_bizonylat_cikkek] :tarhely, :idk";}
 	public function exec_tabletBetarolasFelvitele()                 {return "EXEC [dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, :kimenet";}
     public function exec_tabletBejovoszallitolevelUjFelvitele()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelFelvitele(){return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :output";}

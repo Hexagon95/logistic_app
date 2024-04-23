@@ -28,11 +28,11 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   ButtonState buttonEdit =      ButtonState.default0;
   ButtonState buttonRemove =    ButtonState.default0;
   ButtonState buttonContinue =  ButtonState.disabled;
-  ButtonState buttonPrint =     ButtonState.default0;
+  ButtonState buttonPrint =     ButtonState.disabled;
   int? _selectedIndex;
   set selectedIndex(int? value) {if(buttonContinue != ButtonState.loading){
-    if(value == null) {buttonContinue = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
-    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    if(value == null) {buttonContinue = ButtonState.disabled; buttonPrint = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; buttonPrint = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
   }}
   int? get selectedIndex => _selectedIndex;
    BoxDecoration customBoxDecoration =       BoxDecoration(            
@@ -150,7 +150,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     ])
   );
 
-  Widget get _drawButtonEdit => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
+  /*Widget get _drawButtonEdit => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
       TextButton(
         onPressed:  () => (buttonEdit == ButtonState.default0)? _buttonAddPressed : null,
@@ -171,9 +171,9 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         ])
       )
     ])
-  );
+  );*/
 
-  Widget get _drawButtonRemove => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
+  /*Widget get _drawButtonRemove => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
       TextButton(
         onPressed:  () => (buttonRemove == ButtonState.default0)? _buttonAddPressed : null,
@@ -194,7 +194,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         ])
       )
     ])
-  );
+  );*/
 
   Widget get _drawButtonContinue => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -340,6 +340,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   }}
 
   Future get _buttonPrintPressed async{
+    setState(() => buttonPrint = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.printBarcodeDeliveryNote).beginQuickCall;
+    setState(() => buttonPrint = ButtonState.default0);
+    await Global.showAlertDialog(context, content: 'Tételek nyomtatás alatt.', title: 'Nyomtatás');
   }
 
   Future<bool>_handlePop() async{ switch(taskState){
