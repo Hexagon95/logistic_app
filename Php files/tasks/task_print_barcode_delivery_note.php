@@ -9,22 +9,27 @@ class Task{
     }
 
     // ---------- <Constructors> ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
-    function __construct(){        
+    function __construct(){
         $this->_inizialite();        
     }
 
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private function _inizialite(){
-        $this->request =            json_decode(file_get_contents('php://input'), true);
-        $this->sqlCommand =         new SqlCommand();
-        $this->databaseManager =    new DatabaseManager(
-            $this->sqlCommand->exec_barcodePrintBizonylatCikkek(),
-            [
-                'raktar_id' =>      $this->request['raktar_id'],
-                'bizonylat_id' =>   $this->request['bizonylat_id']
-            ],
-            $this->request['customer']
-        );
-        $this->result =             $this->databaseManager->getData();
+        try{
+            $this->request =            json_decode(file_get_contents('php://input'), true);
+            $this->sqlCommand =         new SqlCommand();
+            $this->databaseManager =    new DatabaseManager(
+                $this->sqlCommand->exec_barcodePrintBizonylatCikkek(),
+                [
+                    'bizonylat_id' =>   $this->request['bizonylat_id'],
+                    'raktar_id' =>      $this->request['raktar_id']
+                ],
+                $this->request['customer']
+            );
+            $this->result =             $this->databaseManager->getData();
+        }
+        catch (\Throwable $th) {
+            echo $th->getMessage();
+        }
     }
 }

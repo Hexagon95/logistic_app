@@ -435,8 +435,8 @@ class DataManager{
         case QuickCall.printBarcodeDeliveryNote:
           var queryParameters = {
             'customer':     customer,
-            'raktar_id':    raktarId,
-            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString(),
+            'bizonylat_id': input['bizonylat_id'],
+            'raktar_id':    int.parse(raktarId.toString()),
           };
           Uri uriUrl =                Uri.parse('${urlPath}print_barcode_delivery_note.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);

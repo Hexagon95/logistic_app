@@ -20,10 +20,11 @@ class ListOrdersState extends State<ListOrders>{
 
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonState = ButtonState.disabled;
+  ButtonState buttonPrint = ButtonState.disabled;
   int? _selectedIndex;
   set selectedIndex(int? value) {if(buttonState != ButtonState.loading){
-    if(value == null) {buttonState = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
-    else if(rawData[value]['kesz'].toString() != '1') {buttonState = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    if(value == null) {buttonState = ButtonState.disabled; buttonPrint = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+    else if(rawData[value]['kesz'].toString() != '1') {buttonState = ButtonState.default0; buttonPrint = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
   }}
   String get title {switch(Global.currentRoute){
     case NextRoute.pickUpList:    return 'Kiszedési lista';
@@ -78,30 +79,50 @@ class ListOrdersState extends State<ListOrders>{
   )));
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
-    Row(mainAxisAlignment: MainAxisAlignment.end, children: [        
-      Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
-        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          TextButton(
-            onPressed:  () => (buttonState == ButtonState.default0)? _buttonNextPress : null,
-            style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
-            child:      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              Visibility(
-                visible:  (buttonState == ButtonState.loading)? true : false,
-                child:    Padding(
-                  padding:  const EdgeInsets.fromLTRB(0, 0, 10, 0),
-                  child:    SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonState)))
-                )
-              ),
-              Icon(
-                Icons.arrow_forward,
-                color: Global.getColorOfIcon(buttonState),
-                size:  30,
-              )
-            ])
+    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: () {switch(Global.currentRoute){
+      case NextRoute.orderOutList:  return [Container(), _drawButtonPrint, _drawButtonContinue];
+      default:                      return [Container(), _drawButtonContinue];
+    }}())
+  );
+
+  // ---------- < Widgets [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget _progressIndicator(Color colorInput) => Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: SizedBox(
+    width:  20,
+    height: 20,
+    child:  CircularProgressIndicator(color: colorInput)
+  ));
+
+  // ---------- < Widgets [Buttonst] > --- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawButtonContinue => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
+    Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      TextButton(
+        onPressed:  () => (buttonState == ButtonState.default0)? _buttonNextPress : null,
+        style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+        child:      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Visibility(
+            visible:  (buttonState == ButtonState.loading)? true : false,
+            child:    Padding(
+              padding:  const EdgeInsets.fromLTRB(0, 0, 10, 0),
+              child:    SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonState)))
+            )
+          ),
+          Icon(
+            Icons.arrow_forward,
+            color: Global.getColorOfIcon(buttonState),
+            size:  30,
           )
         ])
       )
     ])
+  );
+
+   Widget get _drawButtonPrint => TextButton(
+    onPressed:  () => (buttonPrint == ButtonState.default0)? _buttonPrintPressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+      (buttonPrint == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonPrint)) : Container(),
+      Icon(Icons.print, color: Global.getColorOfIcon(buttonPrint), size: 30)
+    ]))
   );
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -162,6 +183,16 @@ class ListOrdersState extends State<ListOrders>{
 
     default:break;
   }}
+
+  Future get _buttonPrintPressed async{
+    setState(() => buttonPrint = ButtonState.loading);
+    await DataManager(
+      quickCall:  QuickCall.printBarcodeDeliveryNote,
+      input:      {'bizonylat_id': int.parse(rawData[getSelectedIndex!]['id'].toString())}
+    ).beginQuickCall;
+    setState(() => buttonPrint = ButtonState.default0);
+    await Global.showAlertDialog(context, content: 'Tételek nyomtatás alatt.', title: 'Nyomtatás');
+  }
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   List<DataCell> _getCells(Map<String, dynamic> row){

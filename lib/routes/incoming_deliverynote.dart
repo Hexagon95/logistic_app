@@ -341,7 +341,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
   Future get _buttonPrintPressed async{
     setState(() => buttonPrint = ButtonState.loading);
-    await DataManager(quickCall: QuickCall.printBarcodeDeliveryNote).beginQuickCall;
+    await DataManager(
+      quickCall:  QuickCall.printBarcodeDeliveryNote,
+      input:      {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndex!]['id'].toString())}
+    ).beginQuickCall;
     setState(() => buttonPrint = ButtonState.default0);
     await Global.showAlertDialog(context, content: 'Tételek nyomtatás alatt.', title: 'Nyomtatás');
   }
