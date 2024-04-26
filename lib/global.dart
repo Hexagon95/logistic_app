@@ -16,12 +16,12 @@ enum TaskState{               askStorage,           scanStorage,        askProdu
 enum QuickCall{               askBarcode,           deleteItem,         saveInventory,        askInventoryDate,   checkCode,                checkStock,
   addItem,                    saveSignature,        savePdf,            giveDatas,            chainGiveDatas,     finishGiveDatas,          scanDestinationStorage,
   askAbroncs,                 print,                checkArticle,       newEntry,             verzio,             tabletBelep,              addNewDeliveryNote,
-  addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote
+  addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote
 }
 enum DialogResult{            cancel,               back,               mainMenu}
 enum StockState{              checkStock,           stockIn,            default0}
 enum ScannedCodeIs{           storage,              article,            unknown}
-enum InDelNoteState{          addItem,              listItems,          addNew,               default0}
+enum InDelNoteState{          addItem,              listItems,          addNew,               default0, listSelectAddItemDeliveryNote}
 
 class Global{
   // ---------- < Variables [Static] > - ---------- ---------- ----------

@@ -390,7 +390,7 @@ class DataManager{
         case QuickCall.askDeliveryNotesScan:
           var queryParameters = {
             'customer':     customer,
-            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString()
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString()
           };
           Uri uriUrl =                Uri.parse('${urlPath}ask_delivery_notes_scan.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -401,7 +401,7 @@ class DataManager{
         case QuickCall.addDeliveryNoteItem:
           var queryParameters = {
             'customer':     customer,
-            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString()
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString()
           };
           Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -411,7 +411,7 @@ class DataManager{
         case QuickCall.addItemFinished:
           var queryParameters = {
             'customer':     customer,
-            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString(),
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
             'parameter':    jsonEncode(IncomingDeliveryNoteState.rawDataDataForm),
           };
           Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item_finished.php');          
@@ -424,7 +424,7 @@ class DataManager{
           var queryParameters = {
             'customer':     customer,
             'rendszam':     input['rendszam'],
-            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndex!]['id'].toString(),
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
           };
           Uri uriUrl =                Uri.parse('${urlPath}plate_number_check.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -442,6 +442,37 @@ class DataManager{
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
           dataQuickCall[check(20)] =  jsonDecode(response.body);
+          break;
+
+        case QuickCall.selectAddItemDeliveryNote:
+          var queryParameters = {
+            'customer': customer,
+            'id':       input['id']
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}ask_abroncs_new_entry.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(21)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[21].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.finishSelectAddItemDeliveryNote:
+          var queryParameters = {
+            'customer':     customer,
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
+            'parameter':    jsonEncode([IncomingDeliveryNoteState.rawDataDataForm, IncomingDeliveryNoteState.rawDataSelectList])
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item_finished.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(22)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[22].toString();
+            print(varString);
+          }
           break;
 
         default:break;
@@ -834,6 +865,10 @@ class DataManager{
 
         case QuickCall.plateNumberCheck:
           IncomingDeliveryNoteState.plateNumberTest = dataQuickCall[19][0]['result'];
+          break;
+
+        case QuickCall.selectAddItemDeliveryNote:
+          IncomingDeliveryNoteState.rawDataSelectList = [json.decode(dataQuickCall[21][0]['result'][0]['b'])];
           break;
 
         default:break;

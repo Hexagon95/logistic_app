@@ -14,14 +14,16 @@ class IncomingDeliveryNote extends StatefulWidget{
 
 class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static Map<String, dynamic> listOfLookupDatas = <String, dynamic>{};
-  static List<TextEditingController> controller = List<TextEditingController>.empty(growable: true);
-  static List<dynamic> rawDataListDeliveryNotes = List<dynamic>.empty(growable: true);
-  static List<dynamic> rawDataListItems         = List<dynamic>.empty(growable: true);
-  static List<dynamic> rawDataDataForm =          List<dynamic>.empty(growable: true);
-  static InDelNoteState taskState =               InDelNoteState.default0;
-  static String plateNumberTest =                 '';
-  static int? getSelectedIndex;
+  static Map<String, dynamic> listOfLookupDatas =         <String, dynamic>{};
+  static List<TextEditingController> controller =         List<TextEditingController>.empty(growable: true);
+  static List<dynamic> rawDataListDeliveryNotes =         List<dynamic>.empty(growable: true);
+  static List<dynamic> rawDataListItems         =         List<dynamic>.empty(growable: true);
+  static List<dynamic> rawDataDataForm =                  List<dynamic>.empty(growable: true);
+  static List<dynamic> rawDataSelectList =                List<dynamic>.empty(growable: true);
+  static InDelNoteState taskState =                       InDelNoteState.default0;
+  static String plateNumberTest =                         '';
+  static int? getSelectedIndexDeliveryNote;
+  static int? getSelectedIndexItem;
 
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonAdd =       ButtonState.default0;
@@ -29,13 +31,22 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   ButtonState buttonRemove =    ButtonState.default0;
   ButtonState buttonContinue =  ButtonState.disabled;
   ButtonState buttonPrint =     ButtonState.disabled;
-  int? _selectedIndex;
-  set selectedIndex(int? value) {if(buttonContinue != ButtonState.loading){
-    if(value == null) {buttonContinue = ButtonState.disabled; buttonPrint = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
-    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; buttonPrint = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
+  int? _selectedIndexDeliveryNote;
+  int? _selectedIndexItem;
+  
+  set selectedIndexDeliveryNote(int? value) {if(buttonContinue != ButtonState.loading){
+    if(value == null) {buttonContinue = ButtonState.disabled; buttonPrint = ButtonState.disabled; _selectedIndexDeliveryNote = value; getSelectedIndexDeliveryNote = _selectedIndexDeliveryNote;}
+    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; buttonPrint = ButtonState.default0; _selectedIndexDeliveryNote = value; getSelectedIndexDeliveryNote = _selectedIndexDeliveryNote;}
   }}
-  int? get selectedIndex => _selectedIndex;
-   BoxDecoration customBoxDecoration =       BoxDecoration(            
+  int? get selectedIndexDeliveryNote => _selectedIndexDeliveryNote;
+
+  set selectedIndexItem(int? value) {if(buttonContinue != ButtonState.loading){
+    if(value == null) {buttonContinue = ButtonState.disabled; buttonPrint = ButtonState.disabled; _selectedIndexItem = value; getSelectedIndexItem = _selectedIndexItem;}
+    else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1') {buttonContinue = ButtonState.default0; buttonPrint = ButtonState.default0; _selectedIndexItem = value; getSelectedIndexItem = _selectedIndexItem;}
+  }}
+  int? get selectedIndexItem => _selectedIndexItem;
+
+  BoxDecoration customBoxDecoration = BoxDecoration(            
     border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
     color:        Colors.white,
     borderRadius: const BorderRadius.all(Radius.circular(8))
@@ -51,10 +62,11 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       child:  Scaffold(
         appBar: AppBar(
           title:            Center(child: Padding(padding: const EdgeInsets.fromLTRB(0, 0, 40, 0), child: Text((){switch(taskState){
-            case InDelNoteState.addNew:     return  'Új bizonylat';
-            case InDelNoteState.listItems:  return  'Tételek';
-            case InDelNoteState.addItem:    return  'Új cikk';
-            default:                        return  'Bejövő szállítólevelek';
+            case InDelNoteState.addNew:                         return  'Új bizonylat';
+            case InDelNoteState.listItems:                      return  'Tételek';
+            case InDelNoteState.listSelectAddItemDeliveryNote:  return  'Abroncsok kiválasztása';
+            case InDelNoteState.addItem:                        return  'Új cikk';
+            default:                                            return  'Bejövő szállítólevelek';
           }}()))),
           backgroundColor:  Global.getColorOfButton(ButtonState.default0),
           foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
@@ -64,11 +76,12 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
           builder: (BuildContext context, BoxConstraints viewportConstraints) {
             return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               (){switch(taskState){
-                case InDelNoteState.default0:   return  _drawListDeliveryNotes(rawDataListDeliveryNotes);
                 case InDelNoteState.addItem:
-                case InDelNoteState.addNew:     return  _drawDataForm;
-                case InDelNoteState.listItems:  return  _drawListDeliveryNotes(rawDataListItems);
-                default:                        return  Container();
+                case InDelNoteState.addNew:                         return  _drawDataForm;
+                case InDelNoteState.listSelectAddItemDeliveryNote:  return  _drawDataList;
+                case InDelNoteState.listItems:                      return  _drawListDeliveryNotes(rawDataListItems);
+                case InDelNoteState.default0:                       return  _drawListDeliveryNotes(rawDataListDeliveryNotes);
+                default:                                            return  Container();
               }}(),
               _drawNoConnection,
               _drawBottomBar
@@ -85,14 +98,30 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
           columns:            _generateColumns(rawData),
           rows:               _generateRows(rawData),
-          showCheckboxColumn: false,                
+          showCheckboxColumn: false,
           border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
         ))
       ))
     : Container()
   ;
 
+  Widget get _drawDataList => (rawDataSelectList[0]['tetelek'].isNotEmpty)
+    ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
+      SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+        columns:            _generateColumns2,
+        rows:               _generateRows2,                
+        showCheckboxColumn: false,                
+        border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
+      ))
+    ))
+    : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))))
+  ;
+
   Widget get _drawDataForm{
+    rawDataDataForm;
+    rawDataListDeliveryNotes;
+    rawDataListItems;
+    rawDataSelectList;
     int maxSor() {int maxSor = 1; for(var item in rawDataDataForm) {if(item['sor'] > maxSor) maxSor = item['sor'];} return maxSor;}
 
     List<Widget> varListWidget = List<Widget>.empty(growable: true);
@@ -119,11 +148,12 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   )));
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: (){switch(taskState){
-    case InDelNoteState.default0:   return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue]);
-    case InDelNoteState.addNew:     return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
-    case InDelNoteState.listItems:  return  Row(mainAxisAlignment: MainAxisAlignment.start, children:         [_drawButtonAdd]);
-    case InDelNoteState.addItem:    return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
-    default:                        return  Container();
+    case InDelNoteState.default0:                       return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue]);
+    case InDelNoteState.addNew:                         return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
+    case InDelNoteState.listItems:                      return  Row(mainAxisAlignment: MainAxisAlignment.start, children:         [_drawButtonAdd]);
+    case InDelNoteState.addItem:                        return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
+    case InDelNoteState.listSelectAddItemDeliveryNote:  return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
+    default:                                            return  Container();
   }}());
 
   // ---------- < Buttons > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -210,7 +240,12 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
             )
           ),
           Icon(
-            Icons.arrow_forward,
+            (){switch(taskState){
+              case InDelNoteState.addItem:
+              case InDelNoteState.addNew:
+              case InDelNoteState.listSelectAddItemDeliveryNote: return Icons.save_as;
+              default:                                           return Icons.arrow_forward;
+            }}(),
             color: Global.getColorOfIcon(buttonContinue),
             size:  30,
           )
@@ -250,13 +285,33 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     return columns; 
   }
 
+  List<DataColumn> get _generateColumns2{
+    List<DataColumn> columns = List<DataColumn>.empty(growable: true);
+    for(var item in rawDataSelectList[0]['oszlop']) {columns.add(DataColumn(label: Text(item['text'])));}
+    return columns;
+  }
+
+  List<DataRow> get _generateRows2{
+    String swap(String input) {return (input == '1')? '0' : '1';}
+
+    List<DataRow> rows = List<DataRow>.empty(growable: true);
+    for (var i = 0; i < rawDataSelectList[0]['tetelek'].length; i++) {
+      rows.add(DataRow(
+        onSelectChanged:  (value) => setState(() => rawDataSelectList[0]['tetelek'][i]['tarolas'] = swap(rawDataSelectList[0]['tetelek'][i]['tarolas'].toString())),
+        selected:         (rawDataSelectList[0]['tetelek'][i]['tarolas'].toString() == '1'),
+        cells:            _getCells2(rawDataSelectList[0]['tetelek'][i]),
+      ));
+    }
+    return rows;
+  }
+
   List<DataRow> _generateRows(List<dynamic> rawData){
     List<DataRow> rows = List<DataRow>.empty(growable: true);
     for (var i = 0; i < rawData.length; i++) {
       rows.add(DataRow(
         cells:            _getCells(rawData[i]),
-        selected:         (i == selectedIndex),
-        onSelectChanged:  (bool? selected) => setState(() => selectedIndex = i)
+        selected:         (taskState == InDelNoteState.default0)? (i == selectedIndexDeliveryNote) : (i == selectedIndexItem),
+        onSelectChanged:  (bool? selected) => setState(() => (taskState == InDelNoteState.default0)? selectedIndexDeliveryNote = i : selectedIndexItem = i)
       )); 
     }
     return rows;
@@ -283,8 +338,9 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
           case 'NOK':
             await DataManager(quickCall: QuickCall.addDeliveryNoteItem).beginQuickCall;
             setState((){
-              buttonAdd = ButtonState.default0;
-              taskState = InDelNoteState.addItem;
+              buttonAdd =       ButtonState.default0;
+              buttonContinue =  ButtonState.disabled;
+              taskState =       InDelNoteState.addItem;
             });
             break;
 
@@ -326,14 +382,28 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       break;
 
     case InDelNoteState.addItem:
+      int getIndex() {for(int i = 0; i < rawDataDataForm.length; i++) {if(rawDataDataForm[i]['id'].toString() == 'id_34') return i;} return 0;}
       setState(() => buttonContinue = ButtonState.loading);
-      await DataManager(quickCall: QuickCall.addItemFinished).beginQuickCall;
+      await DataManager(
+        quickCall:  QuickCall.selectAddItemDeliveryNote,
+        input:      {'id': rawDataDataForm[getIndex()]['kod'].toString()}
+      ).beginQuickCall;
+      /*await DataManager(quickCall: QuickCall.addItemFinished).beginQuickCall;
+      await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;*/
+      setState((){
+        taskState =       InDelNoteState.listSelectAddItemDeliveryNote;
+        buttonContinue =  ButtonState.default0;
+      });
+      break;
+
+    case InDelNoteState.listSelectAddItemDeliveryNote:
+      setState(() => buttonContinue = ButtonState.loading);
+      await DataManager(quickCall: QuickCall.finishSelectAddItemDeliveryNote).beginQuickCall;
       await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
       setState((){
         taskState =       InDelNoteState.listItems;
         buttonContinue =  ButtonState.default0;
       });
-
       break;
 
     default:break;
@@ -343,7 +413,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     setState(() => buttonPrint = ButtonState.loading);
     await DataManager(
       quickCall:  QuickCall.printBarcodeDeliveryNote,
-      input:      {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndex!]['id'].toString())}
+      input:      (taskState == InDelNoteState.default0)
+        ? {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexDeliveryNote!]['id'].toString())}
+        : {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexItem!]['id'].toString())}
+      ,
     ).beginQuickCall;
     setState(() => buttonPrint = ButtonState.default0);
     await Global.showAlertDialog(context, content: 'Tételek nyomtatás alatt.', title: 'Nyomtatás');
@@ -356,7 +429,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       return false;
 
     case InDelNoteState.listItems:
-      setState(() => taskState = InDelNoteState.default0);
+      setState(() {taskState = InDelNoteState.default0; selectedIndexItem = null;});
       return false;
 
     case InDelNoteState.addItem:
@@ -495,6 +568,24 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         ? Icon(Icons.check_circle, color: Global.getColorOfButton(ButtonState.default0), size: 30)
         : Container()));                                                break;
       default:                                                          break;
+    }}
+    return cells;
+  }
+
+  List<DataCell> _getCells2(Map<String, dynamic> row){
+    List<DataCell> cells = List<DataCell>.empty(growable: true);
+    for(var item in rawDataSelectList[0]['oszlop']) {switch(item['id'].toString()){
+
+      case 'tarolas':
+        cells.add(DataCell((row['tarolas'].toString() == '1')
+          ? const Icon(Icons.check, color: Colors.blue)
+          : Container()
+        ));
+        break;
+
+      default:
+        cells.add(DataCell(Text(row[item['id'].toString()].toString())));
+        break;
     }}
     return cells;
   }
