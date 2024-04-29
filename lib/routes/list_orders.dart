@@ -130,7 +130,7 @@ class ListOrdersState extends State<ListOrders>{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
     for (var item in rawData[0].keys) {switch(item){
       case 'sorszam':   columns.add(const DataColumn(label: Text('Sorszám')));          break;
-      case 'kesz':      columns.add(const DataColumn(label: Text('')));                 break;
+      case 'kesz':      columns.insert(0, const DataColumn(label: Text('')));           break;
       case 'vevo':
       case 'szallito':  columns.add(const DataColumn(label: Text('Megnevezés')));       break;
       default:                                                                          break;
@@ -144,7 +144,8 @@ class ListOrdersState extends State<ListOrders>{
       rows.add(DataRow(
         cells:            _getCells(rawData[i]),
         selected:         (i == selectedIndex),
-        onSelectChanged:  (bool? selected) => setState(() => selectedIndex = i)
+        color:            (rawData[i]['kesz'].toString() == '1')? MaterialStateProperty.all(const Color.fromARGB(255, 240, 255, 240)) : null,
+        onSelectChanged:  (bool? selected) => setState(() => selectedIndex = i),
       )); 
     }
     return rows;
@@ -201,7 +202,7 @@ class ListOrdersState extends State<ListOrders>{
       case 'sorszam':
       case 'szallito':
       case 'vevo':    cells.add(DataCell(Text(row[item].toString())));  break;
-      case 'kesz':    cells.add(DataCell((row[item].toString() == '1')
+      case 'kesz':    cells.insert(0, DataCell((row[item].toString() == '1')
         ? Icon(Icons.check_circle, color: Global.getColorOfButton(ButtonState.default0), size: 30)
         : Container()));                                                break;
       default:                                                          break;
