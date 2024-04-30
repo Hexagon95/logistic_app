@@ -20,7 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.25a';
+  static String thisVersion =                             '1.26';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -474,6 +474,51 @@ class DataManager{
           }
           break;
 
+        case QuickCall.editSelectedItemDeliveryNote:
+          var queryParameters = {
+            'customer':   customer,
+            'id':         IncomingDeliveryNoteState.rawDataListItems[int.parse(IncomingDeliveryNoteState.getSelectedIndexItem!.toString())]['cikk_id']
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}give_datas.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(23)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[23].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.askEditItemDeliveryNote:
+          var queryParameters = {
+            'customer': customer,
+            'id':       IncomingDeliveryNoteState.rawDataListItems[int.parse(IncomingDeliveryNoteState.getSelectedIndexItem!.toString())]['cikk_id']
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}ask_abroncs.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(24)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[24].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.finishSelectEditItemDeliveryNote:
+          var queryParameters = {
+            'customer':   customer,
+            'parameter':  jsonEncode([IncomingDeliveryNoteState.rawDataDataForm, IncomingDeliveryNoteState.rawDataSelectList])
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}finish_give_datas.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(25)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[25].toString();
+            print(varString);
+          }
+          break;
+
         default:break;
       }
     }
@@ -840,12 +885,15 @@ class DataManager{
           ScanCheckStockState.rawData = jsonDecode(dataQuickCall[14][0]['tetelek']);
           break;
 
+        case QuickCall.editSelectedItemDeliveryNote:
         case QuickCall.addDeliveryNoteItem:
         case QuickCall.addNewDeliveryNote:
-          IncomingDeliveryNoteState.rawDataDataForm = (quickCall == QuickCall.addNewDeliveryNote)
-            ? json.decode(dataQuickCall[15][0]['b'])['adatok']
-            : IncomingDeliveryNoteState.rawDataDataForm = dataQuickCall[17]
-          ;
+          switch(quickCall){
+            case QuickCall.editSelectedItemDeliveryNote:  IncomingDeliveryNoteState.rawDataDataForm =  jsonDecode(dataQuickCall[23][0]['b'])['adatok'];  break;
+            case QuickCall.addNewDeliveryNote:            IncomingDeliveryNoteState.rawDataDataForm =  jsonDecode(dataQuickCall[15][0]['b'])['adatok'];  break;
+            case QuickCall.addDeliveryNoteItem:           IncomingDeliveryNoteState.rawDataDataForm =  dataQuickCall[17];                                break;
+            default: throw Exception('Not implemented!');
+          }
           IncomingDeliveryNoteState.controller =      List<TextEditingController>.empty(growable: true);
           for(int i = 0; i < IncomingDeliveryNoteState.rawDataDataForm.length; i++){
             IncomingDeliveryNoteState.controller.add(TextEditingController(text: ''));
@@ -866,10 +914,24 @@ class DataManager{
           IncomingDeliveryNoteState.plateNumberTest = dataQuickCall[19][0]['result'];
           break;
 
+        case QuickCall.askEditItemDeliveryNote:
         case QuickCall.selectAddItemDeliveryNote:
-          IncomingDeliveryNoteState.rawDataSelectList = [json.decode(dataQuickCall[21][0]['result'][0]['b'])];
+          switch(quickCall){
+            case QuickCall.askEditItemDeliveryNote:   IncomingDeliveryNoteState.rawDataSelectList = [json.decode(dataQuickCall[24][0]['result'][0]['b'])]; break;
+            case QuickCall.selectAddItemDeliveryNote: IncomingDeliveryNoteState.rawDataSelectList = [json.decode(dataQuickCall[21][0]['result'][0]['b'])]; break;
+            default: throw Exception('Not implemented!');
+          }
+          for(dynamic item in IncomingDeliveryNoteState.rawDataDataForm) {if(item['id'] == 'id_35'){
+            for(int i = 0; i < IncomingDeliveryNoteState.rawDataSelectList[0]['tetelek'].length; i++){
+              if(IncomingDeliveryNoteState.rawDataSelectList[0]['tetelek'][i]['pozicio'] == item['value']){
+                IncomingDeliveryNoteState.rawDataSelectList[0]['tetelek'][i]['tarolas'] = 1;
+                break;
+              }
+            }
+            break;
+          }}
           break;
-
+        
         default:break;
       }
     }
