@@ -3,8 +3,10 @@
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/routes/incoming_deliverynote.dart';
+import 'package:logistic_app/routes/log_in.dart';
 import 'package:logistic_app/routes/scan_check_stock.dart';
 import 'package:flutter/material.dart';
+import 'package:restart_app/restart_app.dart';
 
 class Menu extends StatefulWidget{ //----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <Menu>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -44,16 +46,21 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
 
     _width = MediaQuery.of(context).size.width - 50;
     if(_width > 400) _width = 400;
-    return Scaffold(
-      appBar: AppBar(
-        title:            Center(child: Text(DataManager.raktarMegnevezes)),
-        backgroundColor:  Global.getColorOfButton(ButtonState.default0),
-        foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
-      ),
-      backgroundColor:  Colors.white,
-      body:             LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints viewportConstraints) {
-          return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+    return WillPopScope(
+      onWillPop:  _handlePop,
+      child:      Scaffold(
+        appBar:     AppBar(
+          title:            Center(child: Text(DataManager.raktarMegnevezes)),
+          backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+          foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
+        ),
+        backgroundColor:    Colors.white,
+        body:               Container(
+          decoration: const BoxDecoration(image: DecorationImage(
+              image:  AssetImage('images/background.png'),
+              fit:    BoxFit.cover
+            )),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             filter(7, _drawButtonListOrdersOut),
             filter(1, _drawButtonPickUpList),
             filter(2, _drawButtonListOrders),
@@ -64,8 +71,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
             filter(4, _drawButtonCheckStock),
             filter(5, _drawButtonStockIn),
             filter(6, _drawButtonInventory)
-          ]));
-        }
+          ])
+        )
       )
     );
   }
@@ -74,7 +81,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawButtonPickUpList => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonPickUpList))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonPickUpList))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonPickUpList))
+      ),
       onPressed:  (buttonPickUpList == ButtonState.default0)? () => _buttonPickUpListPressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -89,7 +99,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawDeliveryOut => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryOut))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonDeliveryOut))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryOut))
+      ),
       onPressed:  (buttonDeliveryOut == ButtonState.default0)? () => _buttonDeliveryOutPressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -104,7 +117,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawButtonIncomingDeliveryNote => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonIncomingDeliveryNote))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonIncomingDeliveryNote))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonIncomingDeliveryNote))
+      ),
       onPressed:  (buttonIncomingDeliveryNote == ButtonState.default0)? () => _buttonIncomingDeliveryNotePressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -119,7 +135,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawButtonListOrdersOut => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonListOrdersOut))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonListOrders))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonListOrdersOut))
+      ),
       onPressed:  (buttonListOrdersOut == ButtonState.default0)? () => _buttonListOrdersOutPressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -134,7 +153,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawButtonListOrders => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonListOrders))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonListOrders))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonListOrders))
+      ),
       onPressed:  (buttonListOrders == ButtonState.default0)? () => _buttonListOrdersPressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -149,7 +171,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawButtonDeliveryNote => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryNote))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonDeliveryNote))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryNote))
+      ),
       onPressed:  (buttonDeliveryNote == ButtonState.default0)? () => _buttonDeliveryNotePressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -179,7 +204,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawButtonCheckStock => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonCheckStock))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonCheckStock))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonCheckStock))
+      ),
       onPressed:  (buttonCheckStock == ButtonState.default0)? () => _buttonCheckStockPressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -194,7 +222,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawButtonStockIn => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonStockIn))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonStockIn))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonStockIn))
+      ),
       onPressed:  (buttonStockIn == ButtonState.default0)? () => _buttonStockInPressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -209,7 +240,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   Widget get _drawButtonInventory => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonInventory))),
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonInventory))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonInventory))
+      ),
       onPressed:  (buttonInventory == ButtonState.default0)? () => _buttonInventoryPressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
@@ -224,6 +258,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get _buttonPickUpListPressed async{
     setState(() => buttonPickUpList = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     Global.routeNext =        NextRoute.pickUpList;
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
@@ -234,6 +270,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
 
   Future get _buttonDeliveryOutPressed async{
     setState(() => buttonPickUpList = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     Global.routeNext =        NextRoute.deliveryOut;
     await DataManager().beginProcess;
     buttonPickUpList =        ButtonState.default0;
@@ -243,6 +281,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
 
   Future get _buttonIncomingDeliveryNotePressed async{
     setState(() => buttonIncomingDeliveryNote = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     Global.routeNext =                    NextRoute.incomingDeliveryNote;
     await DataManager().beginProcess;
     buttonIncomingDeliveryNote =          ButtonState.default0;
@@ -253,6 +293,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
 
   Future get _buttonListOrdersOutPressed async{
     setState(() => buttonListOrdersOut = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     Global.routeNext =        NextRoute.orderOutList;
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
@@ -263,6 +305,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
 
   Future get _buttonListOrdersPressed async{
     setState(() => buttonListOrders = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     Global.routeNext =        NextRoute.orderList;
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
@@ -275,6 +319,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     buttonDeliveryNote =      ButtonState.loading;
     Global.routeNext =        NextRoute.deliveryNoteList;
     setState((){});
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     DataManager dataManager = DataManager();
     await dataManager.beginProcess;
     buttonDeliveryNote =      ButtonState.default0;
@@ -286,22 +332,30 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
 
   Future get _buttonCheckStockPressed async{
     setState(() => buttonCheckStock = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     Global.routeNext =                NextRoute.checkStock;
     buttonCheckStock =                ButtonState.default0;
     ScanCheckStockState.stockState =  StockState.checkStock;
     await Navigator.pushNamed(context, '/scanCheckStock');
+    setState((){});
   }
 
   Future get _buttonStockInPressed async{
     setState(() => buttonStockIn = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     Global.routeNext =                NextRoute.checkStock;
     buttonStockIn =                   ButtonState.default0;
     ScanCheckStockState.stockState =  StockState.stockIn;
     await Navigator.pushNamed(context, '/scanCheckStock');
+    setState((){});
   }
 
   Future get _buttonInventoryPressed async{
     setState(() => buttonInventory = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
     if(await _isInventoryDate){
       Global.routeNext =  NextRoute.inventory;
       buttonInventory =   ButtonState.default0;
@@ -322,5 +376,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     DataManager dataManager = DataManager(quickCall: QuickCall.askInventoryDate);
     await dataManager.beginQuickCall;
     return (DataManager.dataQuickCall[3][0]['leltar_van'] != null);
+  }
+
+  Future<bool> _handlePop() async{
+    if(await Global.yesNoDialog(context, title: 'Kijelentkezés', content: 'Ki kíván jelentkezni a LogisticApp-ból?')) {Restart.restartApp();}
+    return false;
   }
 }

@@ -20,7 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.26';
+  static String thisVersion =                             '1.27';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -79,7 +79,7 @@ class DataManager{
 
         case QuickCall.verzio:
           var queryParameters = {
-            'customer':   customer,
+            'customer':   'mosaic'
           };
           Uri uriUrl =                    Uri.parse('${urlPath}verzio.php');
           http.Response response =        await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);

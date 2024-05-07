@@ -109,7 +109,6 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
                 case InDelNoteState.default0:                       return  _drawListDeliveryNotes(rawDataListDeliveryNotes);
                 default:                                            return  Container();
               }}(),
-              _drawNoConnection,
               _drawBottomBar
             ]);
           }
@@ -167,11 +166,6 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       children:           varListWidget
     )));
   }
-
-  Widget get _drawNoConnection => Visibility(visible: !DataManager.isServerAvailable, child: Container(height: 20, color: Colors.red, child: Row(
-    mainAxisAlignment:  MainAxisAlignment.center,
-    children:           [Text(DataManager.serverErrorText, style: const TextStyle(color: Color.fromARGB(255, 255, 255, 150)))]
-  )));
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: (){switch(taskState){
     case InDelNoteState.default0:                       return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue]);

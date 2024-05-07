@@ -19,7 +19,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
   static bool updateNeeded =              false;
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ----------
-  ButtonState buttonState = ButtonState.default0;
+  ButtonState buttonLogIn = ButtonState.default0;
   OtaEvent? currentEvent;
   late double _width;
 
@@ -35,8 +35,12 @@ class LogInMenuState extends State<LogInMenuFrame>{
       onWillPop:  () async => false,
       child:      Scaffold(
         backgroundColor:  Colors.white,
-        body:             LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints viewportConstraints) => Column(children: [
+        body:             Container(
+          decoration: const BoxDecoration(image: DecorationImage(
+            image:  AssetImage('images/background.png'),
+            fit:    BoxFit.cover
+          )),
+          child: Column(children: [
             Expanded(child: _logInMenu()),
             Visibility(visible: !DataManager.isServerAvailable, child: Container(height: 20, color: Colors.red, child: Row(
               mainAxisAlignment:  MainAxisAlignment.center,
@@ -56,52 +60,82 @@ class LogInMenuState extends State<LogInMenuFrame>{
         padding:  EdgeInsets.fromLTRB(0, 0, 0, 20),
         child:    Text('LogisticApp', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Color.fromRGBO(0, 180, 125, 1.0)), textAlign: TextAlign.center)
       ),
-      Padding(
-        padding:  const EdgeInsets.all(10),
-        child:    Text('v${DataManager.thisVersion}', style: const TextStyle(fontSize: 14))
-      ),
-      Padding(
+      _drawVerzio,
+      _drawButtonLogIn
+      /*Padding(
         padding:  const EdgeInsets.fromLTRB(20, 40, 20, 40),
         child:    SizedBox(height: 40, width: _width, child: TextButton(          
-          style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonState))),
-          onPressed:  (buttonState == ButtonState.default0)? () => _enterPressed : null,          
+          style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonLogIn))),
+          onPressed:  (buttonLogIn == ButtonState.default0)? () => _enterPressed : null,          
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Visibility(
-              visible:  (buttonState == ButtonState.loading)? true : false,
-              child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonState))))
+              visible:  (buttonLogIn == ButtonState.loading)? true : false,
+              child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonLogIn))))
             ),
-            Text((buttonState == ButtonState.loading)? 'Betöltés...' : 'Bejelentkezés', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonState)))
+            Text((buttonLogIn == ButtonState.loading)? 'Betöltés...' : 'Bejelentkezés', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonLogIn)))
           ])
         ))
       ),
       updateNeeded
         ? Text('Új verzió érhető el\n${currentEvent?.status} : ${currentEvent?.value}', style: const TextStyle(fontSize: 16))
-        : Container()
+        : Container()*/
     ]));
   }
+
+  // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawVerzio => Column(children: [
+    //Text('v${DataManager.thisVersion} (TEST)', style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
+    Text('v${DataManager.thisVersion}', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
+  ]);
+
+  Widget get _drawButtonLogIn =>  Padding(
+    padding:  const EdgeInsets.fromLTRB(20, 40, 20, 40),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonLogIn))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonLogIn))
+      ),
+      onPressed:  (buttonLogIn == ButtonState.default0)? () => _enterPressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonLogIn == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfButton(buttonLogIn))))
+        ),
+        Text(
+          (){switch(buttonLogIn){
+            case ButtonState.disabled:  return (currentEvent?.value != null && currentEvent!.value!.isNotEmpty)? 'Új verzió érhető el.     Letöltés: ${currentEvent?.value}%' : 'Új verzió érhető el.';
+            case ButtonState.loading:   return 'Betöltés...';
+            default:                    return 'Bejelentkezés';
+          }}(),
+          style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonLogIn))
+        )
+      ])
+    ))
+  );
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get _enterPressed async{
     errorMessageBottomLine = '';
-    setState(() => buttonState = ButtonState.loading);
+    setState(() => buttonLogIn =  ButtonState.loading);
+    DataManager.customer =        'mosaic';
     await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
     if(!updateNeeded){
       await DataManager(input: {'number': 0}).beginProcess;
       if(errorMessageBottomLine.isNotEmpty){
         await Global.showAlertDialog(context, title: 'Hiba!', content: errorMessageBottomLine);
-        setState(() => buttonState = ButtonState.default0);
+        setState(() => buttonLogIn = ButtonState.default0);
         return;
       }
       await DataManager(input: {'number': 4}).beginProcess;
       if(errorMessageBottomLine.isNotEmpty){
         await Global.showAlertDialog(context, title: 'Hiba!', content: errorMessageBottomLine);
-        setState(() => buttonState = ButtonState.default0);
+        setState(() => buttonLogIn = ButtonState.default0);
         return;
       }
       await DataManager(quickCall: QuickCall.tabletBelep).beginQuickCall;
       Global.routeNext = NextRoute.menu;
       await DataManager().beginProcess;
-      buttonState =             ButtonState.default0;
+      buttonLogIn =             ButtonState.default0;
       if(errorMessageBottomLine.isEmpty) {await Navigator.pushNamed(context, '/menu');}
       else{
         await Global.showAlertDialog(context, title: 'Hiba', content: errorMessageBottomLine);
@@ -110,7 +144,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
       setState((){});
     }
     else{
-      setState(() => buttonState = ButtonState.disabled);
+      setState(() => buttonLogIn = ButtonState.disabled);
       tryOtaUpdate();
     }
   }

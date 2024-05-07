@@ -192,7 +192,7 @@ class Global{
   static Color getColorOfIcon(ButtonState buttonState){    
     switch(buttonState){
       case ButtonState.default0:  return Colors.white;
-      case ButtonState.disabled:  return const Color.fromRGBO(255, 255, 255, 0.3);
+      case ButtonState.disabled:  return const Color.fromRGBO(0, 0, 0, 0.3);
       case ButtonState.loading:   return const Color.fromRGBO(255, 255, 0, 1.0);
       case ButtonState.hidden:    return Colors.transparent;
       default:                    return Colors.red;
