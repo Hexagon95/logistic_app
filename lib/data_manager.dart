@@ -20,7 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.27';
+  static String thisVersion =                             '1.28';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -519,7 +519,23 @@ class DataManager{
           }
           break;
 
-        default:break;
+        case QuickCall.removeDeliveryNoteItem:
+          var queryParameters = {
+            'customer':     customer,
+            'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
+            'tetel_id':     input['tetel_id']
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}remove_delivery_note_item.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(26)] =  await jsonDecode(response.body);
+          if(kDebugMode){
+            String varString = dataQuickCall[26].toString();
+            print(varString);
+          }
+          break;
+
+        default:break; //dataQuickCall[30] is reserved!
       }
     }
     catch(e) {

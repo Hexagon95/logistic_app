@@ -154,7 +154,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
     try {
       if(kDebugMode)print('ABI Platform: ${await OtaUpdate().getAbi()}');
       OtaUpdate().execute(
-        'https://app.mosaic.hu/ota/logistic_app/${DataManager.actualVersion}/app-release.apk',
+        '',
         destinationFilename: 'app-release.apk',
       ).listen(
         (OtaEvent event) {setState(() => currentEvent = event);}

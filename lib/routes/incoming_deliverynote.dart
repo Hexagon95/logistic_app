@@ -28,7 +28,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonAdd =       ButtonState.default0;
   ButtonState buttonEdit =      ButtonState.disabled;
-  ButtonState buttonRemove =    ButtonState.default0;
+  ButtonState buttonRemove =    ButtonState.disabled;
   ButtonState buttonContinue =  ButtonState.disabled;
   ButtonState buttonPrint =     ButtonState.disabled;
   int? _selectedIndexDeliveryNote;
@@ -55,6 +55,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       buttonContinue =        ButtonState.disabled;
       buttonPrint =           ButtonState.disabled;
       buttonEdit =            ButtonState.disabled;
+      buttonRemove =          ButtonState.disabled;
       _selectedIndexItem =    value;
       getSelectedIndexItem =  _selectedIndexItem;
     }
@@ -62,6 +63,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       buttonContinue =        ButtonState.default0;
       buttonPrint =           ButtonState.default0;
       buttonEdit =            ButtonState.default0;
+      buttonRemove =          ButtonState.default0;
       _selectedIndexItem =    value;
       getSelectedIndexItem =  _selectedIndexItem;
     }
@@ -171,7 +173,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     case InDelNoteState.default0:                       return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue]);
     case InDelNoteState.editItem:
     case InDelNoteState.addNew:                         return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
-    case InDelNoteState.listItems:                      return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonAdd, _drawButtonEdit, Container()]);
+    case InDelNoteState.listItems:                      return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonEdit, _drawButtonAdd, _drawButtonRemove]);
     case InDelNoteState.addItem:                        return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
     case InDelNoteState.listSelectEditItemDeliveryNote:
     case InDelNoteState.listSelectAddItemDeliveryNote:  return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
@@ -225,10 +227,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     ])
   );
 
-  /*Widget get _drawButtonRemove => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
+  Widget get _drawButtonRemove => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
       TextButton(
-        onPressed:  () => (buttonRemove == ButtonState.default0)? _buttonAddPressed : null,
+        onPressed:  () => (buttonRemove == ButtonState.default0)? _buttonRemovePressed : null,
         style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
         child:      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
           Visibility(
@@ -239,14 +241,14 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
             )
           ),
           Icon(
-            Icons.remove,
+            Icons.delete,
             color: Global.getColorOfIcon(buttonRemove),
             size:  30,
           )
         ])
       )
     ])
-  );*/
+  );
 
   Widget get _drawButtonContinue => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -297,7 +299,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
     for (var item in rawData[0].keys) {switch(item){
       case 'cikkszam':
-      case 'sorszam':     columns.add(const DataColumn(label: Text('Sorszám')));    break;
+      case 'sorszam':     columns.add(const DataColumn(label: Text('Azonosító')));    break;
       case 'kesz':        columns.add(const DataColumn(label: Text('')));           break;
       case 'vevo':
       case 'megnevezes':
@@ -457,6 +459,25 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       break;
 
     default:break;
+  }}
+
+  Future get _buttonRemovePressed async {switch(taskState){
+
+    case InDelNoteState.listItems:
+      setState(() => buttonRemove = ButtonState.loading);
+      if(await Global.yesNoDialog(context,
+        title:    'Tétel törlése',
+        content:  'Biztosan törölni kívánja az alábbi tételt:\n(${rawDataListItems[selectedIndexItem!]['cikkszam']})'
+      )){
+        await DataManager(quickCall: QuickCall.removeDeliveryNoteItem, input: {'tetel_id': rawDataListItems[selectedIndexItem!]['tetel_id']}).beginQuickCall;
+        await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
+        selectedIndexItem = null;
+      }
+      else {buttonRemove = ButtonState.default0;}
+      setState((){});
+      break;
+
+    default: break;
   }}
 
   Future get _buttonPrintPressed async{

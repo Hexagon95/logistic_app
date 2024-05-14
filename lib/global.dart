@@ -16,7 +16,7 @@ enum TaskState{               askStorage,           scanStorage,        askProdu
 enum QuickCall{               askBarcode,           deleteItem,         saveInventory,        askInventoryDate,   checkCode,                checkStock,
   addItem,                    saveSignature,        savePdf,            giveDatas,            chainGiveDatas,     finishGiveDatas,          scanDestinationStorage,
   askAbroncs,                 print,                checkArticle,       newEntry,             verzio,             tabletBelep,              addNewDeliveryNote,
-  addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote
+  addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItem
 }
 enum DialogResult{            cancel,               back,               mainMenu}
 enum StockState{              checkStock,           stockIn,            default0}
