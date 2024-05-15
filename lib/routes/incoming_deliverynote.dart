@@ -506,6 +506,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     case InDelNoteState.addItem:
       setState(() => taskState = InDelNoteState.listItems);
       return false;
+
+    case InDelNoteState.editItem:
+      setState(() => taskState = InDelNoteState.listItems);
+      return false;
     
     case InDelNoteState.listSelectAddItemDeliveryNote:
       setState(() => taskState = InDelNoteState.addItem);
@@ -514,6 +518,8 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     case InDelNoteState.listSelectEditItemDeliveryNote:
       setState(() => taskState = InDelNoteState.editItem);
       return false;
+
+
 
     default: setState((){}); return true;
   }}

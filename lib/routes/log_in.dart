@@ -84,7 +84,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
 
   // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawVerzio => Column(children: [
-    //Text('v${DataManager.thisVersion} (TEST)', style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
+    //Text('v1.28 (TEST)', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
     Text('v${DataManager.thisVersion}', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
   ]);
 
@@ -154,7 +154,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
     try {
       if(kDebugMode)print('ABI Platform: ${await OtaUpdate().getAbi()}');
       OtaUpdate().execute(
-        '',
+        'https://app.mosaic.hu/ota/logistic_app/${DataManager.actualVersion}/app-release.apk',
         destinationFilename: 'app-release.apk',
       ).listen(
         (OtaEvent event) {setState(() => currentEvent = event);}
