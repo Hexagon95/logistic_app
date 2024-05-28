@@ -722,7 +722,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       ;
     
     default:
-      for(var item in rawDataDataForm) {if(item['value'] == null || item['value'].toString().isEmpty) {return ButtonState.disabled;}}
+      for(var item in rawDataDataForm) {if(item['editable'].toString() == '1' && (item['value'] == null || item['value'].toString().isEmpty)) {return ButtonState.disabled;}}
       return ButtonState.default0;
   }}
 }
