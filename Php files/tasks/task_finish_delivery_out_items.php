@@ -19,7 +19,10 @@ class Task{
         $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->exec_tabletKiszallitasFelvitele(),
-            ['completed_orders' => $this->request['completed_tasks']],
+            [
+                'completed_orders' =>   $this->request['completed_tasks'],
+                'user_id'           =>  $this->request['user_id']
+            ],
             $this->request['customer']
         );
         $this->result =             $this->databaseManager->getData();

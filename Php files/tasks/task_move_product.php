@@ -61,7 +61,8 @@ class Task{
                     'raktar_honnan' =>  $this->request['storageFrom'],
                     'raktar_hova' =>    $this->request['storageTo'],
                     'cikkek' =>         $this->request['cikkek'],
-                ))
+                )),
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );

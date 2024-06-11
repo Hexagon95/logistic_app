@@ -30,6 +30,7 @@ class Task{
             $this->sqlCommand->select_abroncs_reszletezo(),
             [
                 'id' =>         $this->request['id'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );

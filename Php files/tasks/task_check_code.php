@@ -30,7 +30,8 @@ class Task{
             $this->sqlCommand->select_keszletellenorzesId1(),
             [   
                 'raktar_id' =>  $this->request['raktar_id'],
-                'code' =>       $this->request['code']
+                'code' =>       $this->request['code'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );

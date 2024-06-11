@@ -1,16 +1,17 @@
 <?php
 class Task{
-    // ---------- <Variables [1]> ----- ---------- ---------- ---------- ---------- ---------- ---------- ----------    
+    // ---------- <Variables [1]> ----- ---------- ---------- ---------- ---------- ---------- ---------- ----------
     private $sqlCommand;
     private $databaseManager;
     private $request;
+    private $customer;
     private $result;
         public function getResult(){return $this->result;
     }
 
     // ---------- <Constructors> ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
-    function __construct(){        
-        $this->_inizialite();        
+    function __construct(){       
+        $this->_inizialite();
     }
 
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -18,13 +19,14 @@ class Task{
         $this->request =            json_decode(file_get_contents('php://input'), true);
         $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
-            $this->sqlCommand->select_tabletBejovoszallitolevelTetelek(),
+            $this->sqlCommand->exec_tabletFelhasznaloAdatok(),
             [
-                'bizonylat_id' =>   $this->request['bizonylat_id'],
-                'user_id' =>        $this->request['user_id']
+                'eszkoz_id' =>      $this->request['eszkoz_id'],
+                'user_name' =>      $this->request['user_name'],
+                'user_password' =>  $this->request['user_password']
             ],
             $this->request['customer']
         );
-        $this->result =             $this->databaseManager->getData();
+        $this->result = $this->databaseManager->getData();
     }
 }

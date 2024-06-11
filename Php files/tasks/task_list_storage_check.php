@@ -32,6 +32,7 @@ class Task{
             [
                 'raktar_id' =>  $this->request['raktar_id'],
                 'input' =>      $this->request['tarhely_id'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );
@@ -44,7 +45,8 @@ class Task{
             $this->sqlCommand->select_tarhelyKeszletEllenorzes1(),
             [
                 'raktar_id' =>  $this->request['raktar_id'],
-                'tarhely_id' => $this->request['tarhely_id']
+                'tarhely_id' => $this->request['tarhely_id'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );

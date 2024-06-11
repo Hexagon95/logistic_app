@@ -15,6 +15,7 @@ class LogInMenuFrame extends StatefulWidget{
 
 class LogInMenuState extends State<LogInMenuFrame>{
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <LogInMenuState>
+  static dynamic logInNamePassword;
   static String errorMessageBottomLine =  '';
   static bool updateNeeded =              false;
   
@@ -117,9 +118,28 @@ class LogInMenuState extends State<LogInMenuFrame>{
   Future get _enterPressed async{
     errorMessageBottomLine = '';
     setState(() => buttonLogIn =  ButtonState.loading);
+    dynamic result = await Global.logInDialog(context, userNameInput: (logInNamePassword != null && logInNamePassword.isNotEmpty)? logInNamePassword[0]['nev'].toString() : null);
+    if(result == null){
+      setState(() => buttonLogIn =  ButtonState.default0);
+      return;
+    }
     DataManager.customer =        'mosaic';
     await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
     if(!updateNeeded){
+      await DataManager(
+        quickCall:  QuickCall.logInNamePassword,
+        input:      {'user_name': result['userName'], 'user_password': result['userPassword']}
+      ).beginQuickCall;
+      if(logInNamePassword == null || logInNamePassword.isEmpty){
+        await Global.showAlertDialog(context, title: 'Ismeretlen felhasználónév!', content: 'A megadott felhasználónév: ${result['userName']}\nismeretlen!');
+        setState(() => buttonLogIn =  ButtonState.default0);
+        return;
+      }
+      if(logInNamePassword[0]['jelszo_ok'].toString() == '0'){
+        await Global.showAlertDialog(context, title: 'Helytelen jelszó!', content: 'A megadott jelszó helytelen!');
+        setState(() => buttonLogIn =  ButtonState.default0);
+        return;
+      }
       await DataManager(input: {'number': 0}).beginProcess;
       if(errorMessageBottomLine.isNotEmpty){
         await Global.showAlertDialog(context, title: 'Hiba!', content: errorMessageBottomLine);

@@ -19,7 +19,10 @@ class Task{
         $this->sqlCommand =         new SqlCommand();        
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->select_abroncsReszletezoPoziciokValasztas(),
-            ['id' => $this->request['id']],
+            [
+                'id' =>         $this->request['id'],
+                'user_id' =>    $this->request['user_id']
+            ],
             $this->request['customer']
         );
         $this->result =             $this->databaseManager->getData();

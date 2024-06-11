@@ -21,7 +21,8 @@ class Task{
             $this->sqlCommand->exec_deleteItem(),
             [
                 'cikk_id' =>    $this->request['cikk_id'],
-                'raktar_id' =>  $this->request['raktar_id']
+                'raktar_id' =>  $this->request['raktar_id'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );

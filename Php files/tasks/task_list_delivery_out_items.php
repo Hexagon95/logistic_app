@@ -19,7 +19,10 @@ class Task{
         $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->select_tabletKiszallitasTetelek(),
-            ['bizonylat_id' => $this->request['bizonylat_id']],
+            [
+                'bizonylat_id' =>   $this->request['bizonylat_id'],
+                'user_id' =>        $this->request['user_id']
+            ],
             $this->request['customer']
         );
         $this->result =             $this->databaseManager->getData();

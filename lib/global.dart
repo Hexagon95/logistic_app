@@ -16,7 +16,7 @@ enum TaskState{               askStorage,           scanStorage,        askProdu
 enum QuickCall{               askBarcode,           deleteItem,         saveInventory,        askInventoryDate,   checkCode,                checkStock,
   addItem,                    saveSignature,        savePdf,            giveDatas,            chainGiveDatas,     finishGiveDatas,          scanDestinationStorage,
   askAbroncs,                 print,                checkArticle,       newEntry,             verzio,             tabletBelep,              addNewDeliveryNote,
-  addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItem
+  addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItem, logInNamePassword
 }
 enum DialogResult{            cancel,               back,               mainMenu}
 enum StockState{              checkStock,           stockIn,            default0}
@@ -56,7 +56,7 @@ class Global{
   // ---------- < SQL Commands > ------- ---------- ---------- ----------
   static const String sqlCreateTableIdentity = "CREATE TABLE identityTable(id INTEGER PRIMARY KEY, identity TEXT)";
   
-  // ---------- < Global Dialogs > ----- ---------- ---------- ----------
+  // ---------- < Global Dialogs > ----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   static Future showAlertDialog(BuildContext context, {String title = 'Figyelmeztetés', required String content}) async{
     
     Widget okButton = TextButton(
@@ -175,9 +175,62 @@ class Global{
       builder:            (BuildContext context) => infoRegistry,
       barrierDismissible: false
     );
-  } 
+  }
 
-  // ---------- < Global Methods > ----- ---------- ---------- ----------
+  static Future<dynamic> logInDialog(BuildContext context, {String? userNameInput}) async{
+    // --------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    String userName =     (userNameInput != null)? userNameInput : '';
+    String userPassword = '';
+    BoxDecoration customBoxDecoration =       BoxDecoration(            
+      border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
+      color:        Colors.white,
+      borderRadius: const BorderRadius.all(Radius.circular(8))
+    );
+
+    // --------- < Widgets [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    Widget okButton = TextButton(child: const Text('Ok'),     onPressed: () => Navigator.pop(context, {'userName': userName, 'userPassword': userPassword}));
+    Widget cancel =   TextButton(child: const Text('Mégsem'), onPressed: () => Navigator.pop(context, null));
+
+    // --------- < Methods [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+
+    // --------- < Display > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    AlertDialog infoRegistry = AlertDialog(
+      title:    const Text('Bejelentkezés', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+      content:  SingleChildScrollView(child: Column(children: [
+        Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+          initialValue: userName,
+          onChanged:    (value) => userName = value,
+          decoration:   const InputDecoration(
+            contentPadding: EdgeInsets.all(10),
+            labelText:      'Felhasználónév',
+            border:         InputBorder.none,
+          ),
+          style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
+        )),
+        const SizedBox(height: 4),
+        Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+          onChanged:    (value) => userPassword = value,
+          obscureText:  true,
+          decoration:   const InputDecoration(
+            contentPadding: EdgeInsets.all(10),
+            labelText:      'Jelszó',
+            border:         InputBorder.none,
+          ),
+          style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
+        )),
+      ])),
+      actions:  [okButton, cancel]
+    );
+
+    // --------- < Return > ---- -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    return await showDialog(
+      context:            context,
+      builder:            (BuildContext context) => infoRegistry,
+      barrierDismissible: false
+    );
+  }
+
+  // ---------- < Global Methods > ----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   static Color invertColor(Color input) => Color.fromRGBO((input.red - 255).abs(), (input.green - 255).abs(), (input.blue - 255).abs(), 1.0);
 
   static Map<ButtonState, Color> customColor = {

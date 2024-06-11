@@ -20,16 +20,20 @@ class Task{
         $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->exec_finishInventory(),
-            ['input' => json_encode([
-                'id' =>         0,
-                'jogcim_id' =>  189,
-                'datum' =>      $this->request['datum'],
-                'cikk_id' =>    $this->request['cikk_id'],
-                'raktar_id' =>  $this->request['raktar_id'],
-                'mennyiseg' =>  $this->request['mennyiseg'],
-                'megjegyzes'=>  ''
-            ])],
-            $this->request['customer']
+            [
+                'input' => json_encode([
+                    'id' =>         0,
+                    'jogcim_id' =>  189,
+                    'datum' =>      $this->request['datum'],
+                    'cikk_id' =>    $this->request['cikk_id'],
+                    'raktar_id' =>  $this->request['raktar_id'],
+                    'mennyiseg' =>  $this->request['mennyiseg'],
+                    'megjegyzes'=>  ''
+                ]),
+                'user_id' =>            $this->request['user_id']
+            ],
+            $this->request['customer'],
+            
         );
         $this->result = $this->databaseManager->getData();
     }

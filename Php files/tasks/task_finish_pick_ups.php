@@ -16,7 +16,10 @@ class Task{
         $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->exec_finishPickUps(),
-            ['kiszedesi_lista' => $this->request['kiszedesi_lista']],
+            [
+                'kiszedesi_lista' =>    $this->request['kiszedesi_lista'],
+                'user_id' =>            $this->request['user_id']
+            ],
             $this->request['customer']
         );        
     }

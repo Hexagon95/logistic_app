@@ -29,7 +29,8 @@ class Task{
         $this->databaseManager =        new DatabaseManager(
             $this->sqlCommand->select_tabletBejovoszallitolevelUj(),
             [
-                'raktar_id' =>  $this->request['raktar_id']
+                'raktar_id' =>  $this->request['raktar_id'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );
