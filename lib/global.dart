@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
 enum NextRoute{               logIn,                menu,               orderList,            orderOutList,       pickUpList,               deliveryNoteList,
   checkStock,                 inventory,            pickUpData,         default0,             pickUpDataFinish,   scanTasks,                finishTasks,
@@ -179,8 +178,9 @@ class Global{
 
   static Future<dynamic> logInDialog(BuildContext context, {String? userNameInput}) async{
     // --------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
-    String userName =     (userNameInput != null)? userNameInput : '';
-    String userPassword = '';
+    String userName =                     (userNameInput != null)? userNameInput : '';
+    String userPassword =                 '';
+    ButtonState buttonForgottenPassword = ButtonState.default0;
     BoxDecoration customBoxDecoration =       BoxDecoration(            
       border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
       color:        Colors.white,
@@ -192,33 +192,58 @@ class Global{
     Widget cancel =   TextButton(child: const Text('Mégsem'), onPressed: () => Navigator.pop(context, null));
 
     // --------- < Methods [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    
+    // --------- < Display [2] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    Widget drawContent() => StatefulBuilder(builder: (context, setState) => SingleChildScrollView(child: Column(children: (buttonForgottenPassword != ButtonState.loading)
+    ?[
+      Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+        initialValue: userName,
+        onChanged:    (value) => userName = value,
+        decoration:   const InputDecoration(
+          contentPadding: EdgeInsets.all(10),
+          labelText:      'Felhasználónév',
+          border:         InputBorder.none,
+        ),
+        style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
+      )),
+      const SizedBox(height: 4),
+      Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+        onChanged:    (value) => userPassword = value,
+        obscureText:  true,
+        decoration:   const InputDecoration(
+          contentPadding: EdgeInsets.all(10),
+          labelText:      'Jelszó',
+          border:         InputBorder.none,
+        ),
+        style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
+      )),
+      Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+        TextButton(
+          onPressed:  () => setState(() => buttonForgottenPassword = ButtonState.loading),
+          child:      const Text('Elfelejtett jelszó', style: TextStyle(decoration: TextDecoration.underline)),
+        )
+      ])
+    ]
+    : [
+      const Text('Elfelejtette jelszavát?', style: TextStyle(fontWeight: FontWeight.bold)),
+      const Text('Kérjük adja meg regisztrált felhasználói nevét'),
+      Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+        initialValue: userName,
+        onChanged:    (value) => userName = value,
+        decoration:   const InputDecoration(
+          contentPadding: EdgeInsets.all(10),
+          labelText:      'Felhasználónév',
+          border:         InputBorder.none,
+        ),
+        style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
+      )),
+      const SizedBox(height: 4),
+    ])));
 
-    // --------- < Display > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    // --------- < Display [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
     AlertDialog infoRegistry = AlertDialog(
       title:    const Text('Bejelentkezés', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-      content:  SingleChildScrollView(child: Column(children: [
-        Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
-          initialValue: userName,
-          onChanged:    (value) => userName = value,
-          decoration:   const InputDecoration(
-            contentPadding: EdgeInsets.all(10),
-            labelText:      'Felhasználónév',
-            border:         InputBorder.none,
-          ),
-          style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
-        )),
-        const SizedBox(height: 4),
-        Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
-          onChanged:    (value) => userPassword = value,
-          obscureText:  true,
-          decoration:   const InputDecoration(
-            contentPadding: EdgeInsets.all(10),
-            labelText:      'Jelszó',
-            border:         InputBorder.none,
-          ),
-          style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
-        )),
-      ])),
+      content:  drawContent(),
       actions:  [okButton, cancel]
     );
 

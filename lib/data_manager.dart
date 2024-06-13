@@ -596,7 +596,6 @@ class DataManager{
             print(varString);
           }
           break;
-
         case NextRoute.pickUpList:
           var queryParameters = {       
             'customer': customer
