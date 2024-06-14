@@ -34,7 +34,7 @@ class DataManager{
   static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =                         true;
-  static int user_id =                                    0;
+  static int userId =                                    0;
   static Identity? identity;
 
   // ---------- < Variables [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -117,7 +117,7 @@ class DataManager{
             'customer':   customer,
             'cikk_id':    ScanInventoryState.rawData[ScanInventoryState.getSelectedIndex!]['kod'],
             'raktar_id':  varJson[0]['tarhely_id'].toString(),
-            'user_id':    user_id
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =               Uri.parse('${urlPath}delete_item.php');
@@ -135,7 +135,7 @@ class DataManager{
             'cikk_id':    dataQuickCall[0][0]['result'][0]['id'].toString(),
             'raktar_id':  varJson[0]['tarhely_id'].toString(),
             'mennyiseg':  ScanInventoryState.currentItem!['keszlet'].toString(),
-            'user_id':    user_id
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =                  Uri.parse('${urlPath}finish_inventory.php');
@@ -162,7 +162,7 @@ class DataManager{
             'customer':   customer,
             'tarhely_id': ScanCheckStockState.storageId.toString(),
             'raktar_id':  raktarId,
-            'user_id':    user_id
+            'user_id':    userId
           };
           Uri uriUrl =              Uri.parse('${urlPath}list_storage_check.php');          
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -207,7 +207,7 @@ class DataManager{
           var queryParameters =           input;
           queryParameters['customer'] =   customer;
           queryParameters['raktar_id'] =  raktarId;
-          queryParameters['user_id'] =    user_id;
+          queryParameters['user_id'] =    userId;
           Uri uriUrl =                    Uri.parse('${urlPath}move_product.php');
           http.Response response =        await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(6)] =       await jsonDecode(response.body);
@@ -311,7 +311,7 @@ class DataManager{
                 : ScanCheckStockState.storageId.toString()
               : DataFormState.carId.toString()
             ,
-            'user_id': user_id
+            'user_id': userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('$urlPath${isNewEntry ? 'ask_abroncs_new_entry.php' : 'ask_abroncs.php'}');
@@ -345,7 +345,7 @@ class DataManager{
             'customer':   customer,
             'code':       ScanCheckStockState.storageId.toString(),
             'raktar_id':  raktarId,
-            'user_id':    user_id
+            'user_id':    userId
           };
           Uri uriUrl =                Uri.parse('${urlPath}check_code.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -375,7 +375,7 @@ class DataManager{
           var queryParameters = {
             'customer':   customer,
             'raktar_id':  raktarId,
-            'user_id':    user_id
+            'user_id':    userId
           };
           Uri uriUrl =                Uri.parse('${urlPath}add_new_delivery_note.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -398,7 +398,7 @@ class DataManager{
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
-            'user_id':      user_id
+            'user_id':      userId
           };
           Uri uriUrl =                Uri.parse('${urlPath}ask_delivery_notes_scan.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -410,7 +410,7 @@ class DataManager{
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
-            'user_id':      user_id
+            'user_id':      userId
           };
           Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -488,7 +488,7 @@ class DataManager{
           var queryParameters = {
             'customer':   customer,
             'id':         IncomingDeliveryNoteState.rawDataListItems[int.parse(IncomingDeliveryNoteState.getSelectedIndexItem!.toString())]['cikk_id'],
-            'user_id':    user_id
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =                Uri.parse('${urlPath}give_datas.php');
@@ -612,7 +612,7 @@ class DataManager{
           var queryParameters = {
             'customer':   customer,
             'raktar_id':  raktarId,
-            'user_id':    user_id
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_orders_out.php');
@@ -625,7 +625,7 @@ class DataManager{
           var queryParameters = {
             'customer':   customer,
             'raktar_id':  raktarId,
-            'user_id':    user_id
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_delivery_out.php');
@@ -638,7 +638,7 @@ class DataManager{
           var queryParameters = {
             'customer':   customer,
             'raktar_id':  raktarId,
-            'user_id':    user_id
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}incoming_delivery_note.php');
@@ -651,7 +651,7 @@ class DataManager{
           var queryParameters = {       
             'customer':   customer,
             'raktar_id':  raktarId,
-            'user_id':    user_id
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}list_orders.php');
@@ -704,7 +704,7 @@ class DataManager{
           var queryParameters = {
             'customer':         customer,
             'kiszedesi_lista':  json.encode(_kiszedesiLista),
-            'user_id':          user_id
+            'user_id':          userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}finish_pick_ups.php');
@@ -723,7 +723,7 @@ class DataManager{
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': data[1][ListOrdersState.getSelectedIndex!]['id'],
-            'user_id':      user_id
+            'user_id':      userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('$urlPath${phpFileName()}');
@@ -745,7 +745,7 @@ class DataManager{
               'id':       data[1][ListOrdersState.getSelectedIndex!]['id'],
               'tetelek':  _cropCompletedTasks
             }),
-            'user_id':  user_id
+            'user_id':  userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('$urlPath${phpFileName()}');
@@ -984,7 +984,7 @@ class DataManager{
 
         case QuickCall.logInNamePassword:
           LogInMenuState.logInNamePassword = dataQuickCall[31];
-          user_id = int.parse(dataQuickCall[31][0]['id'].toString());
+          userId = int.parse(dataQuickCall[31][0]['id'].toString());
           break;
         
         default:break;
