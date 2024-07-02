@@ -61,5 +61,6 @@ class SqlCommand{
     public function exec_tabletBejovoszallitolevelUjTetelFelvitele(){return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :output";}
     public function exec_tabletBejovoSzallitolevelTetelTorles()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_tetel_torles] :bizonylat_id, :tetel_id, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelRendszam() {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Rendszam] :rendszam, :bizonylat_id, :output";}
+    public function exec_felhasznaloProfilModositas()               {return "EXEC [dbo].[FelhasznaloProfilModositas] :parameter, :output";}
     public function exec_tabletBelep()                              {return "EXEC [mosaic].[dbo].[TabletBelep] :eszkoz_id, :verzio";}
 }

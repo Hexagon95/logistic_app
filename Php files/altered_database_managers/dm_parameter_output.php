@@ -34,7 +34,7 @@ class DatabaseManager{
             $sqlQuery->execute();
         }
         catch (\Throwable $th){
-            $this->data = json_encode(array(['Execution failed' => $th->getMessage()]));
+            echo $th->getMessage();
         }
     }
 }

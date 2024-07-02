@@ -34,7 +34,8 @@ class Task{
             $this->sqlCommand->select_tarhely_Id1(),
             [
                 'raktar_id' =>  $this->request['raktar_id'],
-                'input' =>      $this->request['storageFrom']
+                'input' =>      $this->request['storageFrom'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );
@@ -45,6 +46,7 @@ class Task{
             [
                 'raktar_id' =>  $this->request['raktar_id'],
                 'input' =>      $this->request['storageTo'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );

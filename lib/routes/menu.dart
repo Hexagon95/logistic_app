@@ -1,5 +1,4 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/routes/incoming_deliverynote.dart';
@@ -19,9 +18,11 @@ class Menu extends StatefulWidget{ //----- ---------- ---------- ---------- ----
 class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <LogInMenuState>
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   static List<dynamic> menuList =         List<dynamic>.empty();
+  static String email =                   '';
   static String errorMessageBottomLine =  '';
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  MainMenuState mainMenuState =             MainMenuState.default0;
   ButtonState buttonPickUpList =            ButtonState.default0;
   ButtonState buttonDeliveryOut =           ButtonState.default0;
   ButtonState buttonIncomingDeliveryNote =  ButtonState.default0;
@@ -32,7 +33,21 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   ButtonState buttonCheckStock =            ButtonState.default0;
   ButtonState buttonStockIn =               ButtonState.default0;
   ButtonState buttonInventory =             ButtonState.default0;
+  ButtonState buttonDone =                  ButtonState.disabled;
   late double _width;
+  BoxDecoration customBoxDecoration =       BoxDecoration(            
+    border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
+    color:        Colors.white,
+    borderRadius: const BorderRadius.all(Radius.circular(8))
+  );
+  String get title {switch(mainMenuState){
+    case MainMenuState.editPassword:  return 'Adatok';
+    default:                          return DataManager.raktarMegnevezes;
+  }}
+  Map<String,TextEditingController> controller = {
+    'password_1': TextEditingController(),
+    'password_2': TextEditingController()
+  };
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   MenuState(){
@@ -42,42 +57,125 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   // ---------- < WidgetBuild [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
    Widget build(BuildContext context){
-    Widget filter(int id, Widget menuOption) {for(var item in menuList) {if(item['id'] == id && item['aktiv'] == 1) return menuOption;} return Container();}
-
     _width = MediaQuery.of(context).size.width - 50;
     if(_width > 400) _width = 400;
     return WillPopScope(
       onWillPop:  _handlePop,
       child:      Scaffold(
         appBar:     AppBar(
-          title:            Center(child: Text(DataManager.raktarMegnevezes)),
+          title:            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Container(),
+            Text(title),
+            PopupMenuButton(
+              itemBuilder:  (context) => <PopupMenuEntry<int>>[
+                PopupMenuItem(
+                  value:      1,
+                  child:      Row(children:[
+                    Icon(Icons.edit, color: Global.getColorOfButton(ButtonState.default0),),
+                    Text('Jelszó módosítása', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0)))
+                  ])
+                ),
+                PopupMenuItem(
+                  value:      0,
+                  child:      Row(children:[
+                    Icon(Icons.logout, color: Global.getColorOfButton(ButtonState.default0),),
+                    Text('Kijelentkezés', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0)))
+                  ])
+                ),
+              ],
+              enabled:    (mainMenuState == MainMenuState.default0),
+              onSelected: handlePopUpMenu,
+              child:      Icon(Icons.menu, color: Global.getColorOfIcon((mainMenuState == MainMenuState.default0)? ButtonState.default0 : ButtonState.disabled)),
+            )
+          ]),
           backgroundColor:  Global.getColorOfButton(ButtonState.default0),
           foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
         ),
         backgroundColor:    Colors.white,
-        body:               Container(
-          decoration: const BoxDecoration(image: DecorationImage(
-              image:  AssetImage('images/background.png'),
-              fit:    BoxFit.cover
-            )),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            filter(7, _drawButtonListOrdersOut),
-            filter(1, _drawButtonPickUpList),
-            filter(2, _drawButtonListOrders),
-            filter(8, _drawDeliveryOut),
-            filter(9, _drawButtonIncomingDeliveryNote),
-            const SizedBox(height: 20),
-            filter(3, _drawButtonDeliveryNote),
-            filter(4, _drawButtonCheckStock),
-            filter(5, _drawButtonStockIn),
-            filter(6, _drawButtonInventory)
-          ])
-        )
+        body:               (){switch(mainMenuState){
+          case MainMenuState.editPassword:  return _drawChangePassword;
+          default:                          return _drawMenu;
+        }}(),
       )
     );
   }
 
   // ---------- < WidgetBuild [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawMenu{
+    Widget filter(int id, Widget menuOption) {for(var item in menuList) {if(item['id'] == id && item['aktiv'] == 1) return menuOption;} return Container();}
+
+    return Container(
+      decoration: const BoxDecoration(image: DecorationImage(
+          image:  AssetImage('images/background.png'),
+          fit:    BoxFit.fitHeight
+        )),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.max, children: [
+        filter(7, _drawButtonListOrdersOut),
+        filter(1, _drawButtonPickUpList),
+        filter(2, _drawButtonListOrders),
+        filter(8, _drawDeliveryOut),
+        filter(9, _drawButtonIncomingDeliveryNote),
+        const SizedBox(height: 20),
+        filter(3, _drawButtonDeliveryNote),
+        filter(4, _drawButtonCheckStock),
+        filter(5, _drawButtonStockIn),
+        filter(6, _drawButtonInventory)
+      ])
+    );
+  }
+
+  Widget get _drawChangePassword => Stack(children: [
+    Container(
+      decoration: const BoxDecoration(image: DecorationImage(
+          image:  AssetImage('images/background.png'),
+          fit:    BoxFit.fitHeight
+        )),
+    ),
+    Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      SingleChildScrollView(child:Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Padding(padding: const EdgeInsets.all(10),child: Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+          controller:   controller['password_1'],
+          onChanged:    (value) => setState(() => buttonDone = _setButtonDone),
+          obscureText:  true,
+          decoration:   const InputDecoration(
+            contentPadding: EdgeInsets.all(10),
+            labelText:      'Jelszó',
+            border:         InputBorder.none,
+          ),
+          style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
+        ))),
+        Padding(padding: const EdgeInsets.all(10),child: Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+          controller:   controller['password_2'],
+          obscureText:  true,
+          onChanged:    (value) => setState(() => buttonDone = _setButtonDone),
+          decoration:   const InputDecoration(
+            contentPadding: EdgeInsets.all(10),
+            labelText:      'Jelszó mégegyszer',
+            border:         InputBorder.none,
+          ),
+          style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
+        ))),
+        const Padding(padding: EdgeInsets.all(5),child: Divider()),
+        Padding(padding: const EdgeInsets.all(10),child: Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+          enabled:      false,
+          initialValue: email,
+          decoration:   const InputDecoration(
+            contentPadding: EdgeInsets.all(10),
+            labelText:      'E-mail',
+            border:         InputBorder.none,
+          ),
+          style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
+        )))
+      ])),
+      _drawBottomBar
+    ])
+  ]);
+
+  // ---------- < WidgetBuild [2]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
+    Row(mainAxisAlignment: MainAxisAlignment.end, children:  [_drawButtonDone])
+  );
+
   Widget get _drawButtonPickUpList => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
@@ -254,6 +352,24 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
       ])
     ))
   );
+    
+  // ---------- < WidgetBuild [3]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget get _drawButtonDone => TextButton(
+    onPressed:  () async => (buttonDone == ButtonState.default0)? await _buttonDonePressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+      (buttonDone == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonDone)) : Container(),
+      Text(' Mentés ', style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDone))),
+      Icon(Icons.save, color: Global.getColorOfIcon(buttonDone), size: 30)
+    ]))
+  );
+
+  // ---------- < WidgetBuild [4]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Widget _progressIndicator(Color colorInput) => Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: SizedBox(
+    width:  20,
+    height: 20,
+    child:  CircularProgressIndicator(color: colorInput)
+  ));
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get _buttonPickUpListPressed async{
@@ -371,6 +487,24 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     }
   }
 
+  Future get _buttonDonePressed async{
+    setState(() => buttonDone = ButtonState.loading);
+    if(controller['password_1']!.text != controller['password_2']!.text){
+      await Global.showAlertDialog(context, content: 'A megadott két jelszó nem egyezik!', title: 'Nem egyező jelszavak!');
+      setState(() => buttonDone = ButtonState.disabled);
+      return;
+    }
+    await DataManager(quickCall: QuickCall.changePassword, input: {'password': controller['password_1']!.text}).beginQuickCall;
+    buttonDone = ButtonState.disabled;
+    _handlePop();
+  }
+
+  void handlePopUpMenu(int value) {switch(value){
+    case 1: setState(() => mainMenuState = MainMenuState.editPassword); return;
+    case 0: _handlePop();                                               return;
+    default:                                                            return;
+  }}
+
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future<bool> get _isInventoryDate async{
     DataManager dataManager = DataManager(quickCall: QuickCall.askInventoryDate);
@@ -379,7 +513,16 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   }
 
   Future<bool> _handlePop() async{
+    if(mainMenuState != MainMenuState.default0) {setState(() => mainMenuState = MainMenuState.default0); resetControllers; return false;}
     if(await Global.yesNoDialog(context, title: 'Kijelentkezés', content: 'Ki kíván jelentkezni a LogisticApp-ból?')) {Restart.restartApp();}
     return false;
   }
+
+  ButtonState get _setButtonDone {for(String key in controller.keys) {if(controller[key]!.text.isEmpty) return ButtonState.disabled;} return ButtonState.default0;}
+
+  // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  void get resetControllers {buttonDone = ButtonState.disabled; controller = {
+    'password_1': TextEditingController(),
+    'password_2': TextEditingController()
+  };}
 }

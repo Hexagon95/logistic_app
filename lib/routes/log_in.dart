@@ -16,8 +16,9 @@ class LogInMenuFrame extends StatefulWidget{
 class LogInMenuState extends State<LogInMenuFrame>{
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <LogInMenuState>
   static dynamic logInNamePassword;
-  static String errorMessageBottomLine =  '';
-  static bool updateNeeded =              false;
+  static String errorMessageBottomLine =    '';
+  static String forgottenPasswordMessage =  '';
+  static bool updateNeeded =                false;
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonLogIn = ButtonState.default0;
@@ -48,7 +49,15 @@ class LogInMenuState extends State<LogInMenuFrame>{
               children:           [Text(DataManager.serverErrorText, style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)))]
             )))
           ])
-        )
+        ),
+        floatingActionButton:         FloatingActionButton(
+          onPressed:        () async => await Global.showAlertDialog(context, content: DataManager.identity.toString(), title: 'Eszköz id'),
+          backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+          foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
+          mini:             true,
+          child:            const Icon(Icons.construction, size: 36),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       )
     );
   }
@@ -85,7 +94,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
 
   // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawVerzio => Column(children: [
-    //Text('v1.28 (TEST)', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
+    //Text('v1.29 (TEST)', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
     Text('v${DataManager.thisVersion}', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
   ]);
 
@@ -126,6 +135,12 @@ class LogInMenuState extends State<LogInMenuFrame>{
     DataManager.customer =        'mosaic';
     await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
     if(!updateNeeded){
+      if(result['buttonState'] == ButtonState.loading){
+        await DataManager(quickCall: QuickCall.forgottenPassword, input: {'user_name': result['userName']}).beginQuickCall;
+        await Global.showAlertDialog(context, title: 'Elfelejtett jelszó', content: forgottenPasswordMessage);
+        setState(() => buttonLogIn =  ButtonState.default0);
+        return;
+      }
       await DataManager(
         quickCall:  QuickCall.logInNamePassword,
         input:      {'user_name': result['userName'], 'user_password': result['userPassword']}

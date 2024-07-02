@@ -20,7 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.28b';
+  static String thisVersion =                             '1.29';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -29,12 +29,12 @@ class DataManager{
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
-  //static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
-  static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
+  static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
+  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
   static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =                         true;
-  static int userId =                                    0;
+  static int userId =                                     0;
   static Identity? identity;
 
   // ---------- < Variables [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -562,6 +562,35 @@ class DataManager{
             print(varString);
           }
           break;
+        
+        case QuickCall.forgottenPassword:
+          Uri uriUrl =                Uri.parse(Uri.encodeFull('https://app.mosaic.hu/sql/ForgottenPasswordSQL.php?name=${input['user_name']}'));
+          http.Response response =    await http.post(uriUrl);
+          dataQuickCall[check(32)] =  (response.body != 'null')? [await jsonDecode(response.body)] : [];
+          if(kDebugMode){
+            String varString = dataQuickCall[32].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.changePassword:
+          var queryParameters = {
+            'customer':   'mosaic',
+            'parameter':  jsonEncode({
+              'id':         userId,
+              'email':      MenuState.email,
+              'password':   input['password'].toString()
+            })
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}change_password.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(33)] =  (response.body != 'null')? await jsonDecode(response.body) : [];
+          if(kDebugMode){
+            String varString = dataQuickCall[33].toString();
+            print(varString);
+          }
+          break;
 
         default:break; //dataQuickCall[30] is reserved!
       }
@@ -984,7 +1013,14 @@ class DataManager{
 
         case QuickCall.logInNamePassword:
           LogInMenuState.logInNamePassword = dataQuickCall[31];
-          userId = int.parse(dataQuickCall[31][0]['id'].toString());
+          userId =          (dataQuickCall[31].isNotEmpty)? int.parse(dataQuickCall[31][0]['id'].toString()) : -1;
+          MenuState.email = (dataQuickCall[31].isNotEmpty)? dataQuickCall[31][0]['email'] : '';
+          break;
+
+        case QuickCall.forgottenPassword:
+          LogInMenuState.forgottenPasswordMessage = '';
+          if(dataQuickCall[32][0]['errors'].isEmpty) {for(dynamic item in dataQuickCall[32][0]['message']) {LogInMenuState.forgottenPasswordMessage += '${item['text']}\n';}}
+          else {for(dynamic item in dataQuickCall[32][0]['errors']) {LogInMenuState.forgottenPasswordMessage += '${item['text']}\n';}}
           break;
         
         default:break;
