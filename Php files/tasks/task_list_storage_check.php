@@ -6,7 +6,7 @@ class Task{
     private $success = 1;
     private $request;
     private $result;
-        public function getResult(){return ($this->success == 1)? $this->result : array(['error' => 1]);
+        public function getResult() {return ($this->success == 1)? $this->result : json_encode(array(['error' => 1]));
     }
 
     // ---------- <Constructors> ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -16,6 +16,7 @@ class Task{
             $this->_checkStorage();
             $this->_executeTask();
         } catch (\Throwable $th) {
+            //echo $th->getMessage();
             $this->success = 0;
         }
     }
@@ -37,7 +38,7 @@ class Task{
             $this->request['customer']
         );
         $this->result =                 $this->databaseManager->getData();
-        if($this->result[0]['id'] == 0) {echo $this->result; throw new Exception('invalid_storage_exception');}
+        //if($this->result[0]['id'] == 0) {throw new Exception('invalid_storage_exception');}
     }
 
     private function _executeTask(){
@@ -50,6 +51,6 @@ class Task{
             ],
             $this->request['customer']
         );
-        $this->result =             $this->databaseManager->getData();
+        $this->result =         $this->databaseManager->getData();
     }
 }

@@ -23,7 +23,7 @@ enum QuickCall{                 askBarcode,                 deleteItem,         
   addNewDeliveryNote,           addNewDeliveryNoteFinished, askDeliveryNotesScan,             addDeliveryNoteItem,                      chainGiveDatasDeliveryNote,
   addItemFinished,              plateNumberCheck,           printBarcodeDeliveryNote,         selectAddItemDeliveryNote,                finishSelectAddItemDeliveryNote,
   editSelectedItemDeliveryNote, askEditItemDeliveryNote,    finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword,
-  removeDeliveryNoteItem,       logInNamePassword,          changePassword
+  removeDeliveryNoteItem,       logInNamePassword,          changePassword, kiszedesFelviteleTarhely
 }
 enum InDelNoteState{            addItem,                    listItems,                        addNew,                                   listSelectEditItemDeliveryNote,
   default0,                     editItem,                   listSelectAddItemDeliveryNote,
@@ -38,6 +38,7 @@ class Global{
   // ---------- < Variables [Static] > - ---------- ---------- ----------
   static List<NextRoute> _routes =      List<NextRoute>.empty(growable: true);
   static NextRoute get currentRoute =>  _routes.last;
+  static NextRoute get previousRoute => (_routes.length >= 2)? _routes[_routes.length - 2] : _routes.first;
   static void get routeBack             {_routes.removeLast(); _printRoutes;}
   static set routeNext (NextRoute value){
     int check(int i)  {while(_routes.length > i){_routes.removeLast();} while(_routes.length <= i){_routes.add(NextRoute.default0);} return i; }
@@ -320,6 +321,13 @@ class Global{
   static dynamic where(List<dynamic> input, String entry, String value) {for(dynamic item in input){
     if(item[entry] == value) return item;
   }}
+
+  static String getErtek(List<dynamic> input, String entry, String value){
+    for(dynamic item in input){
+      if(item[entry] == value && item['ertek'] != null) return item['ertek'];
+    }
+    return '';
+  }
 
   // ---------- < Methods [1] > -------- ---------- ---------- ----------
   static void get _printRoutes{

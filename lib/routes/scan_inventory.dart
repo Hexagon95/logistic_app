@@ -55,7 +55,7 @@ class ScanInventoryState extends State<ScanInventory>{
     }    
     return WillPopScope(
       onWillPop:  () => _handlePop,
-      child:      (){switch(taskState){
+      child:      () {switch(taskState){
         case TaskState.scanStorage: 
         case TaskState.scanProduct:   return _drawQrScanRoute;
         case TaskState.barcodeManual: return _drawBarcodeManual;

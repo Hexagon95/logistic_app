@@ -30,7 +30,14 @@ class ListOrdersState extends State<ListOrders>{
     case NextRoute.pickUpList:    return 'Kiszedési lista';
     case NextRoute.orderOutList:  return 'Bevételezés';
     case NextRoute.deliveryOut:   return 'Kiszállítás';
-    default:                      return 'Kitárazás';
+    case NextRoute.orderList:     return 'Kitárazás';
+    default: switch(Global.previousRoute){
+      case NextRoute.pickUpList:    return 'Kiszedési lista';
+      case NextRoute.orderOutList:  return 'Bevételezés';
+      case NextRoute.deliveryOut:   return 'Kiszállítás';
+      case NextRoute.orderList:     return 'Kitárazás';
+      default: return '';
+    }
   }}
   int? get selectedIndex => _selectedIndex;  
 

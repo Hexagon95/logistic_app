@@ -44,6 +44,7 @@ class SqlCommand{
     public function exec_finishOrdersOut()                          {return "EXEC [dbo].[Tablet_Bevetelezes_Felvitele] :completed_orders, :user_id";}
     public function exec_tabletKiszallitasFelvitele()               {return "EXEC [dbo].[Tablet_Kiszallitas_Felvitele] :completed_orders, :user_id";}
     public function exec_finishPickUps()                            {return "EXEC [dbo].[Tablet_Kiszedes_Felvitele] :kiszedesi_lista, :user_id";}
+    public function exec_tabletKiszedesFelviteleTarhely()           {return "EXEC [dbo].[Tablet_Rendeles_Felvitele_Tarhely] :kiszedesi_lista, :user_id";}
     public function exec_finishInventory()                          {return "EXEC [dbo].[RaktarmozgasFelvitele] :input, :user_id";}
     public function exec_deleteItem()                               {return "EXEC [dbo].[NyitoleltarTorles] :cikk_id, :raktar_id, :user_id";}
     public function exec_bizonylatDataTableDetails()                {return "EXEC [dbo].[Bizonylat_DataTable_Details] :parameter, '', 0, 100, ''";}

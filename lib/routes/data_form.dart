@@ -167,7 +167,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
         ratio:  3.0 / 4.0,
         input:  Text(
           //'${ScanCheckStockState.rawData[1]['ertek'].toString()} - ${ScanCheckStockState.rawData[2]['ertek'].toString()} ${ScanCheckStockState.rawData[3]['ertek'].toString()}',
-          '${Global.where(ScanCheckStockState.rawData, 'megnevezes', 'Rendszám')['ertek'].toString()} - ${Global.where(ScanCheckStockState.rawData, 'megnevezes', 'Pozíció')['ertek'].toString()} ${Global.where(ScanCheckStockState.rawData, 'megnevezes', 'Megnevezés')['ertek'].toString()}',
+          '${Global.getErtek(ScanCheckStockState.rawData, 'megnevezes', 'Rendszám')} - ${Global.getErtek(ScanCheckStockState.rawData, 'megnevezes', 'Pozíció')} ${Global.getErtek(ScanCheckStockState.rawData, 'megnevezes', 'Megnevezés')}',
           style:    const TextStyle(fontSize: 16),
           softWrap: true,
         )
