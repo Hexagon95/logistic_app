@@ -23,7 +23,7 @@ class Task{
                 'parameter' =>  json_encode(array(
                     'felhasznalo_id' => $this->request['dolgozo_kod'],
                     'kategoria_id' =>   3,
-                    'statusz_id' =>     1
+                    'statusz_id' =>     9
                 ))
             ],
             $this->request['customer']

@@ -192,7 +192,8 @@ class ScanOrdersState extends State<ScanOrders>{
           return (rawData.isNotEmpty) 
           ? Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             _drawDataTable,          
-            _drawBottomBar
+            _drawBottomBar,
+            _drawErrorMessaggeBottomline
           ]) 
           : const Center(child: Text('Nincs adat'));
         }
@@ -540,6 +541,7 @@ class ScanOrdersState extends State<ScanOrders>{
       title:    'Munka elvetése?',
       content:  'El kívánja vetni az idáigi munkát és visszatér a rendelésekhez?'
     )){
+      DataManager.isServerAvailable = true;
       String varString = '';
       for (var i = 0; i < progressOfTasks.length; i++){
         if(progressOfTasks[i]) varString += '${rawData[i]['cikkszam']}\tMennyiség: ${rawData[i]['mennyiseg']}\tTárhely: ${rawData[i]['tarhely']}\n';
@@ -572,18 +574,23 @@ class ScanOrdersState extends State<ScanOrders>{
     bool allCompleted() {for(var item in (varRoute == NextRoute.orderList)? pickUpList : rawData[0]['tetelek']) {if(!completedTasks.contains(item)) return false;} return true;}
     
     setState(() => buttonContinue = ButtonState.loading);
-   if(varRoute == NextRoute.orderList){
+    if(varRoute == NextRoute.orderList){
       if(allCompleted() || await Global.yesNoDialog(context,
         title:    'Tovább lépés',
         content:  'Nem került minden tétel kitárazásra, folytatja?'
       )){
         if(currentStorage < listOfStorages.length - 1){
           await DataManager(quickCall: QuickCall.kiszedesFelviteleTarhely).beginQuickCall;
+          if(!DataManager.isServerAvailable) {setState(() => buttonContinue = ButtonState.default0); return;}
           currentStorage++;
           buttonContinue = ButtonState.default0;
           setState(() => taskState = TaskState.askStorage);
         }
-        else {await DataManager(quickCall: QuickCall.kiszedesFelviteleTarhely).beginQuickCall; _endTask;}
+        else {
+          await DataManager(quickCall: QuickCall.kiszedesFelviteleTarhely).beginQuickCall;
+          if(!DataManager.isServerAvailable) {setState(() => buttonContinue = ButtonState.default0); return;}
+          _endTask;
+        }
       }
     }
     else{
@@ -629,24 +636,19 @@ class ScanOrdersState extends State<ScanOrders>{
   }
 
   Future get _endTask async{
-    if(await Global.yesNoDialog(context,
-      title:    'Lezárás',
-      content:  'Le kívánja zárni a munkát?'
-    )){
-      controller =              null;
-      Global.routeNext =        NextRoute.finishTasks;
-      DataManager dataManager = DataManager(input: {'route': varRoute});
-      await dataManager.beginProcess;
-      completedTasks.clear();
-      Global.routeBack;
-      Global.currentRoute;
-      await dataManager.beginProcess;
-      buttonContinue = ButtonState.default0;
-      Navigator.popUntil(context, ModalRoute.withName('/listOrders'));
-      await Navigator.pushReplacementNamed(context, '/listOrders');
-      setState((){});
-    }
-    else {setState(() => buttonContinue = ButtonState.default0);}
+    controller =              null;
+    Global.routeNext =        NextRoute.finishTasks;
+    DataManager dataManager = DataManager(input: {'route': varRoute});
+    await dataManager.beginProcess;
+    if(!DataManager.isServerAvailable) {setState(() => buttonContinue = ButtonState.default0); return;}
+    completedTasks.clear();
+    Global.routeBack;
+    Global.currentRoute;
+    await dataManager.beginProcess;
+    buttonContinue = ButtonState.default0;
+    Navigator.popUntil(context, ModalRoute.withName('/listOrders'));
+    await Navigator.pushReplacementNamed(context, '/listOrders');
+    setState((){});
   }
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------

@@ -612,9 +612,13 @@ class DataManager{
         default:break; //dataQuickCall[30] is reserved!
       }
     }
+    on SocketException{
+      isServerAvailable = false;
+      return;
+    }
     catch(e) {
       if(kDebugMode)print('$e, $quickCall');
-      quickCall;
+      quickCall; 
     }
     finally{
       await _decisionQuickCall;
@@ -710,6 +714,7 @@ class DataManager{
             'customer':     customer,
             'dolgozo_kod':  data[0][1]['dolgozo_kod'].toString()
           };
+          if(kDebugMode) developer.log(queryParameters.toString());
           Uri uriUrl =              Uri.parse('${urlPath}list_delivery_notes.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(1)] =          await jsonDecode(response.body);
@@ -801,6 +806,10 @@ class DataManager{
 
         default:break;
       }
+    }
+    on SocketException{
+      isServerAvailable = false;
+      return;
     }
     catch(e) {
       if(kDebugMode)print('$e');
@@ -1040,6 +1049,10 @@ class DataManager{
         
         default:break;
       }
+    }
+    on SocketException{
+      isServerAvailable = false;
+      return;
     }
     catch(e){
       if(kDebugMode)print('$e');
