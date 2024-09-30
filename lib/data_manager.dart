@@ -21,7 +21,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.31';
+  static String thisVersion =                             '1.31b';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -386,11 +386,14 @@ class DataManager{
         case QuickCall.addNewDeliveryNoteFinished:
           var queryParameters = {
             'customer':   customer,
-            'parameter':  json.encode(IncomingDeliveryNoteState.rawDataDataForm)
+            'parameter':  json.encode(IncomingDeliveryNoteState.rawDataDataForm),
+            'user_id':    userId,
           };
           Uri uriUrl =                Uri.parse('${urlPath}add_new_delivery_note_finish.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode){
+            developer.log(response.body);
+            developer.log(queryParameters.toString());
             print(response.body);
           }
           break;

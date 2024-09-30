@@ -21,7 +21,8 @@ class Task{
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->exec_tabletBejovoszallitolevelUjFelvitele(),
             [
-                'parameter' =>  $this->request['parameter']
+                'parameter' =>  $this->request['parameter'],
+                'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
         );

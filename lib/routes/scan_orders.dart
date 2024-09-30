@@ -600,6 +600,7 @@ class ScanOrdersState extends State<ScanOrders>{
           content:  'Nem került minden tétel bevételezésre!'
         );
         buttonContinue = ButtonState.default0;
+        if(buttonContinue == ButtonState.default0) await _buttonContinuePressed;
       }
       else{_endTask;}
     }
@@ -676,6 +677,7 @@ class ScanOrdersState extends State<ScanOrders>{
           completedTasks.add(item);
           if(varRoute == NextRoute.orderList) {buttonContinue = (contains(completedTasks, pickUpList))? ButtonState.default0 : ButtonState.disabled;}
           else {buttonContinue = (contains(completedTasks, rawData[0]['tetelek']))? ButtonState.default0 : ButtonState.disabled;}
+          if(buttonContinue == ButtonState.default0) await _buttonContinuePressed;
           break;
         }
       } setState((){}); break;

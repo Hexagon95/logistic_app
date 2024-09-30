@@ -58,7 +58,7 @@ class SqlCommand{
     public function exec_barcodePrintFelvitele()                    {return "EXEC [local].[Barcode_print_Felvitele] :tarhely";}
     public function exec_barcodePrintBizonylatCikkek()              {return "EXEC [local].[Barcode_print_bizonylat_cikkek] :bizonylat_id, :raktar_id, '[]'";}
 	public function exec_tabletBetarolasFelvitele()                 {return "EXEC [dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, :kimenet";}
-    public function exec_tabletBejovoszallitolevelUjFelvitele()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :output";}
+    public function exec_tabletBejovoszallitolevelUjFelvitele()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelFelvitele(){return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :output";}
     public function exec_tabletBejovoSzallitolevelTetelTorles()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_tetel_torles] :bizonylat_id, :tetel_id, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelRendszam() {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Rendszam] :rendszam, :bizonylat_id, :output";}
