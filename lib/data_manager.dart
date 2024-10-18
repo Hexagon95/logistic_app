@@ -21,7 +21,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.31b';
+  static String thisVersion =                             '1.32';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -860,10 +860,10 @@ class DataManager{
           ScanCheckStockState.messageData = {};
           if(isServerAvailable && dataQuickCall[8].isNotEmpty) {
             List<dynamic> result = json.decode(dataQuickCall[8][0]['result']);
-            ScanCheckStockState.messageData = {
+            if(result.isNotEmpty) {ScanCheckStockState.messageData = {
               'title':    result[0]['name'],
               'content':  (result[0]['row'].toString().isNotEmpty)? result[0]['row'] : result[0]['message']
-            };
+            };}
           }
           break;
 

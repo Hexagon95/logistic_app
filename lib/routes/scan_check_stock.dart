@@ -27,6 +27,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   static String storageId =             '';
   static String savedStorageId =        '';
   static String itemId =                '';
+  static String scanProductMessage =    'Kérem olvasson be egy terméket';
+  static List<String> itemIdList =      [];
   static List<String> get selectedIds{
     List<String> varListString = List<String>.empty(growable: true);
     for(int i = 0; i < selectionList.length; i++){if(selectionList[i])varListString.add(rawData[0]['tetelek'][i]['id'].toString());}
@@ -93,8 +95,8 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       onWillPop:  () => _handlePop,
       child:      (){switch(taskState){
         case TaskState.scanDestinationStorage:
-        case TaskState.scanProduct:
-        case TaskState.scanStorage:   return _drawQrScanRoute;
+        case TaskState.scanProduct:   return _drawQrScanRouteProduct;
+        case TaskState.scanStorage:   return _drawQrScanRouteStorage;
         case TaskState.barcodeManual: return _drawBarcodeManual;
         case TaskState.inventory:     return _drawInventory;
         default: return Container();
@@ -103,7 +105,42 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }
   
   // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawQrScanRoute => Scaffold(
+  Widget get _drawQrScanRouteProduct => Stack(children: [
+    Scaffold(
+      appBar: AppBar(
+        title:            Center(child: Text(_getQRCodeScanTitle)),
+        backgroundColor:  Global.getColorOfButton(ButtonState.default0),
+        foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
+      ),
+      body:   Stack(children: [
+        Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
+          Expanded(child: _buildQrView),
+          Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+            _drawBottomBar,
+            _drawErrorMessaggeBottomline
+          ])
+        ]),
+        Column(mainAxisAlignment: MainAxisAlignment.end, children:[
+          Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 10), child: Container(
+            decoration: const BoxDecoration(color: Color.fromARGB(90, 0, 0, 0), borderRadius: BorderRadius.all(Radius.circular(10))),
+            child:      _getDrawTask
+          )))
+        ]),
+        Center(child: Visibility(visible: isProcessIndicator, child: _progressIndicator(Colors.lightBlue)))
+      ])
+    ),
+    Padding(padding: const EdgeInsets.fromLTRB(0, 70, 0, 0), child: Container(
+      height:     25,
+      decoration: BoxDecoration(
+        color:        Global.getColorOfButton(ButtonState.default0),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow:    const[BoxShadow(color: Colors.grey, offset: Offset(5, 5), blurRadius: 5)]
+      ),
+      child:      Text(' Beolvasott tételek: ${itemIdList.length} ', style: TextStyle(color: Global.getColorOfIcon(ButtonState.default0), fontSize: 16, decoration: TextDecoration.none))
+    ))
+  ]);
+
+  Widget get _drawQrScanRouteStorage => Scaffold(
     appBar: AppBar(
       title:            Center(child: Text(_getQRCodeScanTitle)),
       backgroundColor:  Global.getColorOfButton(ButtonState.default0),
@@ -340,9 +377,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     style: TextStyle(color: Colors.white, fontSize: 16),
   )));
 
-  Widget get _drawTaskScanProductText => const Padding(padding: EdgeInsets.all(5), child: Center(child: Text(
-    'Kérem olvasson be egy terméket',
-    style: TextStyle(color: Colors.white, fontSize: 16),
+  Widget get _drawTaskScanProductText => Padding(padding: EdgeInsets.all(5), child: Center(child: Text(
+    scanProductMessage,
+    style: const TextStyle(color: Colors.white, fontSize: 16),
   )));
   
   // ---------- < WidgetBuild [5] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -446,7 +483,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   Widget get _drawButtonAddItem => (stockState == StockState.stockIn)
     ? TextButton(
-      onPressed:  () => (buttonAddItem == ButtonState.default0)? setState(() => taskState = TaskState.scanProduct) : null,
+      onPressed:  () => (buttonAddItem == ButtonState.default0)? _buttonAddItemPressed : null,
       style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
       child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
         (buttonAddItem == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonAddItem)) : Container(),
@@ -546,7 +583,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   String get _getQRCodeScanTitle {switch(taskState){
     case TaskState.scanStorage:             return 'Azonosítás';
     case TaskState.scanDestinationStorage:  return 'Cél Tárolóhely Azonosítása';
-    default:                                return 'Termék Azonosítása';
+    default:                                return 'Termékek Azonosítása';
   }}
 
   double get _setWidth{
@@ -681,7 +718,9 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         return false;
       
       case TaskState.scanProduct:
-        setState(() => taskState = TaskState.inventory);
+        await DataManager(quickCall: QuickCall.checkStock).beginQuickCall;
+        if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
+        setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
         return false;
       
       case TaskState.inventory: 
@@ -708,6 +747,12 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         return true;
     }
   }
+
+  void get _buttonAddItemPressed{
+    itemIdList =          List<String>.empty(growable: true);
+    scanProductMessage =  'Kérem olvasson be egy terméket';
+    setState(() => taskState = TaskState.scanProduct);
+  }  
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   bool isButtonAvailable(String name) => (rawData.isNotEmpty && rawData.last[name] != null)? (rawData.last[name].toString() == '1') : true;
@@ -808,15 +853,18 @@ class ScanCheckStockState extends State<ScanCheckStock>{
           break;
 
       case TaskState.scanProduct:
-        DataManager dataManager = DataManager(quickCall: QuickCall.addItem);
         isProcessIndicator = true;
         itemId = scannerDatas!.value.scanData.trim();
-        setState((){});
-        await dataManager.beginQuickCall;
-        dataManager = DataManager(quickCall: QuickCall.checkStock);
-        await dataManager.beginQuickCall;
-        setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
-        if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
+        if(!itemIdList.contains(itemId)){
+          itemIdList.add(itemId);
+          await DataManager(quickCall: QuickCall.addItem).beginQuickCall;
+          if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
+          scanProductMessage = '$itemId ID betárolva';
+        }
+        else{
+          scanProductMessage = '$itemId ID már be van olvasva';
+        }
+        setState(() => isProcessIndicator = false);
         break;
 
       default: break;
