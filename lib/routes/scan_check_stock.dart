@@ -8,6 +8,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/src/scanner_hardware.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 
 class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -22,6 +23,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   static List<dynamic> rawData =        List<dynamic>.empty(growable: true);
   static List<bool> selectionList =     List<bool>.empty();
   static dynamic messageData =          {};
+  //SoLoud soloud =                       SoLoud.instance;
   static StockState stockState =        StockState.default0;
   static ScannedCodeIs scannedCode =    ScannedCodeIs.unknown;
   static String storageId =             '';
@@ -800,6 +802,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             break;
 
           case ScannedCodeIs.unknown:
+            //await soloud.play()
             await Global.showAlertDialog(context, content: 'Ismeretlen vonal/QR kód!', title: 'Hiba!');
             setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
             break;
