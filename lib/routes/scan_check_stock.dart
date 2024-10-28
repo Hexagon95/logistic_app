@@ -8,7 +8,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/src/scanner_hardware.dart';
-import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -20,6 +20,7 @@ class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---
 
 class ScanCheckStockState extends State<ScanCheckStock>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
+  static AudioPlayer player =           AudioPlayer();
   static List<dynamic> rawData =        List<dynamic>.empty(growable: true);
   static List<bool> selectionList =     List<bool>.empty();
   static dynamic messageData =          {};
@@ -790,6 +791,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
               setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
             }
             else{
+              await player.play(AssetSource('sounds/buzzer.wav'));
               await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba!');
               setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
             }
@@ -802,7 +804,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             break;
 
           case ScannedCodeIs.unknown:
-            //await soloud.play()
+            await player.play(AssetSource('sounds/buzzer.wav'));
             await Global.showAlertDialog(context, content: 'Ismeretlen vonal/QR kód!', title: 'Hiba!');
             setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
             break;
@@ -849,6 +851,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             setState(() => taskState = TaskState.inventory);
           }
           else{
+            await player.play(AssetSource('sounds/buzzer.wav'));
             await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
             if(!Global.isScannerDevice) controller!.resumeCamera();
             setState(() => taskState = TaskState.scanDestinationStorage);
@@ -859,12 +862,19 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         isProcessIndicator = true;
         itemId = scannerDatas!.value.scanData.trim();
         if(!itemIdList.contains(itemId)){
-          itemIdList.add(itemId);
           await DataManager(quickCall: QuickCall.addItem).beginQuickCall;
-          if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
-          scanProductMessage = '$itemId ID betárolva';
+          if(messageData.isNotEmpty){
+            await player.play(AssetSource('sounds/buzzer.wav'));
+            await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
+            scanProductMessage = messageData['content'];
+          }
+          else {
+            itemIdList.add(itemId);
+            scanProductMessage = '$itemId ID betárolva';
+          }
         }
         else{
+          await player.play(AssetSource('sounds/okay.mp3'));
           scanProductMessage = '$itemId ID már be van olvasva';
         }
         setState(() => isProcessIndicator = false);
@@ -912,7 +922,10 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       dataManager = DataManager(quickCall: QuickCall.checkStock);
       await dataManager.beginQuickCall;
       setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
-      if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
+      if(messageData.isNotEmpty){
+        await player.play(AssetSource('sounds/buzzer.wav'));
+        await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
+      }
       break;
 
     case TaskState.scanStorage:

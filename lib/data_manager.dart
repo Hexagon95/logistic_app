@@ -21,7 +21,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.32';
+  static String thisVersion =                             '1.33';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';

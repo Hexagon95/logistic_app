@@ -48,7 +48,7 @@ dependencies:
   dropdown_search: ^5.0.6
   ota_update: ^6.0.0
   restart_app: ^1.2.1
-  flutter_soloud: ^1.0.0
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -76,7 +76,7 @@ flutter:
   # assets:
   assets:
     - images/
-    - sounds/
+    - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
