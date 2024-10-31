@@ -20,7 +20,6 @@ class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---
 
 class ScanCheckStockState extends State<ScanCheckStock>{  
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScanState>
-  static AudioPlayer player =           AudioPlayer();
   static List<dynamic> rawData =        List<dynamic>.empty(growable: true);
   static List<bool> selectionList =     List<bool>.empty();
   static dynamic messageData =          {};
@@ -791,7 +790,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
               setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
             }
             else{
-              await player.play(AssetSource('sounds/buzzer.wav'));
+              AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
               await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba!');
               setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
             }
@@ -804,7 +803,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             break;
 
           case ScannedCodeIs.unknown:
-            await player.play(AssetSource('sounds/buzzer.wav'));
+            AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
             await Global.showAlertDialog(context, content: 'Ismeretlen vonal/QR kód!', title: 'Hiba!');
             setState(() {isProcessIndicator = false; taskState = TaskState.scanStorage;});
             break;
@@ -851,7 +850,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
             setState(() => taskState = TaskState.inventory);
           }
           else{
-            await player.play(AssetSource('sounds/buzzer.wav'));
+            AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
             await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
             if(!Global.isScannerDevice) controller!.resumeCamera();
             setState(() => taskState = TaskState.scanDestinationStorage);
@@ -864,7 +863,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         if(!itemIdList.contains(itemId)){
           await DataManager(quickCall: QuickCall.addItem).beginQuickCall;
           if(messageData.isNotEmpty){
-            await player.play(AssetSource('sounds/buzzer.wav'));
+            AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
             await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
             scanProductMessage = messageData['content'];
           }
@@ -874,7 +873,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
           }
         }
         else{
-          await player.play(AssetSource('sounds/okay.mp3'));
+          AudioPlayer().play(AssetSource('sounds/okay.mp3'));
           scanProductMessage = '$itemId ID már be van olvasva';
         }
         setState(() => isProcessIndicator = false);
@@ -923,7 +922,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       await dataManager.beginQuickCall;
       setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
       if(messageData.isNotEmpty){
-        await player.play(AssetSource('sounds/buzzer.wav'));
+        AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
         await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
       }
       break;

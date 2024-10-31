@@ -145,8 +145,8 @@ class LogInMenuState extends State<LogInMenuFrame>{
         quickCall:  QuickCall.logInNamePassword,
         input:      {'user_name': result['userName'], 'user_password': result['userPassword']}
       ).beginQuickCall;
-      if(logInNamePassword == null || logInNamePassword.isEmpty){
-        await Global.showAlertDialog(context, title: 'Ismeretlen felhasználónév!', content: 'A megadott felhasználónév: ${result['userName']}\nismeretlen!');
+      if(logInNamePassword == null || logInNamePassword.isEmpty) {
+        if(DataManager.isServerAvailable) {await Global.showAlertDialog(context, title: 'Ismeretlen felhasználónév!', content: 'A megadott felhasználónév: ${result['userName']}\nismeretlen!');}
         setState(() => buttonLogIn =  ButtonState.default0);
         return;
       }

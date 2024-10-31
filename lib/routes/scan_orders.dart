@@ -8,6 +8,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/src/scanner_hardware.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class ScanOrders extends StatefulWidget{//---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -667,20 +668,29 @@ class ScanOrdersState extends State<ScanOrders>{
           setState(() => taskState = TaskState.askProduct);
         }
         else{
+          AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
           isProperStorageCode = false; 
           setState((){});
         }
       break;
       
-      case TaskState.askProduct: for(var item in (varRoute == NextRoute.orderList)? pickUpList : rawData[0]['tetelek']){
-        if(item['vonalkod'].toString() == scannerDatas!.value.scanData.trim() && !completedTasks.contains(item)) {
-          completedTasks.add(item);
-          if(varRoute == NextRoute.orderList) {buttonContinue = (contains(completedTasks, pickUpList))? ButtonState.default0 : ButtonState.disabled;}
-          else {buttonContinue = (contains(completedTasks, rawData[0]['tetelek']))? ButtonState.default0 : ButtonState.disabled;}
-          if(buttonContinue == ButtonState.default0) await _buttonContinuePressed;
-          break;
+      case TaskState.askProduct:
+        bool noMatch = true;
+        for(var item in (varRoute == NextRoute.orderList)? pickUpList : rawData[0]['tetelek']){
+          if(item['vonalkod'].toString() == scannerDatas!.value.scanData.trim()){
+            noMatch = false;
+            if(!completedTasks.contains(item)){
+              completedTasks.add(item);
+              if(varRoute == NextRoute.orderList) {buttonContinue = (contains(completedTasks, pickUpList))? ButtonState.default0 : ButtonState.disabled;}
+              else {buttonContinue = (contains(completedTasks, rawData[0]['tetelek']))? ButtonState.default0 : ButtonState.disabled;}
+              if(buttonContinue == ButtonState.default0) await _buttonContinuePressed;
+              break;
+            }
+            else {AudioPlayer().play(AssetSource('sounds/okay.mp3')); break;}
+          }
         }
-      } setState((){}); break;
+        if(noMatch) AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
+        setState((){}); break;
 
       default: break;
     }

@@ -19,9 +19,10 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.33';
+  static String thisVersion =                             '1.34a';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -240,7 +241,7 @@ class DataManager{
             'tarhely_id': ScanCheckStockState.storageId.toString(),
             'cikk_id':    ScanCheckStockState.itemId.toString(),
             'mennyiseg':  1,
-            'user_id':    1
+            'user_id':    userId
           };
           Uri uriUrl =              Uri.parse('${urlPath}add_item.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -616,6 +617,7 @@ class DataManager{
       }
     }
     on SocketException{
+      AudioPlayer().play(AssetSource('sounds/error.mp3'));
       isServerAvailable = false;
       return;
     }
@@ -800,17 +802,18 @@ class DataManager{
             }),
             'user_id':  userId
           };
-          if(kDebugMode)print(queryParameters);
+          if(kDebugMode) developer.log(queryParameters.toString());
           Uri uriUrl =              Uri.parse('$urlPath${phpFileName()}');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(3)] =          await jsonDecode(response.body);          
-          if(kDebugMode)print(data[3]);
+          if(kDebugMode) developer.log(data[3].toString());
           break;
 
         default:break;
       }
     }
     on SocketException{
+      AudioPlayer().play(AssetSource('sounds/error.mp3'));
       isServerAvailable = false;
       return;
     }
