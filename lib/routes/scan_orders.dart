@@ -547,12 +547,12 @@ class ScanOrdersState extends State<ScanOrders>{
       for (var i = 0; i < progressOfTasks.length; i++){
         if(progressOfTasks[i]) varString += '${rawData[i]['cikkszam']}\tMennyiség: ${rawData[i]['mennyiseg']}\tTárhely: ${rawData[i]['tarhely']}\n';
       }
-      if(varString.isEmpty) {Global.routeBack; completedTasks.clear(); return true;}
+      if(varString.isEmpty) {Global.routeBack; completedTasks.clear(); rawData = List<dynamic>.empty(growable: true); return true;}
       else{
         if( await Global.showAlertDialog(context,
           title:    'Termékek visszahelyezése',
           content:  'Kérem helyezze vissza az alábbi termékeket a helyükre:\n$varString'
-        )) {Global.routeBack; return true;}
+        )) {Global.routeBack; rawData = List<dynamic>.empty(growable: true); return true;}
         return false;
       }
     }

@@ -24,7 +24,10 @@ class ScannerHardware{
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future<void> _createProfile(String profileName) async {
     try {await methodChannel.invokeMethod('createDataWedgeProfile', profileName);}
-    catch(e) {if(kDebugMode)print(e);}
+    //try {await methodChannel.invokeMethod('useDataWedgeProfile', 'ScanOrders');}
+    catch(e){
+      if(kDebugMode)print(e);
+    }
   }
 
   /*Future<void> _sendDataWedgeCommand(String command, String parameter) async {
