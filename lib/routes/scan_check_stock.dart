@@ -4,10 +4,10 @@ import 'dart:io';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logistic_app/src/scanner_datawedge.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
-import 'package:logistic_app/src/scanner_hardware.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
@@ -73,15 +73,15 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   double? width;
   double? qrScanCutOutSize;
   QRViewController? controller;
-  ScannerHardware? scannerHardware;
+  ScannerDatawedge? scannerDatawedge;
   ValueNotifier<ScannerDatas>? scannerDatas;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   ScanCheckStockState(){
     taskState ??=     TaskState.default0;
     if(Global.isScannerDevice){
-      scannerDatas =    ValueNotifier(ScannerDatas(dateTime: '', scanData: '', symbology: ''));
-      scannerHardware = ScannerHardware(scannerDatas: scannerDatas!, profileName: 'ScanCheckStock');
+      scannerDatas =      ValueNotifier(ScannerDatas(scanData: ''));
+      scannerDatawedge =  ScannerDatawedge(scannerDatas: scannerDatas!, profileName: 'ScanCheckStock');
     }
   }
 
@@ -379,7 +379,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     style: TextStyle(color: Colors.white, fontSize: 16),
   )));
 
-  Widget get _drawTaskScanProductText => Padding(padding: EdgeInsets.all(5), child: Center(child: Text(
+  Widget get _drawTaskScanProductText => Padding(padding: const EdgeInsets.all(5), child: Center(child: Text(
     scanProductMessage,
     style: const TextStyle(color: Colors.white, fontSize: 16),
   )));

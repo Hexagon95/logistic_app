@@ -1,7 +1,7 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'dart:async';
 
 class ScannerHardware{
   // ---------- < Variables [Static] > --- ---------- ---------- ---------- ---------- ---------- ----------
@@ -18,25 +18,12 @@ class ScannerHardware{
   }
 
   // ---------- < Methods [Public] > ----- ---------- ---------- ---------- ---------- ---------- ----------
-  //Future get startScan async => await _sendDataWedgeCommand("com.symbol.datawedge.api.SOFT_SCAN_TRIGGER", "START_SCANNING");
-  //Future get stopScan async =>  await _sendDataWedgeCommand("com.symbol.datawedge.api.SOFT_SCAN_TRIGGER", "STOP_SCANNING");
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future<void> _createProfile(String profileName) async {
     try {await methodChannel.invokeMethod('createDataWedgeProfile', profileName);}
-    //try {await methodChannel.invokeMethod('useDataWedgeProfile', 'ScanOrders');}
-    catch(e){
-      if(kDebugMode)print(e);
-    }
-  }
-
-  /*Future<void> _sendDataWedgeCommand(String command, String parameter) async {
-    try {
-      String argumentAsJson = jsonEncode({"command": command, "parameter": parameter});
-      await methodChannel.invokeMethod('sendDataWedgeCommandStringParameter', argumentAsJson);
-    }
     catch(e) {if(kDebugMode)print(e);}
-  }*/
+  }
 
   void _onEvent(event){
     Map barcodeScan = jsonDecode(event);

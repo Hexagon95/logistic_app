@@ -4,10 +4,10 @@ import 'dart:io';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logistic_app/src/scanner_datawedge.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
-import 'package:logistic_app/src/scanner_hardware.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class ScanOrders extends StatefulWidget{//---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
@@ -64,13 +64,13 @@ class ScanOrdersState extends State<ScanOrders>{
   double? qrScanCutOutSize;
   String? result;
   QRViewController? controller;
-  ScannerHardware? scannerHardware;
+  ScannerDatawedge? scannerDatawedge;
   ValueNotifier<ScannerDatas>? scannerDatas;
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ScanOrdersState() {if(Global.isScannerDevice){
-    scannerDatas =    ValueNotifier(ScannerDatas(dateTime: '', scanData: '', symbology: ''));
-    scannerHardware = ScannerHardware(scannerDatas: scannerDatas!, profileName: 'ScanOrders');
+    scannerDatas =      ValueNotifier(ScannerDatas(scanData: ''));
+    scannerDatawedge =  ScannerDatawedge(scannerDatas: scannerDatas!, profileName: 'ScanOrders');
   }}
 
   // ---------- < WidgetBuild [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------

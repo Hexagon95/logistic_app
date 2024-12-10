@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/routes/incoming_deliverynote.dart';
