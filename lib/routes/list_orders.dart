@@ -7,7 +7,7 @@ import 'package:logistic_app/routes/scan_orders.dart';
 
 class ListOrders extends StatefulWidget{
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  const ListOrders({Key? key}) : super(key: key);
+  const ListOrders({super.key});
 
   @override
   State<ListOrders> createState() => ListOrdersState();

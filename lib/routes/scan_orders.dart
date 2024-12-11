@@ -12,7 +12,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 class ScanOrders extends StatefulWidget{//---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  const ScanOrders({Key? key}) : super(key: key);
+  const ScanOrders({super.key});
 
   @override
   State<ScanOrders> createState() => ScanOrdersState();

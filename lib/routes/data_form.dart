@@ -1,10 +1,11 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
 
-import '../global.dart';
-import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/routes/scan_check_stock.dart';
-import 'package:flutter/material.dart';
+import 'package:logistic_app/data_manager.dart';
+import '../global.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:masked_text/masked_text.dart';
+import 'package:flutter/material.dart';
 
 class DataForm extends StatefulWidget {//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <DataForm>
   const DataForm({super.key});
@@ -302,18 +303,40 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
         ));
 
       case 'number':
-      case 'integer': return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
-        enabled:            editable,          
-        controller:         controller[index],
-        onChanged:          (value) => _checkInteger(value, input, index),
-        decoration:         InputDecoration(
-          contentPadding:     const EdgeInsets.all(10),
-          labelText:          input['name'],
-          border:             InputBorder.none,
-        ),
-        style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
-        keyboardType: TextInputType.number,
-      ));
+      case 'integer': switch(input['name']){
+
+        case 'DOT-szám':return SizedBox(height: 55, width: getWidth(index), child: MaskedTextField(
+          enabled:            editable,          
+          controller:         controller[index],
+          mask:               '####',
+          keyboardType:       TextInputType.number,
+          decoration:         InputDecoration(
+            contentPadding:     const EdgeInsets.all(10),
+            labelText:          input['name'],
+            hintText:           '####',
+            border:             InputBorder.none,
+          ),
+          onEditingComplete: () async{
+            maskEditingComplete(rawData, input, index);
+            _checkInteger(controller[index].text, input, index);
+          },
+          style: TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+        ));
+
+        default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
+          enabled:            editable,          
+          controller:         controller[index],
+          onChanged:          (value) => _checkInteger(value, input, index),
+          onEditingComplete:  () => setState(() {_checkValue(index); FocusManager.instance.primaryFocus?.unfocus();}),
+          decoration:         InputDecoration(
+            contentPadding:     const EdgeInsets.all(10),
+            labelText:          input['name'],
+            border:             InputBorder.none,
+          ),
+          style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+          keyboardType: TextInputType.number,
+        ));
+      }
 
       default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
         enabled:      editable,
@@ -413,6 +436,40 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     return cells;
   }
 
+  Future maskEditingComplete(List<dynamic> thisData, dynamic input, int index) async{
+    switch(thisData[index]['name']){
+
+      case 'DOT-szám':
+        bool isDotNumberWrong() => (
+          int.parse(controller[index].text.substring(0,2)) < 1  ||
+          int.parse(controller[index].text.substring(0,2)) > 53 ||
+          int.parse(controller[index].text.substring(2)) > int.parse(DateTime.now().year.toString().substring(2))
+        );
+        if(controller[index].text.length != 4 || isDotNumberWrong()){
+          await Global.showAlertDialog(
+            context,
+            title:    'Hiba!',
+            content:  'A megadott DOT-szám helytelen!'
+          );
+          thisData[index]['value'] = '';
+        }
+        else{
+          thisData[index]['value'] = controller[index].text;
+        }
+        break;
+
+      default:
+        if(controller[index].text.length == input['input_mask'].length){
+          thisData[index]['value'] = controller[index].text;
+          _handleSelectChange(thisData[index]['value'], index);
+        }
+        else {thisData[index]['value'] = '';}
+        break;
+    }
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState((){});
+  }
+
   void _checkInteger(String value, dynamic input, int index){ //Check if integer and is between 0 and limit.
     if(input['limit'] == null) {setState(() {rawData[index]['value'] = value; buttonSave = DataManager.setButtonSave;}); return;}
     int? varInt;
@@ -431,6 +488,31 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       else if(value != '') {controller[index].text = input['value'].toString();}
     }
   }
+
+  Future _checkValue(int index) async {switch(rawData[index]['name']){
+
+    case 'Profilmélység':
+      try{
+        List<String> listString = rawData[index]['value'].toString().split('');
+        for(int i = 0; i < listString.length; i++){
+          if(listString[i] == ',' || listString[i] == '.'){
+            listString[i] = '.';
+            listString =    listString.sublist(0, i + 2);
+            break;
+          }
+        }
+        rawData[index]['value'] = listString.join('');
+        double varDouble = double.parse(rawData[index]['value'].toString());
+        if(varDouble < 0.0 || varDouble >= 15) throw Exception();
+      }
+      catch(e){
+        await Global.showAlertDialog(context, content: 'A megadott Profilmélység helytelen!', title: 'Helytelen Adat!');
+        setState(() => rawData[index]['value'] = '');
+      }
+      return;
+
+    default: return;
+  }}
 
   Future _handleSelectChange(String? newValue, int index) async{ if(enableInteraction){
     enableInteraction = false;

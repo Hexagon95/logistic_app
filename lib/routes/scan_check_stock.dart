@@ -12,7 +12,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 class ScanCheckStock extends StatefulWidget{//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  const ScanCheckStock({Key? key}) : super(key: key);
+  const ScanCheckStock({super.key});
 
   @override
   State<ScanCheckStock> createState() => ScanCheckStockState();

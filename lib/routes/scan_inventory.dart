@@ -10,7 +10,7 @@ import 'package:logistic_app/global.dart';
 
 class ScanInventory extends StatefulWidget{//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  const ScanInventory({Key? key}) : super(key: key);
+  const ScanInventory({super.key});
 
   @override
   State<ScanInventory> createState() => ScanInventoryState();

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ConfirmProduct extends StatefulWidget{
   // ---------- < Constructor > ---------- ---------- ---------- ----------
-  const ConfirmProduct({Key? key}) : super(key: key);
+  const ConfirmProduct({super.key});
 
   @override
   State<ConfirmProduct> createState() => ConfirmProductState();

@@ -6,7 +6,7 @@ import 'package:logistic_app/data_manager.dart';
 
 class IncomingDeliveryNote extends StatefulWidget{
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  const IncomingDeliveryNote({Key? key}) : super(key: key); 
+  const IncomingDeliveryNote({super.key}); 
 
   @override
   State<IncomingDeliveryNote> createState() => IncomingDeliveryNoteState();

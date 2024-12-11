@@ -15,7 +15,7 @@ import 'package:logistic_app/global.dart';
 
 class ListDeliveryNote extends StatefulWidget{//-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <QrScan>
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  const ListDeliveryNote({Key? key}) : super(key: key);
+  const ListDeliveryNote({super.key});
 
   @override
   State<ListDeliveryNote> createState() => ListDeliveryNoteState();

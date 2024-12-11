@@ -7,7 +7,7 @@ import 'package:logistic_app/global.dart';
 
 class LogInMenuFrame extends StatefulWidget{
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- <LogInMenuFrame>
-  const LogInMenuFrame({Key? key}) : super(key: key);
+  const LogInMenuFrame({super.key});
 
   @override
   State<LogInMenuFrame> createState() => LogInMenuState();

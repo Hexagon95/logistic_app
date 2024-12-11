@@ -7,7 +7,7 @@ import 'package:logistic_app/data_manager.dart';
 
 class ListPickUpDetails extends StatefulWidget{
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  const ListPickUpDetails({Key? key}) : super(key: key);
+  const ListPickUpDetails({super.key});
 
   @override
   State<ListPickUpDetails> createState() => ListPickUpDetailsState();
