@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.35';
+  static String thisVersion =                             '1.36';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -62,16 +62,7 @@ class DataManager{
       result = await db.query('identityTable');
     }
     identity = Identity(id: 0, identity: result[0]['identity'].toString());
-  }
-
-  static ButtonState get setButtonSave {
-    for(var item in DataFormState.rawData){
-      if(item['mandatory'].toString() == '1' && (item['value'] == null || item['value'].toString().isEmpty)){
-        return ButtonState.disabled;
-      }
-    }
-    return ButtonState.default0;
-  }
+  }  
   
   // ---------- < Methods [Public] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get beginQuickCall async{

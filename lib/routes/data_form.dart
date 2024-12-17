@@ -34,6 +34,11 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     color:        Colors.white,
     borderRadius: const BorderRadius.all(Radius.circular(8))
   );
+  BoxDecoration customMandatoryBoxDecoration = BoxDecoration(            
+    border:       Border.all(color: const Color.fromARGB(255, 255, 0, 0), width: 1),
+    color:        const Color.fromARGB(255, 255, 230, 230),
+    borderRadius: const BorderRadius.all(Radius.circular(8))
+  );
   String get titleText {switch(Global.currentRoute){
     case NextRoute.dataFormGiveDatas: switch(taskState){
       case TaskState.dataList:  return 'Abroncsok kiválasztása';
@@ -90,11 +95,15 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   Widget get _drawFormList{
     List<Widget> varListWidget = List<Widget>.empty(growable: true);
     int maxSor() {int maxSor = 1; for(var item in rawData) {if(item['sor'] > maxSor) maxSor = item['sor'];} return maxSor;}
-
+    
+    setButtonSave;
     if(rawData[0]['sor'] == null){
       for(int i = 0; i < rawData.length; i++) {varListWidget.add(Padding(
         padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
-        child:    Container(decoration: customBoxDecoration, child: Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i)))
+        child:    Container(
+          decoration: (_isItemAcceptable(i))? customBoxDecoration : customMandatoryBoxDecoration,
+          child:      Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
+        )
         //child:    Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
       ));}
     }
@@ -103,7 +112,10 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       for(int i = 0; i < rawData.length; i++) {if(rawData[i]['sor'] == sor){
         row.add(Padding(
           padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
-          child:    Container(decoration: customBoxDecoration, child: Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i)))
+          child:    Container(
+            decoration: (_isItemAcceptable(i))? customBoxDecoration : customMandatoryBoxDecoration,
+            child:      Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
+          )
           //child:    Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
         ));
       }}
@@ -305,49 +317,66 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       case 'number':
       case 'integer': switch(input['name']){
 
-        case 'DOT-szám':return SizedBox(height: 55, width: getWidth(index), child: MaskedTextField(
-          enabled:            editable,          
-          controller:         controller[index],
-          mask:               '####',
-          keyboardType:       TextInputType.number,
-          decoration:         InputDecoration(
-            contentPadding:     const EdgeInsets.all(10),
-            labelText:          input['name'],
-            hintText:           '####',
-            border:             InputBorder.none,
-          ),
-          onEditingComplete: () async{
-            maskEditingComplete(rawData, input, index);
-            _checkInteger(controller[index].text, input, index);
-          },
-          style: TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+        case 'DOT-szám': return SizedBox(height: 55, width: getWidth(index), child: Focus(
+          onFocusChange:  (value) => setState(() => rawData[index]['value'] = controller[index].text),
+          child:          MaskedTextField(
+            enabled:            editable,          
+            controller:         controller[index],
+            mask:               '####',
+            keyboardType:       TextInputType.number,
+            decoration:         InputDecoration(
+              contentPadding:     const EdgeInsets.all(10),
+              labelText:          input['name'],
+              hintText:           '####',
+              border:             InputBorder.none,
+            ),
+            style:      TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+          )
         ));
 
-        default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
-          enabled:            editable,          
-          controller:         controller[index],
-          onChanged:          (value) => _checkInteger(value, input, index),
-          onEditingComplete:  () => setState(() {_checkValue(index); FocusManager.instance.primaryFocus?.unfocus();}),
-          decoration:         InputDecoration(
-            contentPadding:     const EdgeInsets.all(10),
-            labelText:          input['name'],
-            border:             InputBorder.none,
-          ),
-          style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
-          keyboardType: TextInputType.number,
+        case 'Profilmélység': return SizedBox(height: 55, width: getWidth(index), child: Focus(
+          onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text; _replaceCommas(index);}),
+          child:          TextFormField(
+            enabled:            editable,          
+            controller:         controller[index],
+            keyboardType:       TextInputType.number,
+            decoration:         InputDecoration(
+              contentPadding:     const EdgeInsets.all(10),
+              labelText:          input['name'],
+              border:             InputBorder.none,
+            ),
+            style:      TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+          )
+        ));
+
+        default: return SizedBox(height: 55, width: getWidth(index), child: Focus(
+          onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text; _checkInteger(rawData[index]['value'], input, index);}),
+          child:          TextFormField(
+            enabled:            editable,          
+            controller:         controller[index],
+            decoration:         InputDecoration(
+              contentPadding:     const EdgeInsets.all(10),
+              labelText:          input['name'],
+              border:             InputBorder.none,
+            ),
+            style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+            keyboardType: TextInputType.number,
+          )
         ));
       }
 
-      default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
-        enabled:      editable,
-        controller:   controller[index],
-        decoration:   InputDecoration(
-          contentPadding: const EdgeInsets.all(10),
-          labelText:      input['name'],
-          border:         InputBorder.none,
-        ),
-        onChanged:    (value) => setState((){rawData[index]['value'] = value; buttonSave = DataManager.setButtonSave;}),
-        style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+      default: return SizedBox(height: 55, width: getWidth(index), child: Focus(
+        onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text;}),
+        child:          TextFormField(
+          enabled:        editable,
+          controller:     controller[index],
+          decoration:     InputDecoration(
+            contentPadding: const EdgeInsets.all(10),
+            labelText:      input['name'],
+            border:         InputBorder.none,
+          ),
+          style:  TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+        )
       ));
     }
   }
@@ -438,26 +467,6 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
 
   Future maskEditingComplete(List<dynamic> thisData, dynamic input, int index) async{
     switch(thisData[index]['name']){
-
-      case 'DOT-szám':
-        bool isDotNumberWrong() => (
-          int.parse(controller[index].text.substring(0,2)) < 1  ||
-          int.parse(controller[index].text.substring(0,2)) > 53 ||
-          int.parse(controller[index].text.substring(2)) > int.parse(DateTime.now().year.toString().substring(2))
-        );
-        if(controller[index].text.length != 4 || isDotNumberWrong()){
-          await Global.showAlertDialog(
-            context,
-            title:    'Hiba!',
-            content:  'A megadott DOT-szám helytelen!'
-          );
-          thisData[index]['value'] = '';
-        }
-        else{
-          thisData[index]['value'] = controller[index].text;
-        }
-        break;
-
       default:
         if(controller[index].text.length == input['input_mask'].length){
           thisData[index]['value'] = controller[index].text;
@@ -471,7 +480,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   }
 
   void _checkInteger(String value, dynamic input, int index){ //Check if integer and is between 0 and limit.
-    if(input['limit'] == null) {setState(() {rawData[index]['value'] = value; buttonSave = DataManager.setButtonSave;}); return;}
+    if(input['limit'] == null) {setState(() {rawData[index]['value'] = value; buttonSave = setButtonSave;}); return;}
     int? varInt;
     try{varInt = int.parse(value);}
     // ignore: empty_catches
@@ -489,31 +498,6 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     }
   }
 
-  Future _checkValue(int index) async {switch(rawData[index]['name']){
-
-    case 'Profilmélység':
-      try{
-        List<String> listString = rawData[index]['value'].toString().split('');
-        for(int i = 0; i < listString.length; i++){
-          if(listString[i] == ',' || listString[i] == '.'){
-            listString[i] = '.';
-            listString =    listString.sublist(0, i + 2);
-            break;
-          }
-        }
-        rawData[index]['value'] = listString.join('');
-        double varDouble = double.parse(rawData[index]['value'].toString());
-        if(varDouble < 0.0 || varDouble >= 15) throw Exception();
-      }
-      catch(e){
-        await Global.showAlertDialog(context, content: 'A megadott Profilmélység helytelen!', title: 'Helytelen Adat!');
-        setState(() => rawData[index]['value'] = '');
-      }
-      return;
-
-    default: return;
-  }}
-
   Future _handleSelectChange(String? newValue, int index) async{ if(enableInteraction){
     enableInteraction = false;
     if(newValue == null) {rawData[index]['kod'] = null;}
@@ -522,8 +506,54 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     setState(() => rawData[index]['value'] = newValue);
     DataManager dataManager = DataManager(quickCall: QuickCall.chainGiveDatas, input: {'index': index});
     await dataManager.beginQuickCall;
-    buttonSave = DataManager.setButtonSave;
+    buttonSave = setButtonSave;
     setState((){});
     enableInteraction = true;
+  }}
+
+  void _replaceCommas(int index){
+    List<String> listString = rawData[index]['value'].toString().split('');
+    for(int i = 0; i < listString.length; i++){
+      if(listString[i] == ',' || listString[i] == '.'){
+        listString[i] = '.';
+        listString =    listString.sublist(0, i + 2);
+        break;
+      }
+    }
+    rawData[index]['value'] = listString.join('');
+  }
+
+  // ---------- < Methods [3] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  ButtonState get setButtonSave {
+    for(int i = 0; i < rawData.length; i++) {if(!_isItemAcceptable(i)) return ButtonState.disabled;}
+    return ButtonState.default0;
+  }
+  
+  // ---------- < Methods [4] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  bool _isItemAcceptable(int index) => (rawData[index]['mandatory'] != null && rawData[index]['mandatory'] == 1)? isValueCorrect(index) : true;
+
+  // ---------- < Methods [5] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  bool isValueCorrect(int index) {switch(rawData[index]['name']){
+
+    case 'DOT-szám':
+      try{
+        bool isDotNumberWrong() => (
+          int.parse(controller[index].text.substring(0,2)) < 1  ||
+          int.parse(controller[index].text.substring(0,2)) > 53 ||
+          int.parse(controller[index].text.substring(2)) > int.parse(DateTime.now().year.toString().substring(2))
+        );
+        return !(controller[index].text.length != 4 || isDotNumberWrong());
+      }
+      catch(e) {return false;}
+
+     case 'Profilmélység':
+      try{
+        double varDouble = double.parse(rawData[index]['value'].toString());
+        if(varDouble < 0.0 || varDouble >= 15) throw Exception();
+        return true;
+      }
+      catch(e) {return false;}
+
+    default: return true;
   }}
 }
