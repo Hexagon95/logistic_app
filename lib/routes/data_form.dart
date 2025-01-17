@@ -54,7 +54,10 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
   }}
 
   // ---------- < Constructor > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  DataFormState() {for(int i = 0; i < rawData.length; i++) {controller.add(TextEditingController(text: ''));}}
+  DataFormState() {
+    for(int i = 0; i < rawData.length; i++) {controller.add(TextEditingController(text: rawData[i]['value']));}
+    buttonSave = setButtonSave;
+  }
 
   // ---------- < WidgetBuild [1] > -- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
@@ -96,21 +99,20 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     List<Widget> varListWidget = List<Widget>.empty(growable: true);
     int maxSor() {int maxSor = 1; for(var item in rawData) {if(item['sor'] > maxSor) maxSor = item['sor'];} return maxSor;}
     
-    setButtonSave;
     if(rawData[0]['sor'] == null){
-      for(int i = 0; i < rawData.length; i++) {varListWidget.add(Padding(
+      for(int i = 0; i < rawData.length; i++) {if(rawData[i]['visible'] == null || rawData[i]['visible'].toString() == '1') {varListWidget.add(Padding(
         padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
         child:    Container(
           decoration: (_isItemAcceptable(i))? customBoxDecoration : customMandatoryBoxDecoration,
           child:      Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
         )
         //child:    Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
-      ));}
+      ));}}
     }
     else {for(int sor = 1; sor <= maxSor(); sor++) {
       List<Widget> row = List<Widget>.empty(growable: true);
       for(int i = 0; i < rawData.length; i++) {if(rawData[i]['sor'] == sor){
-        row.add(Padding(
+        if(rawData[i]['visible'] == null || rawData[i]['visible'].toString() == '1') {row.add(Padding(
           padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
           child:    Container(
             decoration: (_isItemAcceptable(i))? customBoxDecoration : customMandatoryBoxDecoration,
@@ -118,7 +120,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
           )
           //child:    Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawData[i], i))
         ));
-      }}
+      }}}
       varListWidget.add(SizedBox(width: MediaQuery.of(context).size.width, child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: row)));
     }}
     return Expanded(child: SingleChildScrollView(child: Column(
@@ -318,7 +320,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       case 'integer': switch(input['name']){
 
         case 'DOT-szám': return SizedBox(height: 55, width: getWidth(index), child: Focus(
-          onFocusChange:  (value) => setState(() => rawData[index]['value'] = controller[index].text),
+          onFocusChange:  (value) => setState((){rawData[index]['value'] = controller[index].text; buttonSave = setButtonSave;}),
           child:          MaskedTextField(
             enabled:            editable,          
             controller:         controller[index],
@@ -335,7 +337,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
         ));
 
         case 'Profilmélység': return SizedBox(height: 55, width: getWidth(index), child: Focus(
-          onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text; _replaceCommas(index);}),
+          onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text; _replaceCommas(index); buttonSave = setButtonSave;}),
           child:          TextFormField(
             enabled:            editable,          
             controller:         controller[index],
@@ -350,7 +352,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
         ));
 
         default: return SizedBox(height: 55, width: getWidth(index), child: Focus(
-          onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text; _checkInteger(rawData[index]['value'], input, index);}),
+          onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text; _checkInteger(rawData[index]['value'], input, index); buttonSave = setButtonSave;}),
           child:          TextFormField(
             enabled:            editable,          
             controller:         controller[index],
@@ -366,7 +368,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       }
 
       default: return SizedBox(height: 55, width: getWidth(index), child: Focus(
-        onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text;}),
+        onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text; buttonSave = setButtonSave;}),
         child:          TextFormField(
           enabled:        editable,
           controller:     controller[index],
@@ -525,12 +527,16 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
 
   // ---------- < Methods [3] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState get setButtonSave {
-    for(int i = 0; i < rawData.length; i++) {if(!_isItemAcceptable(i)) return ButtonState.disabled;}
+    for(int i = 0; i < rawData.length; i++){
+      if(!_isItemAcceptable(i)){
+        return ButtonState.disabled;
+      }
+    }
     return ButtonState.default0;
   }
   
   // ---------- < Methods [4] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  bool _isItemAcceptable(int index) => (rawData[index]['mandatory'] != null && rawData[index]['mandatory'] == 1)? isValueCorrect(index) : true;
+  bool _isItemAcceptable(int index) => (rawData[index]['mandatory'] != null && rawData[index]['mandatory'].toString() == '1')? isValueCorrect(index) : true;
 
   // ---------- < Methods [5] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   bool isValueCorrect(int index) {switch(rawData[index]['name']){
@@ -542,7 +548,8 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
           int.parse(controller[index].text.substring(0,2)) > 53 ||
           int.parse(controller[index].text.substring(2)) > int.parse(DateTime.now().year.toString().substring(2))
         );
-        return !(controller[index].text.length != 4 || isDotNumberWrong());
+        bool varBool = !(controller[index].text.length != 4 || isDotNumberWrong());
+        return varBool;
       }
       catch(e) {return false;}
 
@@ -554,6 +561,6 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
       }
       catch(e) {return false;}
 
-    default: return true;
+    default: return (rawData[index]['value'] != null && rawData[index]['value'].toString().isNotEmpty);
   }}
 }

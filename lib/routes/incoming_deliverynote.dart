@@ -1,8 +1,10 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
-import 'package:dropdown_search/dropdown_search.dart';
-import 'package:flutter/material.dart';
-import 'package:logistic_app/global.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logistic_app/data_manager.dart';
+import 'package:logistic_app/global.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:masked_text/masked_text.dart';
+import 'package:flutter/material.dart';
 
 class IncomingDeliveryNote extends StatefulWidget{
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -73,6 +75,12 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   BoxDecoration customBoxDecoration = BoxDecoration(            
     border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
     color:        Colors.white,
+    borderRadius: const BorderRadius.all(Radius.circular(8))
+  );
+
+  BoxDecoration customMandatoryBoxDecoration = BoxDecoration(            
+    border:       Border.all(color: const Color.fromARGB(255, 255, 0, 0), width: 1),
+    color:        const Color.fromARGB(255, 255, 230, 230),
     borderRadius: const BorderRadius.all(Radius.circular(8))
   );
 
@@ -155,10 +163,13 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     for(int sor = 1; sor <= maxSor(); sor++) {
       List<Widget> row = List<Widget>.empty(growable: true);
       for(int i = 0; i < rawDataDataForm.length; i++) {if(rawDataDataForm[i]['sor'] == sor){
-        row.add(Padding(
+        if(rawDataDataForm[i]['visible'] == null || rawDataDataForm[i]['visible'].toString() == '1') {row.add(Padding(
           padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
-          child:    Container(decoration: customBoxDecoration, child: Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawDataDataForm[i], i)))
-        ));
+          child:    Container(
+            decoration: (_isItemAcceptable(i))? customBoxDecoration : customMandatoryBoxDecoration,
+            child:      Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawDataDataForm[i], i))
+          )
+        ));}
       }}
       varListWidget.add(SizedBox(width: MediaQuery.of(context).size.width, child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: row)));
     }
@@ -415,18 +426,33 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       break;
 
     case InDelNoteState.addItem:
-      int getIndex() {for(int i = 0; i < rawDataDataForm.length; i++) {if(rawDataDataForm[i]['id'].toString() == 'id_34') return i;} return 0;}
-      setState(() => buttonContinue = ButtonState.loading);
-      await DataManager(
-        quickCall:  QuickCall.selectAddItemDeliveryNote,
-        input:      {'id': rawDataDataForm[getIndex()]['kod'].toString()}
-      ).beginQuickCall;
-      /*await DataManager(quickCall: QuickCall.addItemFinished).beginQuickCall;
-      await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;*/
-      setState((){
-        taskState =       InDelNoteState.listSelectAddItemDeliveryNote;
-        buttonContinue =  ButtonState.default0;
-      });
+      int getIndex(String id) {for(int i = 0; i < rawDataDataForm.length; i++) {if(rawDataDataForm[i]['id'].toString() == id) return i;} return 0;}
+      if(rawDataDataForm[getIndex('id_209')]['value'].toString() == 'Nem'){
+        setState(() => buttonContinue = ButtonState.loading);
+        await DataManager(
+          quickCall:  QuickCall.selectAddItemDeliveryNote,
+          input:      {'id': rawDataDataForm[getIndex('id_34')]['kod'].toString()}
+        ).beginQuickCall;
+        /*await DataManager(quickCall: QuickCall.addItemFinished).beginQuickCall;
+        await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;*/
+        setState((){
+          taskState =       InDelNoteState.listSelectAddItemDeliveryNote;
+          buttonContinue =  ButtonState.default0;
+        });
+      }
+      else{
+        setState(() => buttonContinue = ButtonState.loading);
+        await DataManager(
+          quickCall:  QuickCall.selectAddItemDeliveryNote,
+          input:      {'id': rawDataDataForm[getIndex('id_34')]['kod'].toString()}
+        ).beginQuickCall;
+        await DataManager(quickCall: QuickCall.finishSelectAddItemDeliveryNote).beginQuickCall;
+        await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
+        setState((){
+          taskState =       InDelNoteState.listItems;
+          buttonContinue =  ButtonState.default0;
+        });
+      }
       break;
 
     case InDelNoteState.listSelectAddItemDeliveryNote:
@@ -613,6 +639,56 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         ));
 
       case 'number':
+      case 'integer': switch(input['name']){
+
+        case 'DOT-szám': return SizedBox(height: 55, width: getWidth(index), child: Focus(
+          onFocusChange:  (value) => setState(() {rawDataDataForm[index]['value'] = controller[index].text; buttonContinue = setButton();}),
+          child:          MaskedTextField(
+            enabled:            editable,          
+            controller:         controller[index],
+            mask:               '####',
+            keyboardType:       TextInputType.number,
+            decoration:         InputDecoration(
+              contentPadding:     const EdgeInsets.all(10),
+              labelText:          input['name'],
+              hintText:           '####',
+              border:             InputBorder.none,
+            ),
+            style:      TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+          )
+        ));
+
+        case 'Profilmélység': return SizedBox(height: 55, width: getWidth(index), child: Focus(
+          onFocusChange:  (value) => setState(() {rawDataDataForm[index]['value'] = controller[index].text; _replaceCommas(index);}),
+          child:          TextFormField(
+            enabled:            editable,          
+            controller:         controller[index],
+            keyboardType:       TextInputType.number,
+            decoration:         InputDecoration(
+              contentPadding:     const EdgeInsets.all(10),
+              labelText:          input['name'],
+              border:             InputBorder.none,
+            ),
+            style:      TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+          )
+        ));
+
+        default: return SizedBox(height: 55, width: getWidth(index), child: Focus(
+          onFocusChange:  (value) => setState(() {rawDataDataForm[index]['value'] = controller[index].text; _checkInteger(rawDataDataForm[index]['value'], input, index);}),
+          child:          TextFormField(
+            enabled:            editable,          
+            controller:         controller[index],
+            decoration:         InputDecoration(
+              contentPadding:     const EdgeInsets.all(10),
+              labelText:          input['name'],
+              border:             InputBorder.none,
+            ),
+            style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+            keyboardType: TextInputType.number,
+          )
+        ));
+      }
+      /*case 'number':
       case 'integer': return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
         enabled:            editable,          
         controller:         controller[index],
@@ -624,7 +700,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         ),
         style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
         keyboardType: TextInputType.number,
-      ));
+      ));*/
 
       default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
         enabled:          editable,
@@ -635,7 +711,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
           labelText:        input['name'],
           border:           InputBorder.none,
         ),
-        onChanged:    (value) => setState((){rawDataDataForm[index]['value'] = value;}),
+        onChanged:    (value) => setState(() {rawDataDataForm[index]['value'] = value; buttonContinue = setButton();}),
         style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
       ));
     }
@@ -676,12 +752,19 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   }
 
   // ---------- < Methods [3] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  bool _isItemAcceptable(int index) => (rawDataDataForm[index]['mandatory'] != null && rawDataDataForm[index]['mandatory'].toString() == '1')? isValueCorrect(index) : true;
+
   Future _handleSelectChange(String? newValue, int index) async{
-    rawDataDataForm[index]['value'] = newValue;
-    if(newValue == null) {rawDataDataForm[index]['kod'] = null;}
-    else {for(dynamic item in listOfLookupDatas[rawDataDataForm[index]['id']]) {if(item['megnevezes'] == newValue) rawDataDataForm[index]['kod'] = item['id'];}}
-    DataManager dataManager = DataManager(quickCall: QuickCall.chainGiveDatasDeliveryNote, input: {'index': index});
-    await dataManager.beginQuickCall;
+    try{
+      rawDataDataForm[index]['value'] = newValue;
+      if(newValue == null) {rawDataDataForm[index]['kod'] = null;}
+      else {for(dynamic item in listOfLookupDatas[rawDataDataForm[index]['id']]) {if(item['megnevezes'] == newValue) rawDataDataForm[index]['kod'] = item['id'];}}
+      DataManager dataManager = DataManager(quickCall: QuickCall.chainGiveDatasDeliveryNote, input: {'index': index});
+      await dataManager.beginQuickCall;
+    }
+    catch(e){
+      if(kDebugMode) print(e);
+    }
     setState((){
       buttonContinue = setButton();
     });
@@ -706,6 +789,18 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     }
   }
 
+  void _replaceCommas(int index){
+    List<String> listString = rawDataDataForm[index]['value'].toString().split('');
+    for(int i = 0; i < listString.length; i++){
+      if(listString[i] == ',' || listString[i] == '.'){
+        listString[i] = '.';
+        listString =    listString.sublist(0, i + 2);
+        break;
+      }
+    }
+    rawDataDataForm[index]['value'] = listString.join('');
+  }
+
   // ---------- < Methods [4] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState setButton() {switch(taskState){
 
@@ -722,7 +817,31 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       ;
     
     default:
-      for(var item in rawDataDataForm) {if(item['editable'].toString() == '1' && (item['value'] == null || item['value'].toString().isEmpty)) {return ButtonState.disabled;}}
+      for(int i = 0; i < rawDataDataForm.length; i++) {if(!_isItemAcceptable(i)) return ButtonState.disabled;}
       return ButtonState.default0;
+  }}
+
+  bool isValueCorrect(int index) {switch(rawDataDataForm[index]['name']){
+
+    case 'DOT-szám':
+      try{
+        bool isDotNumberWrong() => (
+          int.parse(controller[index].text.substring(0,2)) < 1  ||
+          int.parse(controller[index].text.substring(0,2)) > 53 ||
+          int.parse(controller[index].text.substring(2)) > int.parse(DateTime.now().year.toString().substring(2))
+        );
+        return !(controller[index].text.length != 4 || isDotNumberWrong());
+      }
+      catch(e) {return false;}
+
+     case 'Profilmélység':
+      try{
+        double varDouble = double.parse(rawDataDataForm[index]['value'].toString());
+        if(varDouble < 0.0 || varDouble >= 15) throw Exception();
+        return true;
+      }
+      catch(e) {return false;}
+
+    default: return (rawDataDataForm[index]['value'] != null && rawDataDataForm[index]['value'].toString().isNotEmpty);
   }}
 }

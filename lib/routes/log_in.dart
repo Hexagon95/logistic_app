@@ -125,15 +125,22 @@ class LogInMenuState extends State<LogInMenuFrame>{
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get _enterPressed async{
-    errorMessageBottomLine = '';
+    errorMessageBottomLine =    '';
+    forgottenPasswordMessage =  '';
     setState(() => buttonLogIn =  ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    await DataManager(quickCall: QuickCall.logIn).beginQuickCall;
+    if(forgottenPasswordMessage.isNotEmpty){
+      await Global.showAlertDialog(context, title: 'Hiba!', content: forgottenPasswordMessage);
+      setState(() => buttonLogIn = ButtonState.default0);
+      return;
+    }
     dynamic result = await Global.logInDialog(context, userNameInput: (logInNamePassword != null && logInNamePassword.isNotEmpty)? logInNamePassword[0]['nev'].toString() : null);
     if(result == null){
       setState(() => buttonLogIn =  ButtonState.default0);
       return;
     }
     DataManager.customer =        'mosaic';
-    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
     if(!updateNeeded){
       if(result['buttonState'] == ButtonState.loading){
         await DataManager(quickCall: QuickCall.forgottenPassword, input: {'user_name': result['userName']}).beginQuickCall;

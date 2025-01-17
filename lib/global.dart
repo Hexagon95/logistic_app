@@ -23,7 +23,7 @@ enum QuickCall{                 askBarcode,                 deleteItem,         
   addNewDeliveryNote,           addNewDeliveryNoteFinished, askDeliveryNotesScan,             addDeliveryNoteItem,                      chainGiveDatasDeliveryNote,
   addItemFinished,              plateNumberCheck,           printBarcodeDeliveryNote,         selectAddItemDeliveryNote,                finishSelectAddItemDeliveryNote,
   editSelectedItemDeliveryNote, askEditItemDeliveryNote,    finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword,
-  removeDeliveryNoteItem,       logInNamePassword,          changePassword, kiszedesFelviteleTarhely
+  removeDeliveryNoteItem,       logInNamePassword,          changePassword, kiszedesFelviteleTarhely, logIn
 }
 enum InDelNoteState{            addItem,                    listItems,                        addNew,                                   listSelectEditItemDeliveryNote,
   default0,                     editItem,                   listSelectAddItemDeliveryNote,
@@ -36,10 +36,10 @@ enum MainMenuState{                  default0,                   editPassword}
 
 class Global{
   // ---------- < Variables [Static] > - ---------- ---------- ----------
-  static List<NextRoute> _routes =      List<NextRoute>.empty(growable: true);
-  static NextRoute get currentRoute =>  _routes.last;
-  static NextRoute get previousRoute => (_routes.length >= 2)? _routes[_routes.length - 2] : _routes.first;
-  static void get routeBack             {_routes.removeLast(); _printRoutes;}
+  static List<NextRoute> _routes =          List<NextRoute>.empty(growable: true);
+  static NextRoute get currentRoute =>      _routes.last;
+  static NextRoute get previousRoute =>     (_routes.length >= 2)? _routes[_routes.length - 2] : _routes.first;
+  static void get routeBack                 {_routes.removeLast(); _printRoutes;}
   static set routeNext (NextRoute value){
     int check(int i)  {while(_routes.length > i){_routes.removeLast();} while(_routes.length <= i){_routes.add(NextRoute.default0);} return i; }
     switch (value) {
@@ -328,6 +328,21 @@ class Global{
     }
     return '';
   }
+
+  static String? getStringOrNullFromString(String value){
+    if(['NULL', 'Null', 'null'].contains(value)) return null;
+    return value;
+  }
+
+  static int getIntBoolFromString(String value) {switch(value){
+    case '':
+    case ' ':
+    case 'FALSE':
+    case 'False':
+    case 'false':
+    case '0':     return 0;
+    default:      return 1;
+  }}
 
   // ---------- < Methods [1] > -------- ---------- ---------- ----------
   static void get _printRoutes{

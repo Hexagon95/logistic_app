@@ -1,6 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages, avoid_print
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
+import 'dart:developer' as dev;
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/routes/incoming_deliverynote.dart';
 import 'package:logistic_app/routes/menu.dart';
@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.36';
+  static String thisVersion =                             '1.37c';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -79,6 +79,20 @@ class DataManager{
           http.Response response =        await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           actualVersion =                 jsonDecode(response.body)[0]['verzio_logistic_app'].toString();
           LogInMenuState.updateNeeded =   (thisVersion != actualVersion);
+          break;
+
+        case QuickCall.logIn:
+          var queryParameters = {
+            'customer':   customer,
+            'eszkoz_id':  identity.toString()
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =              Uri.parse('${urlPath}login.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(34)] =         await jsonDecode(response.body);
+          if(kDebugMode){
+            dev.log(dataQuickCall[34].toString());
+          }
           break;
 
         case QuickCall.tabletBelep:
@@ -250,6 +264,7 @@ class DataManager{
               ? ScanCheckStockState.rawData[0]['tetelek'][ScanCheckStockState.selectedIndex]['id']
               : ScanCheckStockState.storageId.toString()
             ,
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}give_datas.php');
@@ -274,7 +289,7 @@ class DataManager{
           dataQuickCall[check(9)] = await jsonDecode(response.body);
           if(kDebugMode){
             String varString = dataQuickCall[9].toString();
-            print(varString);
+            dev.log(varString);
           }
           quickCall = QuickCall.giveDatas;
           break;
@@ -384,8 +399,8 @@ class DataManager{
           Uri uriUrl =                Uri.parse('${urlPath}add_new_delivery_note_finish.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode){
-            developer.log(response.body);
-            developer.log(queryParameters.toString());
+            dev.log(response.body);
+            dev.log(queryParameters.toString());
             print(response.body);
           }
           break;
@@ -411,6 +426,9 @@ class DataManager{
           Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(17)] =  await jsonDecode(await jsonDecode(response.body)[0]['b'])['adatok'];
+          if(kDebugMode){
+            dev.log(dataQuickCall[17].toString());
+          }
           break;
 
         case QuickCall.addItemFinished:
@@ -597,7 +615,7 @@ class DataManager{
             }),
             'user_id':          userId
           };
-          if(kDebugMode)developer.log(queryParameters.toString());
+          if(kDebugMode)dev.log(queryParameters.toString());
           Uri uriUrl =              Uri.parse('${urlPath}upload_kiszedes_felvitele_tarhely.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(34)] =         await jsonDecode(response.body);          
@@ -641,6 +659,7 @@ class DataManager{
             print(varString);
           }
           break;
+
         case NextRoute.pickUpList:
           var queryParameters = {       
             'customer': customer
@@ -710,7 +729,7 @@ class DataManager{
             'customer':     customer,
             'dolgozo_kod':  data[0][1]['dolgozo_kod'].toString()
           };
-          if(kDebugMode) developer.log(queryParameters.toString());
+          if(kDebugMode) dev.log(queryParameters.toString());
           Uri uriUrl =              Uri.parse('${urlPath}list_delivery_notes.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(1)] =          await jsonDecode(response.body);
@@ -793,11 +812,11 @@ class DataManager{
             }),
             'user_id':  userId
           };
-          if(kDebugMode) developer.log(queryParameters.toString());
+          if(kDebugMode) dev.log(queryParameters.toString());
           Uri uriUrl =              Uri.parse('$urlPath${phpFileName()}');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(3)] =          await jsonDecode(response.body);          
-          if(kDebugMode) developer.log(data[3].toString());
+          if(kDebugMode) dev.log(data[3].toString());
           break;
 
         default:break;
@@ -820,6 +839,12 @@ class DataManager{
   Future get _decisionQuickCall async{
     try { 
       switch(quickCall){
+
+        case QuickCall.logIn:
+          if(dataQuickCall[34][0]['Ugyfel_id'] == null || dataQuickCall[34][0]['Ugyfel_id'].toString().isEmpty){
+            LogInMenuState.forgottenPasswordMessage = 'Az Eszköz nincs Ügyfélhez rendelve!';
+          }
+          break;
 
         case QuickCall.scanDestinationStorage:
           if(dataQuickCall[6][0]['success'] == 1){
@@ -875,26 +900,55 @@ class DataManager{
           int getIndexFromId({required String id}) {for(int i = 0; i < DataFormState.rawData.length; i++) {if(DataFormState.rawData[i]['id'] == id) return i;} throw Exception('No such id in rawData: $id');}
 
           for(dynamic item in DataFormState.rawData[input['index']]['update_items']) {
-            switch(item['callback']){
-
-              case 'refresh':
-                dynamic result = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
-                if(result.isNotEmpty){
-                  DataFormState.rawData[getIndexFromId(id: item['id'])]['value'] =  result[0]['megnevezes'];
-                  DataFormState.rawData[getIndexFromId(id: item['id'])]['kod'] =    result[0]['id'];
+            try{
+              List<String> sqlCommandLookupData = item['lookup_data'].toString().split(' ');
+              if(sqlCommandLookupData[0] == 'SET'){
+                try{
+                  String fieldName = sqlCommandLookupData[1].toString().substring(1);
+                  List<String> listOfStringInput = ['value', 'name', 'input_field', 'input_mask', 'keyboard_type', 'kod'];
+                  if(item['id'] != null){
+                    if(sqlCommandLookupData.length == 4){
+                      DataFormState.rawData[getIndexFromId(id: item['id'])][fieldName] = (listOfStringInput.contains(fieldName))? Global.getStringOrNullFromString(sqlCommandLookupData[3]) : Global.getIntBoolFromString(sqlCommandLookupData[3]);
+                      if(kDebugMode)print('');
+                    }
+                    if(sqlCommandLookupData.length > 4){
+                      dynamic varDynamic =  await _getLookupData(input: sqlCommandLookupData.sublist(3).join(' '), isPhp: (item['php'].toString() == '1'));
+                      dynamic varResult =   (listOfStringInput.contains(fieldName))? Global.getStringOrNullFromString(varDynamic[0][''].toString()) : Global.getIntBoolFromString(varDynamic[0][''].toString());
+                      int varIndex =        getIndexFromId(id: item['id']);
+                      DataFormState.rawData[varIndex][fieldName] = varResult;
+                      if(kDebugMode)print('');
+                    }
+                  }
+                  continue;
                 }
-                else{
-                  DataFormState.rawData[getIndexFromId(id: item['id'])]['value'] =  null;
-                  DataFormState.rawData[getIndexFromId(id: item['id'])]['kod'] =    null;
+                catch(e){
+                  if(kDebugMode)dev.log(e.toString());
                 }
-                break;
+              }
+              else {
+                switch(item['callback']){
 
-              default:
-                DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
-                DataFormState.rawData[getIndexFromId(id: item['id'])]['value'] =  null;
-                break;
+                  case 'refresh':
+                    dynamic result = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
+                    if(result.isNotEmpty){
+                      DataFormState.rawData[getIndexFromId(id: item['id'])]['value'] =  result[0]['megnevezes'];
+                      DataFormState.rawData[getIndexFromId(id: item['id'])]['kod'] =    result[0]['id'];
+                    }
+                    else{
+                      DataFormState.rawData[getIndexFromId(id: item['id'])]['value'] =  null;
+                      DataFormState.rawData[getIndexFromId(id: item['id'])]['kod'] =    null;
+                    }
+                    break;
+
+                  default:
+                    DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
+                    DataFormState.rawData[getIndexFromId(id: item['id'])]['value'] =  null;
+                    break;
+                }
+                if(DataFormState.rawData[input['index']]['value'].toString() == 'Igen') DataFormState.carId = '';
+              }
             }
-            if(DataFormState.rawData[input['index']]['value'].toString() == 'Igen') DataFormState.carId = '';
+            catch(e) {if(kDebugMode)print(e);}
           }
           for(MapEntry<String, dynamic> item in DataFormState.listOfLookupDatas.entries) {for(int i = 0; i < DataFormState.rawData.length; i++){
             try{
@@ -925,25 +979,52 @@ class DataManager{
 
           if(IncomingDeliveryNoteState.rawDataDataForm[input['index']]['update_items'] == null) return;
           for(dynamic item in IncomingDeliveryNoteState.rawDataDataForm[input['index']]['update_items']) {
-            switch(item['callback']){
-
-              case 'refresh':
-                dynamic result = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
-                if(result.isNotEmpty){
-                  IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['value'] =  result[0]['megnevezes'];
-                  IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['kod'] =    result[0]['id'];
+            try{
+              List<String> sqlCommandLookupData = item['lookup_data'].toString().split(' ');
+              if(sqlCommandLookupData[0] == 'SET'){
+                try{
+                  String fieldName = sqlCommandLookupData[1].toString().substring(1);
+                  List<String> listOfStringInput = ['value', 'name', 'input_field', 'input_mask', 'keyboard_type', 'kod'];
+                  if(item['id'] != null){
+                    if(sqlCommandLookupData.length == 4){
+                      IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])][fieldName] = (listOfStringInput.contains(fieldName))? Global.getStringOrNullFromString(sqlCommandLookupData[3]) : Global.getIntBoolFromString(sqlCommandLookupData[3]);
+                      if(kDebugMode)print('');
+                    }
+                    if(sqlCommandLookupData.length > 4){
+                      dynamic varDynamic =  await _getLookupDataDeliveryNote(input: sqlCommandLookupData.sublist(3).join(' '), isPhp: (item['php'].toString() == '1'));
+                      dynamic varResult =   (listOfStringInput.contains(fieldName))? Global.getStringOrNullFromString(varDynamic[0][''].toString()) : Global.getIntBoolFromString(varDynamic[0][''].toString());
+                      int varIndex =        getIndexFromId(id: item['id']);
+                      IncomingDeliveryNoteState.rawDataDataForm[varIndex][fieldName] = varResult;
+                      if(kDebugMode)print('');
+                    }
+                  }
+                  continue;
                 }
-                else{
+                catch(e){
+                  if(kDebugMode)dev.log(e.toString());
+                }
+              }
+              else {switch(item['callback']){
+
+                case 'refresh':
+                  dynamic result = await _getLookupDataDeliveryNote(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'),);
+                  if(result.isNotEmpty){
+                    IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['value'] =  result[0]['megnevezes'];
+                    IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['kod'] =    result[0]['id'];
+                  }
+                  else{
+                    IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['value'] =  null;
+                    IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['kod'] =    null;
+                  }
+                  break;
+
+                default:
+                  IncomingDeliveryNoteState.listOfLookupDatas[item['id']] = await _getLookupDataDeliveryNote(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
                   IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['value'] =  null;
-                  IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['kod'] =    null;
-                }
-                break;
-
-              default:
-                IncomingDeliveryNoteState.listOfLookupDatas[item['id']] = await _getLookupDataDeliveryNote(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
-                IncomingDeliveryNoteState.rawDataDataForm[getIndexFromId(id: item['id'])]['value'] =  null;
-                break;
+                  break;
+              }}
             }
+            catch(e) {print(e);}
           }
           for(MapEntry<String, dynamic> item in IncomingDeliveryNoteState.listOfLookupDatas.entries) {for(int i = 0; i < IncomingDeliveryNoteState.rawDataDataForm.length; i++){
             try{
@@ -1155,45 +1236,52 @@ class DataManager{
         : ScanCheckStockState.storageId.toString()
       ,
     );
-    for(var item in DataFormState.rawData){
-      String pattern =  '[${item['id'].toString()}]';
-      sqlCommand =      sqlCommand.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
-      pattern =         '[jellemzo_${item['jellemzo_id'].toString()}]';
-      sqlCommand =      sqlCommand.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
+    try {
+      for(var item in DataFormState.rawData){
+        String pattern =  '[${item['id'].toString()}]';
+        sqlCommand =      sqlCommand.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
+        pattern =         '[jellemzo_${item['jellemzo_id'].toString()}]';
+        sqlCommand =      sqlCommand.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
+      }
+      if(isPhp){
+        Uri uriUrl =              Uri.parse(Uri.encodeFull('$sqlUrlLink$sqlCommand').replaceAll('+', '%2b'));
+        if(kDebugMode)print(uriUrl.toString());
+        http.Response response =  await http.post(uriUrl);
+        dynamic result =          await jsonDecode(response.body);
+        if(kDebugMode)print(result);
+        return result;
+      }
+      else{
+        if(sqlCommand.isEmpty) return [];
+        var queryParameters = {
+          'customer': customer,
+          'sql':      sqlCommand
+        };
+        if(kDebugMode)print(sqlCommand);
+        Uri uriUrl =              Uri.parse('${urlPath}select_sql.php');          
+        http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+        if(kDebugMode)print(response.body);
+        dynamic result =          await jsonDecode(response.body)[0]['result'];
+        if(kDebugMode)print(result);
+        return result;
+      }
     }
-        
-    try {if(isPhp){
-      Uri uriUrl =              Uri.parse(Uri.encodeFull('$sqlUrlLink$sqlCommand').replaceAll('+', '%2b'));
-      if(kDebugMode)print(uriUrl.toString());
-      http.Response response =  await http.post(uriUrl);
-      dynamic result =          await jsonDecode(response.body);
-      if(kDebugMode)print(result);
-      return result;
+    catch(e){
+      if(kDebugMode) dev.log(e.toString());
+      return List.empty();
     }
-    else{
-      if(sqlCommand.isEmpty) return [];
-      var queryParameters = {
-        'customer': customer,
-        'sql':      sqlCommand
-      };
-      if(kDebugMode)print(sqlCommand);
-      Uri uriUrl =              Uri.parse('${urlPath}select_sql.php');          
-      http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-      if(kDebugMode)print(response.body);
-      dynamic result =          await jsonDecode(response.body)[0]['result'];
-      if(kDebugMode)print(result);
-      return result;
-    }}
-    catch(e) {print(e); return [];}
   }
 
   Future<dynamic> _getLookupDataDeliveryNote({required String input, required bool isPhp}) async{
     input = input.replaceAll("[id]", '0');
     for(var item in IncomingDeliveryNoteState.rawDataDataForm ){
-      String pattern =  '[${item['id'].toString()}]';
-      input =           input.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
-      pattern =         '[jellemzo_${item['jellemzo_id'].toString()}]';
-      input =           input.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
+     try{
+       String pattern =  '[${item['id'].toString()}]';
+        input =           input.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
+        pattern =         '[jellemzo_${item['jellemzo_id'].toString()}]';
+        input =           input.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
+     }
+     catch(e) {print(e);}
     }
         
     try {if(isPhp){
@@ -1266,14 +1354,14 @@ class Identity{
 
   String generateRandomString({int length = 32}){
     final random =    Random();
-    const charList =  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';    
+    const charList =  'abcdefghijkmnopqrstuvwxyzABCDEFGHJKMNOPQRSTUVWXYZ0123456789';    
 
-    if(kDebugMode) {return 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3';}
-    else{
+    //if(kDebugMode) {return 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3';}
+    //else{
       return List.generate(length,
         (index) => charList[random.nextInt(charList.length)]
       ).join();
-    }
+    //}
   }
   
   @override

@@ -1,2 +1,2 @@
-UPDATE [mercarius].[dbo].[Tablet] SET [raktar_id] = 711641 WHERE [id] = 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3';
-UPDATE [mercarius_test].[dbo].[Tablet] SET [raktar_id] = 711641 WHERE [id] = 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3';
+EXECUTE [mercarius].[local].[Eszkoz_Raktar_Hozzarendeles] 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3', 711641
+EXECUTE [mercarius_test].[local].[Eszkoz_Raktar_Hozzarendeles] 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3', 711641
