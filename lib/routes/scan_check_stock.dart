@@ -583,7 +583,13 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   }  
 
   String get _getQRCodeScanTitle {switch(taskState){
-    case TaskState.scanStorage:             return 'Azonosítás';
+
+    case TaskState.scanStorage: switch(stockState){
+      case StockState.checkStock: return 'Készlet ellenőrzése';
+      case StockState.stockIn:    return 'Tárhely Azonosítása';
+      default:                    return 'Azonosítás';
+    }
+
     case TaskState.scanDestinationStorage:  return 'Cél Tárolóhely Azonosítása';
     default:                                return 'Termékek Azonosítása';
   }}

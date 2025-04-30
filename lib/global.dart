@@ -193,6 +193,7 @@ class Global{
     // --------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
     String userName =                     (userNameInput != null)? userNameInput : '';
     String userPassword =                 '';
+    bool isTextObscure =                  true;
     ButtonState buttonForgottenPassword = ButtonState.default0;
     BoxDecoration customBoxDecoration =       BoxDecoration(            
       border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
@@ -220,13 +221,21 @@ class Global{
         style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
       )),
       const SizedBox(height: 4),
-      Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
+      Container(height: 65, decoration: customBoxDecoration, child: TextFormField(
         onChanged:    (value) => userPassword = value,
-        obscureText:  true,
-        decoration:   const InputDecoration(
-          contentPadding: EdgeInsets.all(10),
+        obscureText:  isTextObscure,
+        decoration:   InputDecoration(
+          contentPadding: const EdgeInsets.all(10),
           labelText:      'Jelszó',
           border:         InputBorder.none,
+          suffix:         TextButton(
+            onPressed:  () => setState(() => isTextObscure = !isTextObscure),
+            child:      Icon(
+              Icons.remove_red_eye,
+              size:   26,
+              color:  (isTextObscure)? Global.getColorOfButton(ButtonState.default0) : Global.getColorOfButton(ButtonState.disabled),
+            )
+          )
         ),
         style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
       )),

@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.37c';
+  static String thisVersion =                             '1.38c';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -297,7 +297,8 @@ class DataManager{
         case QuickCall.finishGiveDatas:
           var queryParameters = {
             'customer':   customer,
-            'parameter':  jsonEncode([DataFormState.rawData, DataFormState.rawData2])
+            'parameter':  jsonEncode([DataFormState.rawData, DataFormState.rawData2]),
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('$urlPath${(ScanCheckStockState.storageId == newEntryId)? 'finish_new_entry.php' :'finish_give_datas.php'}');
@@ -765,7 +766,7 @@ class DataManager{
           if(kDebugMode)print(data[2]);
           break;
 
-        case NextRoute.pickUpDataFinish:          
+        case NextRoute.pickUpDataFinish:
           var queryParameters = {
             'customer':         customer,
             'kiszedesi_lista':  json.encode(_kiszedesiLista),
@@ -1356,12 +1357,12 @@ class Identity{
     final random =    Random();
     const charList =  'abcdefghijkmnopqrstuvwxyzABCDEFGHJKMNOPQRSTUVWXYZ0123456789';    
 
-    //if(kDebugMode) {return 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3';}
-    //else{
+    if(kDebugMode) {return 'b3bxs9or8CVlpdBlDGSflNwqWdz9tfz3';}
+    else{
       return List.generate(length,
         (index) => charList[random.nextInt(charList.length)]
       ).join();
-    //}
+    }
   }
   
   @override

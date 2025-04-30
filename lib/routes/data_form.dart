@@ -283,7 +283,7 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
 
       case 'select':
         bool isInLookupData(String input, List<dynamic>? list) {if(list != null)for(var item in list) {if(item['id'].toString() == input) return true;} return false;}
-
+        
         List<DropdownMenuItem<String>> items =  List<DropdownMenuItem<String>>.empty(growable: true);
         List<dynamic>? lookupData =             listOfLookupDatas[input['id']];
         if(lookupData != null) for(var item in lookupData) {items.add(DropdownMenuItem(value: item['id'].toString(), child: Text(item['megnevezes'], textAlign: TextAlign.start)));}
