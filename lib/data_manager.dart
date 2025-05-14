@@ -708,6 +708,7 @@ class DataManager{
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}incoming_delivery_note.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dev.log(response.body);
           data[check(1)] =          await jsonDecode(response.body);
           if(kDebugMode)print(data[1]);
           break;

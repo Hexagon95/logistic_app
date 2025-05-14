@@ -10,10 +10,10 @@ include 'tasks/task_upload_pdf.php';
 
 $ROOT = __DIR__;
 $ROOT_ARRAY = explode(DIRECTORY_SEPARATOR,__DIR__);
-$ROOT = array_slice($ROOT_ARRAY, 0, (sizeof($ROOT_ARRAY)-2) );
+$ROOT = array_slice($ROOT_ARRAY, 0, (sizeof($ROOT_ARRAY)-3) );
 $ROOT_DIRECTORY = implode(DIRECTORY_SEPARATOR, $ROOT);
 
-$ROOT = $ROOT_DIRECTORY."/logs/upload.pdf.log";
+$ROOT = $ROOT_DIRECTORY."/app/logs/upload.pdf.log";
 $return_array = array();
 
 $json = file_get_contents('php://input');

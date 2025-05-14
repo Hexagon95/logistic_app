@@ -41,7 +41,7 @@ class Task{
     }
 	
 	function _SaveFile(){
-		file_put_contents( $this->RootDirectory.$this->DirectorySeparator.$this->konyvtar.$this->DirectorySeparator.$this->megnevezes, base64_decode($this->pdf) );
+		file_put_contents( $this->RootDirectory.$this->DirectorySeparator."appdoc".$this->DirectorySeparator.$this->konyvtar.$this->DirectorySeparator.$this->megnevezes, base64_decode($this->pdf) );
 	}
 	
     function _executeBizonylatDokumentumFelvitele(){

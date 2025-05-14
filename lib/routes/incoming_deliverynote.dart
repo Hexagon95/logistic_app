@@ -806,7 +806,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
     case InDelNoteState.addNew:
       return (
-        (rawDataDataForm[2]['value'] != null && rawDataDataForm[2]['value'].isNotEmpty)
+        (rawDataDataForm[2] != null && rawDataDataForm[2]['value'] != null && rawDataDataForm[2]['value'].isNotEmpty)
         && ((
           rawDataDataForm[0]['value'] != null && rawDataDataForm[0]['value'].isNotEmpty)
           || (rawDataDataForm[1]['value'] != null && rawDataDataForm[1]['value'].isNotEmpty
