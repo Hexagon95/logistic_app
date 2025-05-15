@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.38c';
+  static String thisVersion =                             '1.38d';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -533,7 +533,8 @@ class DataManager{
         case QuickCall.finishSelectEditItemDeliveryNote:
           var queryParameters = {
             'customer':   customer,
-            'parameter':  jsonEncode([IncomingDeliveryNoteState.rawDataDataForm, IncomingDeliveryNoteState.rawDataSelectList])
+            'parameter':  jsonEncode([IncomingDeliveryNoteState.rawDataDataForm, IncomingDeliveryNoteState.rawDataSelectList]),
+            'user_id':    userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =                Uri.parse('${urlPath}finish_give_datas.php');
