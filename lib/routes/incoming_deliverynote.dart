@@ -605,7 +605,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
         List<DropdownMenuItem<String>> items =  List<DropdownMenuItem<String>>.empty(growable: true);
         List<dynamic>? lookupData =             listOfLookupDatas[input['id']];
-        if(lookupData != null) for(var item in lookupData) {items.add(DropdownMenuItem(value: item['id'].toString(), child: Text(item['megnevezes'], textAlign: TextAlign.start)));}
+        if(lookupData != null) for(var item in lookupData) {items.add(DropdownMenuItem(value: item['id'].toString(), child: Text(item['megnevezes'] ?? item['id'], textAlign: TextAlign.start)));}
         String? selectedItem =    (isInLookupData(rawDataDataForm[index]['value'].toString(), lookupData))? rawDataDataForm[index]['value'].toString() : null;
         return (lookupData != null && lookupData.isNotEmpty && editable)
         ? Stack(children: [
