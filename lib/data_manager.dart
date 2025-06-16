@@ -397,7 +397,7 @@ class DataManager{
             'parameter':  json.encode(IncomingDeliveryNoteState.rawDataDataForm),
             'user_id':    userId,
           };
-          Uri uriUrl =                Uri.parse('${urlPath}add_new_delivery_note_finish.php');          
+          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_new_delivery_note_finish.php' : 'add_new_local_maintenance_finish.php'}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode){
             dev.log(response.body);

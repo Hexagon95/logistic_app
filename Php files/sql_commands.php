@@ -30,6 +30,7 @@ class SqlCommand{
     public function select_tabletBevetelezesTetelek()               {return "SELECT * FROM [dbo].[Tablet_Bevetelezes_tetelek] (:bizonylat_id, :user_id)";}
     public function select_kiszedesTetelek()                        {return "SELECT * FROM [dbo].[Tablet_Kiszedes_tetelek] (:bizonylat_id)";}
     public function select_tabletLeltarVan()                        {return "SELECT * FROM [dbo].[Tablet_LeltarVan] ()";}
+    public function select_tabletHelysziniszerelesUj()            {return "SELECT * FROM [dbo].[Tablet_Helysziniszereles_uj] (:raktar_id, :user_id)";}
     public function select_tabletBejovoszallitolevelUj()            {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel_uj] (:raktar_id, :user_id)";}
     public function select_tabletCikkInfo()                         {return "SELECT * FROM [dbo].[Tablet_Cikk_info] (:id, :raktar_id)";}
     public function select_abroncs_reszletezo()                     {return "SELECT * FROM [local].[Abroncs_reszletezo] (:id, :user_id)";}
@@ -59,6 +60,7 @@ class SqlCommand{
     public function exec_barcodePrintFelvitele()                    {return "EXEC [local].[Barcode_print_Felvitele] :tarhely";}
     public function exec_barcodePrintBizonylatCikkek()              {return "EXEC [local].[Barcode_print_bizonylat_cikkek] :bizonylat_id, :raktar_id, '[]'";}
 	public function exec_tabletBetarolasFelvitele()                 {return "EXEC [dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, :kimenet";}
+    public function exec_tabletHelysziniszerelesUjFelvitele()       {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjFelvitele()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelFelvitele(){return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :output";}
     public function exec_tabletBejovoSzallitolevelTetelTorles()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_tetel_torles] :bizonylat_id, :tetel_id, :output";}
