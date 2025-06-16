@@ -23,6 +23,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   static List<dynamic> rawDataDataForm =                  List<dynamic>.empty(growable: true);
   static List<dynamic> rawDataSelectList =                List<dynamic>.empty(growable: true);
   static InDelNoteState taskState =                       InDelNoteState.default0;
+  static Work work =                                      Work.incomingDeliveryNote;
   static String plateNumberTest =                         '';
   static int? getSelectedIndexDeliveryNote;
   static int? getSelectedIndexItem;
@@ -100,7 +101,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
             case InDelNoteState.listSelectAddItemDeliveryNote:  return  'Abroncsok kiválasztása';
             case InDelNoteState.addItem:                        return  'Új cikk';
             case InDelNoteState.editItem:                       return  'Cikk módosítása';
-            default:                                            return  'Bejövő szállítólevelek';
+            default:                                            return  (work == Work.incomingDeliveryNote)? 'Bejövő szállítólevelek' : 'Helyszíni szerelések';
           }}()))),
           backgroundColor:  Global.getColorOfButton(ButtonState.default0),
           foregroundColor:  Global.getColorOfIcon(ButtonState.default0),

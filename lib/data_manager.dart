@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.38d';
+  static String thisVersion =                             '1.39';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -386,7 +386,7 @@ class DataManager{
             'raktar_id':  raktarId,
             'user_id':    userId
           };
-          Uri uriUrl =                Uri.parse('${urlPath}add_new_delivery_note.php');          
+          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_new_delivery_note.php' : 'add_new_local_maintenance.php'}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(15)] =  await jsonDecode(response.body);
           break;
@@ -658,7 +658,7 @@ class DataManager{
           data[check(input['number'])] =  await jsonDecode(response.body);
           if(kDebugMode){
             String varString = data[input['number']].toString();
-            print(varString);
+            dev.log(varString);
           }
           break;
 
@@ -702,12 +702,12 @@ class DataManager{
 
         case NextRoute.incomingDeliveryNote:
           var queryParameters = {
-            'customer':   customer,
-            'raktar_id':  raktarId,
-            'user_id':    userId
+            'customer':     customer,
+            'raktar_id':    raktarId,
+            'user_id':      userId 
           };
           if(kDebugMode)print(queryParameters);
-          Uri uriUrl =              Uri.parse('${urlPath}incoming_delivery_note.php');
+          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'incoming_delivery_note.php' : 'local_maintenance.php'}');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dev.log(response.body);
           data[check(1)] =          await jsonDecode(response.body);
@@ -1151,7 +1151,7 @@ class DataManager{
             case 0:
               customer = data[0][1]['Ugyfel_id'].toString();
               if(data[0][1]['scanner'] != null) Global.isScannerDevice = (data[0][1]['scanner'].toString() == '1');
-              MenuState.menuList = jsonDecode(data[0][1]['menu']);
+              MenuState.menuList = jsonDecode(((data[0][1]['menu'] ?? '').isNotEmpty)? data[0][1]['menu'] : '[]');
               if(data[0][1]['szin'] != null){
                 List<int> inputColor = data[0][1]['szin'].toString().split(',').map(int.parse).toList();
                 Global.customColor[ButtonState.default0] = Color.fromRGBO(inputColor[0], inputColor[1], inputColor[2], 1.0);
@@ -1163,6 +1163,7 @@ class DataManager{
             case 4:
               raktarMegnevezes =  data[4][1]['raktar_megnevezes'].toString();
               raktarId =          data[4][1]['raktar_id'].toString();
+              if((data[4][1]['menu'] ?? '').isNotEmpty) MenuState.menuList = jsonDecode(data[4][1]['menu']);
               break;
 
             default:break;
@@ -1368,5 +1369,6 @@ class Identity{
   }
   
   @override
+  //String toString() => 'uka1deYipM25N8tmgBVMJHEqHQN3PZBw';
   String toString() => identity;
 }

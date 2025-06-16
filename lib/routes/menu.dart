@@ -26,6 +26,7 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   ButtonState buttonPickUpList =            ButtonState.default0;
   ButtonState buttonDeliveryOut =           ButtonState.default0;
   ButtonState buttonIncomingDeliveryNote =  ButtonState.default0;
+  ButtonState buttonLocalMaintenance =      ButtonState.default0;
   ButtonState buttonListOrdersOut =         ButtonState.default0;
   ButtonState buttonListOrders =            ButtonState.default0;
   ButtonState buttonDeliveryNote =          ButtonState.default0;
@@ -114,7 +115,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
         filter(1, _drawButtonPickUpList),
         filter(2, _drawButtonListOrders),
         filter(8, _drawDeliveryOut),
-        filter(9, _drawButtonIncomingDeliveryNote),
+        filter(9,   _drawButtonIncomingDeliveryNote(9)),
+        filter(10,  _drawButtonIncomingDeliveryNote(10)),
         const SizedBox(height: 20),
         filter(3, _drawButtonDeliveryNote),
         filter(4, _drawButtonCheckStock),
@@ -212,23 +214,26 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     ))
   );
 
-  Widget get _drawButtonIncomingDeliveryNote => Padding(
-    padding:  const EdgeInsets.symmetric(vertical: 10),
-    child:    SizedBox(height: 40, width: _width, child: TextButton(          
-      style:      ButtonStyle(
-        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonIncomingDeliveryNote))),
-        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonIncomingDeliveryNote))
-      ),
-      onPressed:  (buttonIncomingDeliveryNote == ButtonState.default0)? () => _buttonIncomingDeliveryNotePressed : null,          
-      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Visibility(
-          visible:  (buttonIncomingDeliveryNote == ButtonState.loading)? true : false,
-          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonIncomingDeliveryNote))))
+  Widget _drawButtonIncomingDeliveryNote(int menuNumber){
+    ButtonState getButton() => (menuNumber == 9)? buttonLocalMaintenance : buttonIncomingDeliveryNote;
+    return Padding(
+      padding:  const EdgeInsets.symmetric(vertical: 10),
+      child:    SizedBox(height: 40, width: _width, child: TextButton(          
+        style:      ButtonStyle(
+          side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(getButton()))),
+          backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(getButton()))
         ),
-        Text((buttonIncomingDeliveryNote == ButtonState.loading)? 'Betöltés...' : menuList[8]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonIncomingDeliveryNote)))
-      ])
-    ))
-  );
+        onPressed:  (getButton() == ButtonState.default0)? () => _buttonIncomingDeliveryNotePressed(menuNumber) : null,
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Visibility(
+            visible:  (getButton() == ButtonState.loading)? true : false,
+            child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(getButton()))))
+          ),
+          Text((getButton() == ButtonState.loading)? 'Betöltés...' : menuList[menuNumber - 1]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(getButton())))
+        ])
+      ))
+    );
+  }
 
   Widget get _drawButtonListOrdersOut => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
@@ -395,12 +400,17 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     setState((){});
   }
 
-  Future get _buttonIncomingDeliveryNotePressed async{
-    setState(() => buttonIncomingDeliveryNote = ButtonState.loading);
+  Future _buttonIncomingDeliveryNotePressed(int menuNumber) async{
+    switch(menuNumber){
+      case 9:   setState(() => buttonLocalMaintenance = ButtonState.loading);     break;
+      default:  setState(() => buttonIncomingDeliveryNote = ButtonState.loading); break;
+    }
+    IncomingDeliveryNoteState.work =      (menuNumber == 9)? Work.localMaintenance : Work.incomingDeliveryNote;
     await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
     if(LogInMenuState.updateNeeded) Restart.restartApp();
     Global.routeNext =                    NextRoute.incomingDeliveryNote;
     await DataManager().beginProcess;
+    buttonLocalMaintenance =              ButtonState.default0;
     buttonIncomingDeliveryNote =          ButtonState.default0;
     IncomingDeliveryNoteState.taskState = InDelNoteState.default0;
     await Navigator.pushNamed(context, '/incomingDeliveryNote');

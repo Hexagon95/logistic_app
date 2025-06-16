@@ -12,6 +12,7 @@ class SqlCommand{
     public function select_tabletBevetelezesek()                    {return "SELECT * FROM [dbo].[Tablet_Bevetelezesek] ()";}
     public function select_tabletBevetelezesek1()                   {return "SELECT * FROM [dbo].[Tablet_Bevetelezesek] (:raktar_id, :user_id)";}
     public function select_tabletKiszallitasok()                    {return "SELECT * FROM [dbo].[Tablet_Kiszallitasok] (:raktar_id, :user_id)";}
+    public function select_tabletHelysziniszereles()                {return "SELECT * FROM [dbo].[Tablet_Helysziniszereles] (:raktar_id, :user_id)";}
     public function select_tabletBejovoszallitolevel()              {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel] (:raktar_id, :user_id)";}
     public function select_rendelesek()                             {return "SELECT * FROM [dbo].[Tablet_Rendelesek] ()";}
     public function select_rendelesek1()                            {return "SELECT * FROM [dbo].[Tablet_Rendelesek] (:raktar_id, :user_id)";}
