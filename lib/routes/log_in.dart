@@ -94,7 +94,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
 
   // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawVerzio => Column(children: [
-    //Text('v1.29 (TEST)', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
+    //Text('v1.40 (TEST)', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
     Text('v${DataManager.thisVersion}', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
   ]);
 
