@@ -365,14 +365,15 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
     case InDelNoteState.listItems:
       String? varString = await Global.plateNuberDialog(context, title: 'Adja meg a Rendszámot.', content: 'Rendszám');
-      if(varString != null){
+      if(work == Work.incomingDeliveryNote || varString != null){
+        varString ??= '';
         setState(() => buttonAdd = ButtonState.loading);
         plateNumberTest = '';
         await DataManager(quickCall: QuickCall.plateNumberCheck, input: {'rendszam': varString}).beginQuickCall;
         switch(plateNumberTest){
 
           case 'NOK':
-            await DataManager(quickCall: QuickCall.addDeliveryNoteItem).beginQuickCall;
+            await DataManager(quickCall: QuickCall.addDeliveryNoteItem, input: {'rendszam': varString}).beginQuickCall;
             setState((){
               buttonAdd =       ButtonState.default0;
               buttonContinue =  ButtonState.disabled;

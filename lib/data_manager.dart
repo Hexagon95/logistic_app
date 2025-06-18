@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.40';
+  static String thisVersion =                             '1.41';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -412,7 +412,7 @@ class DataManager{
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
             'user_id':      userId
           };
-          Uri uriUrl =                Uri.parse('${urlPath}ask_delivery_notes_scan.php');          
+          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'ask_delivery_notes_scan.php' : 'ask_local_maintenance_scan.php'}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dynamic varDynamic = await jsonDecode(response.body)[0]['tetelek'];
           dataQuickCall[check(16)] =  (varDynamic == null)? [] : await jsonDecode(varDynamic);
@@ -422,9 +422,10 @@ class DataManager{
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
+            'rendszam':     input['rendszam'],
             'user_id':      userId
           };
-          Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item.php');          
+          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_delivery_note_item.php' : 'add_local_maintenance_item.php'}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(17)] =  await jsonDecode(await jsonDecode(response.body)[0]['b'])['adatok'];
           if(kDebugMode){
@@ -450,7 +451,7 @@ class DataManager{
             'rendszam':     input['rendszam'],
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
           };
-          Uri uriUrl =                Uri.parse('${urlPath}plate_number_check.php');          
+          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'plate_number_check.php' : 'plate_number_check_local_maintenance.php'}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
           dataQuickCall[check(19)] =  [{'result': response.body.replaceAll(RegExp(r'[^\w\s]+'), '')}];
@@ -490,7 +491,7 @@ class DataManager{
             'parameter':    jsonEncode([IncomingDeliveryNoteState.rawDataDataForm, IncomingDeliveryNoteState.rawDataSelectList])
           };
           if(kDebugMode)print(queryParameters);
-          Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item_finished.php');
+          Uri uriUrl =                Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_delivery_note_item_finished.php' : 'add_local_maintenance_item_finished.php'}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(22)] =  await jsonDecode(response.body);
           if(kDebugMode){
@@ -553,7 +554,7 @@ class DataManager{
             'tetel_id':     input['tetel_id']
           };
           if(kDebugMode)print(queryParameters);
-          Uri uriUrl =                Uri.parse('${urlPath}remove_delivery_note_item.php');
+          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'remove_delivery_note_item.php' : 'remove_local_maintenance_item.php'}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(26)] =  await jsonDecode(response.body);
           if(kDebugMode){

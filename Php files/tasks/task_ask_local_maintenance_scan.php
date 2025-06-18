@@ -18,10 +18,9 @@ class Task{
         $this->request =            json_decode(file_get_contents('php://input'), true);
         $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
-            $this->sqlCommand->select_Tablet_Bejovoszallitolevel_tetelek_uj(),
+            $this->sqlCommand->select_tabletHelysziniszerelesTetelek(),
             [
                 'bizonylat_id' =>   $this->request['bizonylat_id'],
-                'rendszam' =>       ($this->request['rendszam'] === null)? '' : $this->request['rendszam'],
                 'user_id' =>        $this->request['user_id']
             ],
             $this->request['customer']
