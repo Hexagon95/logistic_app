@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.41';
+  static String thisVersion =                             '1.41a';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -1042,7 +1042,9 @@ class DataManager{
                     IncomingDeliveryNoteState.listOfLookupDatas[item.key] = List<dynamic>.empty();
                   }
                   else {for(var item in item.value){
-                    if(item['selected'] != null && item['selected'].toString() == '1') {IncomingDeliveryNoteState.rawDataDataForm[i]['value'] = item['id']; break;}
+                    if(item['selected'] != null && item['selected'].toString() == '1'){
+                      IncomingDeliveryNoteState.rawDataDataForm[i]['value'] = item['id']; break;
+                    }
                   }}
                   break;
                 }
@@ -1282,9 +1284,12 @@ class DataManager{
     for(var item in IncomingDeliveryNoteState.rawDataDataForm ){
      try{
        String pattern =  '[${item['id'].toString()}]';
-        input =           input.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
+       if(pattern == '[id_11]'){
+        if(kDebugMode) print('STOP');
+       }
+        input =           input.replaceAll(pattern, '\'${(item['kod'] == null || (item['kod'].toString() == '0' && int.tryParse(item['value'].toString()) != null))? item['value'].toString() : item['kod'].toString()}\'');
         pattern =         '[jellemzo_${item['jellemzo_id'].toString()}]';
-        input =           input.replaceAll(pattern, '\'${(item['kod'] == null)? item['value'].toString() : item['kod'].toString()}\'');
+        input =           input.replaceAll(pattern, '\'${(item['kod'] == null || (item['kod'].toString() == '0' && int.tryParse(item['value'].toString()) != null))? item['value'].toString() : item['kod'].toString()}\'');
      }
      catch(e) {print(e);}
     }
