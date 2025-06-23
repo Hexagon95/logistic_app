@@ -23,7 +23,7 @@ enum QuickCall{                 askBarcode,                 deleteItem,         
   addNewDeliveryNote,           addNewDeliveryNoteFinished, askDeliveryNotesScan,             addDeliveryNoteItem,                      chainGiveDatasDeliveryNote,
   addItemFinished,              plateNumberCheck,           printBarcodeDeliveryNote,         selectAddItemDeliveryNote,                finishSelectAddItemDeliveryNote,
   editSelectedItemDeliveryNote, askEditItemDeliveryNote,    finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword,
-  removeDeliveryNoteItem,       logInNamePassword,          changePassword, kiszedesFelviteleTarhely, logIn
+  removeDeliveryNoteItem,       logInNamePassword,          changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem
 }
 enum InDelNoteState{            addItem,                    listItems,                        addNew,                                   listSelectEditItemDeliveryNote,
   default0,                     editItem,                   listSelectAddItemDeliveryNote,

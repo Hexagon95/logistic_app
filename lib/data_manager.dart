@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.41a';
+  static String thisVersion =                             '1.42';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -438,6 +438,7 @@ class DataManager{
             'customer':     customer,
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
             'parameter':    jsonEncode(IncomingDeliveryNoteState.rawDataDataForm),
+            'user_id':      userId
           };
           Uri uriUrl =                Uri.parse('${urlPath}add_delivery_note_item_finished.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -488,7 +489,8 @@ class DataManager{
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
-            'parameter':    jsonEncode([IncomingDeliveryNoteState.rawDataDataForm, IncomingDeliveryNoteState.rawDataSelectList])
+            'parameter':    jsonEncode([IncomingDeliveryNoteState.rawDataDataForm, IncomingDeliveryNoteState.rawDataSelectList]),
+            'user_id':      userId
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =                Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_delivery_note_item_finished.php' : 'add_local_maintenance_item_finished.php'}');
@@ -625,7 +627,18 @@ class DataManager{
           if(kDebugMode)print(data[34]);
           break;
 
-        default:break; //dataQuickCall[30] is reserved!
+        case QuickCall.saveDeliveryNoteItem:
+          var queryParameters = {
+            'customer':     customer,
+            'bizonylat_id': input['bizonylat_id'],
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}save_deliverynote_item.php');          
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(response.body);
+          dataQuickCall[check(35)] =  jsonDecode(response.body);
+          break;
+
+        default:break;
       }
     }
     on SocketException{

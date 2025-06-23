@@ -64,12 +64,13 @@ class SqlCommand{
 	public function exec_tabletBetarolasFelvitele()                     {return "EXEC [dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, :kimenet";}
     public function exec_tabletHelysziniszerelesUjFelvitele()           {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjFelvitele()         {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :user_id, :output";}
-    public function exec_tabletHelysziniszerelesUjTetelFelvitele()      {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_tetel_Felvitele] :bizonylat_id, :parameter, :output";}
-    public function exec_tabletBejovoszallitolevelUjTetelFelvitele()    {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :output";}
+    public function exec_tabletHelysziniszerelesUjTetelFelvitele()      {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_tetel_Felvitele] :bizonylat_id, :parameter, :user_id, :output";}
+    public function exec_tabletBejovoszallitolevelUjTetelFelvitele()    {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :user_id, :output";}
     public function exec_tabletHelysziniszerelesTetelTorles()           {return "EXEC [dbo].[Tablet_Helysziniszereles_tetel_torles] :bizonylat_id, :tetel_id, :output";}
     public function exec_tabletBejovoSzallitolevelTetelTorles()         {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_tetel_torles] :bizonylat_id, :tetel_id, :output";}
     public function exec_tabletHelysziniszerelesUjTetelRendszam()       {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_tetel_Rendszam] :rendszam, :bizonylat_id, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelRendszam()     {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Rendszam] :rendszam, :bizonylat_id, :output";}
     public function exec_felhasznaloProfilModositas()                   {return "EXEC [dbo].[FelhasznaloProfilModositas] :parameter, :output";}
     public function exec_tabletBelep()                                  {return "EXEC [mosaic].[dbo].[TabletBelep] :eszkoz_id, :verzio";}
+    public function exec_tabletBejovoszallitolevelLezaras()             {return 'EXEC [dbo].[Tablet_Bejovoszallitolevel_lezaras] :bizonylat_id, :output';}
 }

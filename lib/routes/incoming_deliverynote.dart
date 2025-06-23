@@ -34,6 +34,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   ButtonState buttonRemove =    ButtonState.disabled;
   ButtonState buttonContinue =  ButtonState.disabled;
   ButtonState buttonPrint =     ButtonState.disabled;
+  ButtonState buttonSave =      ButtonState.disabled;
   int? _selectedIndexDeliveryNote;
   int? _selectedIndexItem;
   
@@ -41,12 +42,14 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     if(value == null){
       buttonContinue =                ButtonState.disabled;
       buttonPrint =                   ButtonState.disabled;
+      buttonSave =                    ButtonState.disabled;
       _selectedIndexDeliveryNote =    value;
       getSelectedIndexDeliveryNote =  _selectedIndexDeliveryNote;
     }
     else if(rawDataListDeliveryNotes[value]['kesz'].toString() != '1'){
       buttonContinue =                ButtonState.default0;
       buttonPrint =                   ButtonState.default0;
+      buttonSave =                    ButtonState.default0;
       _selectedIndexDeliveryNote =    value;
       getSelectedIndexDeliveryNote =  _selectedIndexDeliveryNote;
     }
@@ -57,6 +60,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     if(value == null){
       buttonContinue =        ButtonState.disabled;
       buttonPrint =           ButtonState.disabled;
+      buttonSave =            ButtonState.disabled;
       buttonEdit =            ButtonState.disabled;
       buttonRemove =          ButtonState.disabled;
       _selectedIndexItem =    value;
@@ -65,6 +69,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     else if(rawDataListItems[value]['kesz'].toString() != '1'){
       buttonContinue =        ButtonState.default0;
       buttonPrint =           ButtonState.default0;
+      buttonSave =            ButtonState.default0;
       buttonEdit =            ButtonState.default0;
       buttonRemove =          ButtonState.default0;
       _selectedIndexItem =    value;
@@ -182,7 +187,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   }
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: (){switch(taskState){
-    case InDelNoteState.default0:                       return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue]);
+    case InDelNoteState.default0:                       return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: (work == Work.incomingDeliveryNote)? [_drawButtonAdd, _drawButtonPrint, _drawButtonSave, _drawButtonContinue] : [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue]);
     case InDelNoteState.editItem:
     case InDelNoteState.addNew:                         return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
     case InDelNoteState.listItems:                      return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonEdit, _drawButtonAdd, _drawButtonRemove]);
@@ -296,6 +301,15 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
       (buttonPrint == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonPrint)) : Container(),
       Icon(Icons.print, color: Global.getColorOfIcon(buttonPrint), size: 30)
+    ]))
+  );
+
+  Widget get _drawButtonSave => TextButton(
+    onPressed:  () => (buttonSave == ButtonState.default0)? _butonSavePressed : null,
+    style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+    child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
+      (buttonSave == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonSave)) : Container(),
+      Icon(Icons.check_box, color: Global.getColorOfIcon(buttonSave), size: 30)
     ]))
   );
 
@@ -519,6 +533,21 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     ).beginQuickCall;
     setState(() => buttonPrint = ButtonState.default0);
     await Global.showAlertDialog(context, content: 'Tételek nyomtatás alatt.', title: 'Nyomtatás');
+  }
+
+  Future get _butonSavePressed async{
+    setState(() => buttonSave = ButtonState.loading);
+    if(await Global.yesNoDialog(context, content: 'Kívánja lezárni a kiválasztott tételt?', title: 'Lezárás')){
+      await DataManager(
+        quickCall:  QuickCall.saveDeliveryNoteItem,
+        input:      (taskState == InDelNoteState.default0)
+          ? {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexDeliveryNote!]['id'].toString())}
+          : {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexItem!]['id'].toString())}
+        ,
+      ).beginQuickCall;
+      await DataManager().beginProcess;
+    }
+    setState(() {selectedIndexItem = null; selectedIndexDeliveryNote = null;});
   }
 
   Future<bool>_handlePop() async{ switch(taskState){

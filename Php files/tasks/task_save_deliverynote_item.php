@@ -19,11 +19,9 @@ class Task{
             $this->request =            json_decode(file_get_contents('php://input'), true);
             $this->sqlCommand =         new SqlCommand();
             $this->databaseManager =    new DatabaseManager(
-                $this->sqlCommand->exec_tabletHelysziniszerelesUjTetelFelvitele(),
+                $this->sqlCommand->exec_tabletBejovoszallitolevelLezaras(),
                 [
                     'bizonylat_id' =>   $this->request['bizonylat_id'],
-                    'parameter' =>      $this->request['parameter'],
-                    'user_id' =>        $this->request['user_id']
                 ],
                 $this->request['customer']
             );

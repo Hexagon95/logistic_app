@@ -22,7 +22,8 @@ class Task{
                 $this->sqlCommand->exec_tabletBejovoszallitolevelUjTetelFelvitele(),
                 [
                     'bizonylat_id' =>   $this->request['bizonylat_id'],
-                    'parameter' =>      $this->request['parameter']
+                    'parameter' =>      $this->request['parameter'],
+                    'user_id' =>        $this->request['user_id']
                 ],
                 $this->request['customer']
             );
