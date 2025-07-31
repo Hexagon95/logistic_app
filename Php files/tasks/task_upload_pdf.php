@@ -48,7 +48,10 @@ class Task{
         $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
 			$this->sqlCommand->exec_bizonylatDokumentumFelvitele(),
-			['parameter' => json_encode($this->files, JSON_PRETTY_PRINT)],
+			[
+				'parameter' =>	json_encode($this->files, JSON_PRETTY_PRINT),
+				'user_id' =>	$this->request['user_id']
+			],
 			$this->request['customer']
 		);
         $this->result = $this->databaseManager->getData();

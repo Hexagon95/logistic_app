@@ -537,7 +537,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
   Future get _butonSavePressed async{
     setState(() => buttonSave = ButtonState.loading);
-    if(await Global.yesNoDialog(context, content: 'Kívánja lezárni a kiválasztott tételt?', title: 'Lezárás')){
+    if(await Global.yesNoDialog(context, content: 'Lezárjam a bizonylatot?', title: 'Lezárás')){
       await DataManager(
         quickCall:  QuickCall.saveDeliveryNoteItem,
         input:      (taskState == InDelNoteState.default0)

@@ -228,7 +228,8 @@ class DataManager{
           var queryParameters = {
             'customer':   customer,
             'id':         ListDeliveryNoteState.getSelectedId,
-            'pdf':        base64Encode(File(ListDeliveryNoteState.pdfPath!).readAsBytesSync())
+            'pdf':        base64Encode(File(ListDeliveryNoteState.pdfPath!).readAsBytesSync()),
+            'user_id':    userId
           };
           Uri uriUrl =              Uri.parse('${urlPath}upload_pdf.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);

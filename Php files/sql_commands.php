@@ -55,7 +55,7 @@ class SqlCommand{
     public function exec_bizonylatAlairasFelvitele()                    {return "EXEC [dbo].[BizonylatAlairasFelvitele] :parameter";}
     public function exec_bizonylatFuvarlevelszamFelvitele()             {return "EXEC [dbo].[BizonylatFuvarlevelszamFelvitele] :parameter";}
     public function exec_keszletmozgatasFelvitele()                     {return "EXEC [dbo].[KeszletmozgatasFelvitele] :parameter, :user_id";}
-	public function exec_bizonylatDokumentumFelvitele()                 {return "EXEC [dbo].[BizonylatDokumentumFelvitele] :parameter";}
+	public function exec_bizonylatDokumentumFelvitele()                 {return "EXEC [dbo].[BizonylatDokumentumFelvitele] :parameter, :user_id";}
     public function exec_abroncs_reszletezo_felvitele()                 {return "EXEC [local].[Abroncs_reszletezo_felvitele_temp] :parameter, :user_id";}
     public function exec_abroncs_reszletezo_felvitele1()                {return "EXEC [local].[Abroncs_reszletezo_felvitele_temp1] :parameter, :user_id";}
     public function exec_barcodePrintTarhelyCikkek()                    {return "EXEC [local].[Barcode_print_tarhely_cikkek] :tarhely, :idk";}
