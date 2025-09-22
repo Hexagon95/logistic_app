@@ -67,10 +67,10 @@ class LogInMenuState extends State<LogInMenuFrame>{
     if(_width > 400) _width = 400;
     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children:[
       const Padding(
-        padding:  EdgeInsets.fromLTRB(0, 0, 0, 20),
+        padding:  EdgeInsets.fromLTRB(0, 0, 0, 10),
         child:    Text('LogisticApp', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Color.fromRGBO(0, 180, 125, 1.0)), textAlign: TextAlign.center)
       ),
-      _drawVerzio,
+      Padding(padding: EdgeInsets.only(bottom: 40), child: _drawVerzio),
       _drawButtonLogIn
       /*Padding(
         padding:  const EdgeInsets.fromLTRB(20, 40, 20, 40),
@@ -94,8 +94,7 @@ class LogInMenuState extends State<LogInMenuFrame>{
 
   // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawVerzio => Column(children: [
-    //Text('v1.40c (TEST)', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
-    Text('v${DataManager.thisVersion}', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
+    Text('v${DataManager.thisVersion}${(DataManager.verzioTest == 0)? '' : '   [Teszt: ${DataManager.verzioTest.toString()}]'}', style: TextStyle(color: Global.getColorOfButton(ButtonState.default0), fontSize: 26, fontWeight: FontWeight.bold)),
   ]);
 
   Widget get _drawButtonLogIn =>  Padding(
@@ -125,9 +124,17 @@ class LogInMenuState extends State<LogInMenuFrame>{
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get _enterPressed async{
+    if(DataManager.identity == null){
+      await Global.showAlertDialog(context,
+        content:  'Nem található eszköz ID!',
+        title:    '⚠️ Hiba!'
+      );
+      return;
+    }
     errorMessageBottomLine =    '';
     forgottenPasswordMessage =  '';
     setState(() => buttonLogIn =  ButtonState.loading);
+
     await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
     await DataManager(quickCall: QuickCall.logIn).beginQuickCall;
     if(forgottenPasswordMessage.isNotEmpty){

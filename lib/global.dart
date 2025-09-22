@@ -1,7 +1,10 @@
 // ignore_for_file: prefer_final_fields
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+
+import 'src/scanner_datawedge.dart';
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
 enum NextRoute{                 logIn,                      menu,                             orderList,                                orderOutList,
   pickUpList,                   deliveryNoteList,           checkStock,                       inventory,                                pickUpData, 
@@ -192,8 +195,8 @@ class Global{
 
   static Future<dynamic> logInDialog(BuildContext context, {String? userNameInput}) async{
     // --------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
-    String userName =                     (userNameInput != null)? userNameInput : '';
-    String userPassword =                 '';
+    String userName =                     (kDebugMode)? 'mosaic'  : (userNameInput != null)? userNameInput : '';
+    String userPassword =                 (kDebugMode)? 'mos.667' : '';
     bool isTextObscure =                  true;
     ButtonState buttonForgottenPassword = ButtonState.default0;
     BoxDecoration customBoxDecoration =       BoxDecoration(            
@@ -276,6 +279,107 @@ class Global{
       builder:            (BuildContext context) => infoRegistry,
       barrierDismissible: false
     );
+  }
+
+  static Future<String?> showBarcodeScanDialog(BuildContext context) async {
+    final ValueNotifier<String?> scanResult = ValueNotifier<String?>(null);
+    final AudioPlayer player = AudioPlayer();
+    final FocusNode focusNode = FocusNode();
+
+    final tempScannerDatawedge = ScannerDatawedge(
+      scannerDatas: ValueNotifier(ScannerDatas(scanData: '')),
+      profileName: 'BarcodeDialog',
+    );
+
+    listener() {
+      final value = tempScannerDatawedge.scannerDatas.value.scanData.trim();
+      if (value.isNotEmpty) {
+        player.play(AssetSource('sounds/okay.mp3'));
+        scanResult.value = value;
+        Navigator.of(context).pop(value);
+      }
+    }
+
+    tempScannerDatawedge.scannerDatas.addListener(listener);
+
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(16),
+          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Row(
+            children: [
+              Icon(Icons.qr_code_scanner, color: Global.getColorOfButton(ButtonState.default0)),
+              const SizedBox(width: 10),
+              const Text(
+                'Vonalkód leolvasása',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.barcode_reader,
+                size: 100,
+                color: Global.getColorOfButton(ButtonState.default0),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Kérem olvasson le egy terméket eszközével',
+                  style: TextStyle(fontSize: 14, color: Colors.black),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Keeps focus without showing keyboard
+              Focus(
+                focusNode: focusNode,
+                child: Builder(builder: (context) {
+                  FocusScope.of(context).requestFocus(focusNode);
+                  return const TextField(
+                    readOnly: true,
+                    showCursor: false,
+                    enableInteractiveSelection: false,
+                    style: TextStyle(color: Colors.transparent),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                    ),
+                  );
+                }),
+              ),
+
+              // Mégse button aligned bottom-right
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(null),
+                  child: const Text(
+                    'Mégse',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    tempScannerDatawedge.scannerDatas.removeListener(listener);
+    return result;
   }
 
   // ---------- < Global Methods > ----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //

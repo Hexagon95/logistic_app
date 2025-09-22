@@ -187,7 +187,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   }
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: (){switch(taskState){
-    case InDelNoteState.default0:                       return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: (work == Work.incomingDeliveryNote)? [_drawButtonAdd, _drawButtonPrint, _drawButtonSave, _drawButtonContinue] : [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue]);
+    case InDelNoteState.default0:                       return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: ([Work.incomingDeliveryNote, Work.localMaintenance].contains(work))
+      ? [_drawButtonAdd, _drawButtonPrint, _drawButtonSave, _drawButtonContinue]
+      : [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue])
+    ;
     case InDelNoteState.editItem:
     case InDelNoteState.addNew:                         return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
     case InDelNoteState.listItems:                      return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonEdit, _drawButtonAdd, _drawButtonRemove]);
@@ -378,7 +381,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       break;
 
     case InDelNoteState.listItems:
-      String? varString = await Global.plateNuberDialog(context, title: 'Adja meg a Rendszámot.', content: 'Rendszám');
+      String? varString = (['mezandmol'].contains(DataManager.customer))? await Global.showBarcodeScanDialog(context) : await Global.plateNuberDialog(context, title: 'Adja meg a Rendszámot.', content: 'Rendszám');
       if(work == Work.incomingDeliveryNote || varString != null){
         varString ??= '';
         setState(() => buttonAdd = ButtonState.loading);
@@ -405,7 +408,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
             setState(() => buttonAdd = ButtonState.default0);
             break;
         }
-      }
+      }      
       break;
 
     default: break;
@@ -640,7 +643,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         String? selectedItem =    (isInLookupData(rawDataDataForm[index]['value'].toString(), lookupData))? rawDataDataForm[index]['value'].toString() : null;
         return (lookupData != null && lookupData.isNotEmpty && editable)
         ? Stack(children: [
-            SizedBox(height: 55, width: getWidth(index), child: Padding(padding: const EdgeInsets.all(15), child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+          SizedBox(height: 55, width: getWidth(index), child: Padding(padding: const EdgeInsets.all(15), child: DropdownButtonHideUnderline(child: DropdownButton<String>(
             value:            selectedItem,
             hint:             Text(rawDataDataForm[index]['name'].toString(), textAlign: TextAlign.start),
             icon:             const Icon(Icons.arrow_downward),
@@ -673,7 +676,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       case 'integer': switch(input['name']){
 
         case 'DOT-szám': return SizedBox(height: 55, width: getWidth(index), child: Focus(
-          onFocusChange:  (value) => setState(() {rawDataDataForm[index]['value'] = controller[index].text; buttonContinue = setButton();}),
+          onFocusChange:  (value) => setState(() {rawDataDataForm[index]['value'] = controller[index].text; buttonContinue = getButton;}),
           child:          MaskedTextField(
             enabled:            editable,          
             controller:         controller[index],
@@ -733,18 +736,20 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         keyboardType: TextInputType.number,
       ));*/
 
-      default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
-        enabled:          editable,
-        controller:       controller[index],
-        keyboardType:     getKeyboard(input['keyboard_type']),
-        decoration:       InputDecoration(
-          contentPadding:   const EdgeInsets.all(10),
-          labelText:        input['name'],
-          border:           InputBorder.none,
-        ),
-        onChanged:    (value) => setState(() {rawDataDataForm[index]['value'] = value; buttonContinue = setButton();}),
-        style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
-      ));
+      default: return Stack(children: [
+        SizedBox(height: 55, width: getWidth(index), child: TextFormField(
+          enabled:          editable,
+          controller:       controller[index],
+          keyboardType:     getKeyboard(input['keyboard_type']),
+          decoration:       InputDecoration(
+            contentPadding:   const EdgeInsets.all(10),
+            labelText:        input['name'],
+            border:           InputBorder.none,
+          ),
+          onChanged:    (value) => setState(() {rawDataDataForm[index]['value'] = value; buttonContinue = getButton;}),
+          style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+        ))
+      ]);
     }
   }
 
@@ -797,12 +802,12 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       if(kDebugMode) print(e);
     }
     setState((){
-      buttonContinue = setButton();
+      buttonContinue = getButton;
     });
   }
 
   void _checkInteger(String value, dynamic input, int index){ //Check if integer and is between 0 and limit.
-    if(input['limit'] == null) {setState(() {rawDataDataForm[index]['value'] = value; setButton();}); return;}
+    if(input['limit'] == null) {setState(() {rawDataDataForm[index]['value'] = value; buttonContinue = getButton;}); return;}
     int? varInt;
     try{varInt = int.parse(value);}
     // ignore: empty_catches
@@ -833,7 +838,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   }
 
   // ---------- < Methods [4] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  ButtonState setButton() {switch(taskState){
+  ButtonState get getButton {switch(taskState){
 
     case InDelNoteState.addNew:
       return rawDataDataForm.any((item) => item['value'] != null && item['value'].toString().isNotEmpty)

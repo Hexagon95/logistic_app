@@ -53,6 +53,7 @@ dependencies:
   icons_launcher: ^3.0.0
   flutter_datawedge: ^3.0.0
   masked_text: ^1.1.2
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:

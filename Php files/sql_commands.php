@@ -73,4 +73,5 @@ class SqlCommand{
     public function exec_felhasznaloProfilModositas()                   {return "EXEC [dbo].[FelhasznaloProfilModositas] :parameter, :output";}
     public function exec_tabletBelep()                                  {return "EXEC [mosaic].[dbo].[TabletBelep] :eszkoz_id, :verzio";}
     public function exec_tabletBejovoszallitolevelLezaras()             {return 'EXEC [dbo].[Tablet_Bejovoszallitolevel_lezaras] :bizonylat_id, :output';}
+    public function exec_tabletHelysziniszerelesLezaras()               {return 'EXEC [dbo].[Tablet_Helysziniszereles_lezaras] :bizonylat_id, :output';}
 }

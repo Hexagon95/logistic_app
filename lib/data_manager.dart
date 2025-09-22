@@ -20,12 +20,17 @@ import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.42';
+  static String thisVersion =                             '1.43a';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
+
+  static int verzioTest =                                 0;      // anything other than 0 will draw "[Teszt #]" at the LogIn screen.
+
   static String raktarMegnevezes=                         '';
   static String raktarId =                                '';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
@@ -37,32 +42,98 @@ class DataManager{
   static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
   static bool isServerAvailable =                         true;
   static int userId =                                     0;
+
+  static final FlutterSecureStorage _sec =                const FlutterSecureStorage();
+  static const String _secKey =                           'unique_identity';
   static Identity? identity;
 
   // ---------- < Variables [1] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   final Map<String,String> headers = {'Content-Type': 'application/json'};
   dynamic input;
   QuickCall? quickCall;
+  
 
   // ---------- < Constructors > ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   DataManager({this.quickCall, this.input});
 
   // ---------- < Methods [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
-  static Future get identitySQLite async {
-    final database = openDatabase(
-      p.join(await getDatabasesPath(), 'unique_identity.db'),         
-      onCreate:(db, version) => db.execute(Global.sqlCreateTableIdentity),
-      version: 1
+  static Future<void> get identitySQLite async {
+    final dbPath = p.join(await getDatabasesPath(), 'unique_identity.db');
+
+    final db = await openDatabase(
+      dbPath,
+      version: 1,
+      onConfigure: (db) async {
+        try { await db.rawQuery('PRAGMA journal_mode = WAL'); } catch (_) {}
+        try { await db.rawQuery('PRAGMA synchronous = NORMAL'); } catch (_) {}
+      },
+      onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS identityTable(
+            id INTEGER PRIMARY KEY,
+            identity TEXT NOT NULL
+          );
+        ''');
+      },
     );
-    final db =                          await database;
-    List<Map<String, dynamic>> result = await db.query('identityTable');
-    if(result.isEmpty){
-      identity = Identity.generate();
-      await db.insert('identityTable', identity!.toMap, conflictAlgorithm: ConflictAlgorithm.replace);
-      result = await db.query('identityTable');
+
+    await db.transaction((txn) async {
+      // Ensure table exists even if file was replaced
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS identityTable(
+          id INTEGER PRIMARY KEY,
+          identity TEXT NOT NULL
+        );
+      ''');
+
+      // Prefer the canonical single row with id=0
+      final id0 = await txn.query('identityTable', where: 'id = ?', whereArgs: [0], limit: 1);
+      String? secureId;
+      try {
+        secureId = await _sec.read(key: _secKey);
+      } catch (_) {
+        secureId = null; // secure storage might be temporarily unavailable
+      }
+
+      if (id0.isEmpty) {
+        // table empty or id=0 missing → restore from secure storage or generate
+        final newId = secureId ?? Identity.generate().toString();
+        await txn.insert(
+          'identityTable',
+          {'id': 0, 'identity': newId},
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        try { await _sec.write(key: _secKey, value: newId); } catch (_) {}
+        identity = Identity(id: 0, identity: newId);
+      } else {
+        final current = id0.first['identity']?.toString() ?? '';
+        if (current.isEmpty) {
+          final newId = secureId ?? Identity.generate().toString();
+          await txn.insert(
+            'identityTable',
+            {'id': 0, 'identity': newId},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          try { await _sec.write(key: _secKey, value: newId); } catch (_) {}
+          identity = Identity(id: 0, identity: newId);
+        } else {
+          identity = Identity(id: 0, identity: current);
+          // keep secure storage in sync (cheap, idempotent)
+          try { await _sec.write(key: _secKey, value: current); } catch (_) {}
+        }
+
+        // Cleanup any accidental extra rows (defensive)
+        await txn.delete('identityTable', where: 'id <> 0');
+      }
+    });
+  }
+
+  static Future<String> get ensureIdentity async {
+    if (identity == null || identity!.identity.isEmpty) {
+      await identitySQLite; // does the secure-storage/DB restore
     }
-    identity = Identity(id: 0, identity: result[0]['identity'].toString());
-  }  
+    return identity!.identity;
+  }
   
   // ---------- < Methods [Public] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Future get beginQuickCall async{
@@ -84,7 +155,7 @@ class DataManager{
         case QuickCall.logIn:
           var queryParameters = {
             'customer':   customer,
-            'eszkoz_id':  identity.toString()
+            'eszkoz_id':  await ensureIdentity //identity.toString()
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}login.php');
@@ -98,7 +169,7 @@ class DataManager{
         case QuickCall.tabletBelep:
           var queryParameters = {
             'customer':   customer,
-            'eszkoz_id':  identity.toString(),
+            'eszkoz_id':  await ensureIdentity, //identity.toString()
             'verzio':     thisVersion
           };
           Uri uriUrl = Uri.parse('${urlPath}tablet_belep.php');
@@ -569,7 +640,7 @@ class DataManager{
         case QuickCall.logInNamePassword:
           var queryParameters = {
             'customer':       customer,
-            'eszkoz_id':      identity.toString(),
+            'eszkoz_id':      await ensureIdentity, //identity.toString()
             'user_name':      input['user_name'],
             'user_password':  input['user_password'],
           };
@@ -629,11 +700,15 @@ class DataManager{
           break;
 
         case QuickCall.saveDeliveryNoteItem:
+          String phpFileName() {switch(IncomingDeliveryNoteState.work){
+            case Work.localMaintenance: return 'save_helyszini_szereles.php';
+            default:                    return 'save_deliverynote_item.php';
+          }}          
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': input['bizonylat_id'],
           };
-          Uri uriUrl =                Uri.parse('${urlPath}save_deliverynote_item.php');          
+          Uri uriUrl =                Uri.parse('$urlPath${phpFileName()}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
           dataQuickCall[check(35)] =  jsonDecode(response.body);
@@ -665,7 +740,7 @@ class DataManager{
         case NextRoute.logIn:
           var queryParameters = {
             'customer':   customer,
-            'eszkoz_id':  identity.toString()
+            'eszkoz_id':  await ensureIdentity //identity.toString()
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =                    Uri.parse('${urlPath}login.php');

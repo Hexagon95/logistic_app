@@ -31,6 +31,7 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   ButtonState buttonListOrders =            ButtonState.default0;
   ButtonState buttonDeliveryNote =          ButtonState.default0;
   ButtonState buttonRevenue =               ButtonState.disabled;
+  ButtonState buttonScanAndPrint =          ButtonState.default0;
   ButtonState buttonCheckStock =            ButtonState.default0;
   ButtonState buttonStockIn =               ButtonState.default0;
   ButtonState buttonInventory =             ButtonState.default0;
@@ -118,6 +119,7 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
         filter(9,   _drawButtonIncomingDeliveryNote(9)),
         filter(10,  _drawButtonIncomingDeliveryNote(10)),
         const SizedBox(height: 20),
+        filter(11, _drawButtonScanAndPrint),
         filter(3, _drawButtonDeliveryNote),
         filter(4, _drawButtonCheckStock),
         filter(5, _drawButtonStockIn),
@@ -304,6 +306,24 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     ))
   );*/
 
+  Widget get _drawButtonScanAndPrint => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonScanAndPrint))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonScanAndPrint))
+      ),
+      onPressed:  (buttonScanAndPrint == ButtonState.default0)? () => _buttonScanAndPrintPressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonScanAndPrint == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonScanAndPrint))))
+        ),
+        Text((buttonScanAndPrint == ButtonState.loading)? 'Betöltés...' : menuList[10]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonScanAndPrint)))
+      ])
+    ))
+  );
+
   Widget get _drawButtonCheckStock => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
@@ -463,6 +483,17 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     Global.routeNext =                NextRoute.checkStock;
     buttonCheckStock =                ButtonState.default0;
     ScanCheckStockState.stockState =  StockState.checkStock;
+    await Navigator.pushNamed(context, '/scanCheckStock');
+    setState((){});
+  }
+
+  Future get _buttonScanAndPrintPressed async{
+    setState(() => buttonScanAndPrint = ButtonState.loading);
+    await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+    if(LogInMenuState.updateNeeded) Restart.restartApp();
+    Global.routeNext =                NextRoute.checkStock;
+    buttonScanAndPrint =                   ButtonState.default0;
+    ScanCheckStockState.stockState =  StockState.stockIn;
     await Navigator.pushNamed(context, '/scanCheckStock');
     setState((){});
   }
