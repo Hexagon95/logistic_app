@@ -42,6 +42,7 @@ class SqlCommand{
     public function select_verzioLogisticApp()                          {return "SELECT [verzio_logistic_app] FROM [dbo].[Parameters]";}
     public function select_vonalkod()                                   {return "SELECT [id],[IP],[megnevezes] FROM [local].[Cikk_kereses] (:vonalkod)";}
     public function select_vonalkod_old()                               {return "SELECT [id],[IP],[Teljes megnevezés] as megnevezes FROM [dbo].[Torzs_cikk] WHERE [EAN] = :vonalkod";}
+    public function select_tabletAbroncsInfo()                          {return "SELECT * FROM [dbo].[Tablet_Abroncs_info] (:code)";}
     public function exec_tabletFelhasznaloAdatok()                      {return "EXEC [dbo].[Tablet_FelhasznaloAdatok] :eszkoz_id, :user_name, :user_password";}
     public function exec_tabletFelvitel()                               {return "EXEC [dbo].[TabletFelvitele] :eszkoz_id";}
     public function exec_finishOrders()                                 {return "EXEC [dbo].[Tablet_Rendeles_Felvitele] :completed_orders, :user_id";}
@@ -74,4 +75,5 @@ class SqlCommand{
     public function exec_tabletBelep()                                  {return "EXEC [mosaic].[dbo].[TabletBelep] :eszkoz_id, :verzio";}
     public function exec_tabletBejovoszallitolevelLezaras()             {return 'EXEC [dbo].[Tablet_Bejovoszallitolevel_lezaras] :bizonylat_id, :output';}
     public function exec_tabletHelysziniszerelesLezaras()               {return 'EXEC [dbo].[Tablet_Helysziniszereles_lezaras] :bizonylat_id, :output';}
+    public function exec_barcodePrintCikkek()                           {return 'EXEC [local].[Barcode_print_cikkek] :raktar_id, :list';}
 }

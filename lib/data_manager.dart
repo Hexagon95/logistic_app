@@ -24,7 +24,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.43a';
+  static String thisVersion =                             '1.44';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -712,6 +712,32 @@ class DataManager{
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
           dataQuickCall[check(35)] =  jsonDecode(response.body);
+          break;
+
+        case QuickCall.scanBarcodeForSticker:
+          var queryParameters = {
+            'customer':   customer,
+            'code':       input['code']
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}scan_barcode_for_sticker.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          dataQuickCall[check(36)] =  await jsonDecode(await jsonDecode(response.body)[0]['b']);
+          if(kDebugMode){
+            String varString = dataQuickCall[36].toString();
+            print(varString);
+          }
+          break;
+
+        case QuickCall.printAll:
+          var queryParameters = {
+            'customer':   customer,
+            'raktar_id':  raktarId,
+            'list':       jsonEncode(input['list'])
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =                Uri.parse('${urlPath}print_all_barcodes.php');
+          await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
           break;
 
         default:break;

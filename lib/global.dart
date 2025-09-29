@@ -9,7 +9,7 @@ import 'src/scanner_datawedge.dart';
 enum NextRoute{                 logIn,                      menu,                             orderList,                                orderOutList,
   pickUpList,                   deliveryNoteList,           checkStock,                       inventory,                                pickUpData, 
   default0,                     pickUpDataFinish,           scanTasks,                        finishTasks,                              dataFormMonetization,
-  dataFormGiveDatas,            deliveryOut,                incomingDeliveryNote
+  dataFormGiveDatas,            deliveryOut,                incomingDeliveryNote,             scanAndPrint
 }
 enum ButtonState{               hidden,                     loading,                          disabled,                                 error,
   default0
@@ -26,7 +26,7 @@ enum QuickCall{                 askBarcode,                 deleteItem,         
   addNewDeliveryNote,           addNewDeliveryNoteFinished, askDeliveryNotesScan,             addDeliveryNoteItem,                      chainGiveDatasDeliveryNote,
   addItemFinished,              plateNumberCheck,           printBarcodeDeliveryNote,         selectAddItemDeliveryNote,                finishSelectAddItemDeliveryNote,
   editSelectedItemDeliveryNote, askEditItemDeliveryNote,    finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword,
-  removeDeliveryNoteItem,       logInNamePassword,          changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem
+  removeDeliveryNoteItem,       logInNamePassword,          changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll
 }
 enum InDelNoteState{            addItem,                    listItems,                        addNew,                                   listSelectEditItemDeliveryNote,
   default0,                     editItem,                   listSelectAddItemDeliveryNote,
@@ -57,6 +57,7 @@ class Global{
       case NextRoute.deliveryNoteList:      _routes[check(2)] =   value;  break;
       case NextRoute.checkStock:            _routes[check(2)] =   value;  break;
       case NextRoute.inventory:             _routes[check(2)] =   value;  break;
+      case NextRoute.scanAndPrint:          _routes[check(2)] =   value;  break;
       case NextRoute.pickUpData:            _routes[check(3)] =   value;  break;
       case NextRoute.scanTasks:             _routes[check(3)] =   value;  break;
       case NextRoute.finishTasks:           _routes[check(3)] =   value;  break;

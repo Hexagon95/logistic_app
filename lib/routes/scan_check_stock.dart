@@ -78,7 +78,7 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
   // ---------- < Constructor > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   ScanCheckStockState(){
-    taskState ??=     TaskState.default0;
+    taskState ??= TaskState.default0;
     if(Global.isScannerDevice){
       scannerDatas =      ValueNotifier(ScannerDatas(scanData: ''));
       scannerDatawedge =  ScannerDatawedge(scannerDatas: scannerDatas!, profileName: 'ScanCheckStock');

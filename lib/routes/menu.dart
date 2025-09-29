@@ -491,10 +491,9 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     setState(() => buttonScanAndPrint = ButtonState.loading);
     await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
     if(LogInMenuState.updateNeeded) Restart.restartApp();
-    Global.routeNext =                NextRoute.checkStock;
-    buttonScanAndPrint =                   ButtonState.default0;
-    ScanCheckStockState.stockState =  StockState.stockIn;
-    await Navigator.pushNamed(context, '/scanCheckStock');
+    Global.routeNext =                NextRoute.scanAndPrint;
+    buttonScanAndPrint =              ButtonState.default0;
+    await Navigator.pushNamed(context, '/scanAndPrint');
     setState((){});
   }
 
