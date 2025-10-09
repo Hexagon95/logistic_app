@@ -98,6 +98,7 @@ class _ScanAndPrintState extends State<ScanAndPrint> {
           children: [
             Column(
               children: [
+                SizedBox(height: 20),
                 Expanded(
                   child: (_rows.isEmpty)
                       ? _buildScanArea()
@@ -106,6 +107,7 @@ class _ScanAndPrintState extends State<ScanAndPrint> {
                 _bottomBar,
               ],
             ),
+            _floatingCount,
             _floatingHint,
             if (_busy)
               const Center(
@@ -212,23 +214,46 @@ class _ScanAndPrintState extends State<ScanAndPrint> {
       );
 
   Widget get _floatingHint => Positioned(
-        left: 16,
-        right: 16,
-        bottom: 60,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Text(
-              'Vonalkód leolvasása a hozzáadáshoz',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
+    left: 16,
+    right: 16,
+    bottom: 60,
+    child: Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Text(
+          'Vonalkód leolvasása a hozzáadáshoz',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+      ),
+    ),
+  );
+
+  Widget get _floatingCount => Positioned(
+    top: 2,
+    left: 2,
+    child: SafeArea(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 150),
+        opacity: 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3))],
+          ),
+          child: Text(
+            'Összesen: ${_rows.length}',
+            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   // ======== Actions ========
 

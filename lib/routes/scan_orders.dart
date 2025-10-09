@@ -296,7 +296,7 @@ class ScanOrdersState extends State<ScanOrders>{
     case TaskState.askProduct: return (Global.isScannerDevice)
     ? Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        _drawButtonContinue
+        //_drawButtonContinue
       ])
     )
     : Container();
