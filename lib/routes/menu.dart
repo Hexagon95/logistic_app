@@ -103,28 +103,46 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   }
 
   // ---------- < WidgetBuild [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawMenu{
+  Widget get _drawMenu {
     Widget filter(int id, Widget menuOption) {for(var item in menuList) {if(item['id'] == id && item['aktiv'] == 1) return menuOption;} return Container();}
-
     return Container(
-      decoration: const BoxDecoration(image: DecorationImage(
-          image:  AssetImage('images/background.png'),
-          fit:    BoxFit.fitHeight
-        )),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.max, children: [
-        filter(7, _drawButtonListOrdersOut),
-        filter(1, _drawButtonPickUpList),
-        filter(2, _drawButtonListOrders),
-        filter(8, _drawDeliveryOut),
-        filter(9,   _drawButtonIncomingDeliveryNote(9)),
-        filter(10,  _drawButtonIncomingDeliveryNote(10)),
-        const SizedBox(height: 20),
-        filter(11, _drawButtonScanAndPrint),
-        filter(3, _drawButtonDeliveryNote),
-        filter(4, _drawButtonCheckStock),
-        filter(5, _drawButtonStockIn),
-        filter(6, _drawButtonInventory)
-      ])
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('images/background.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(), // allows smooth scroll
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight( // 🔥 will compress content if overflow would happen
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    filter(7,   _drawButtonListOrdersOut),
+                    filter(1,   _drawButtonPickUpList),
+                    filter(2,   _drawButtonListOrders),
+                    filter(8,   _drawDeliveryOut),
+                    filter(9,   _drawButtonIncomingDeliveryNote(9)),
+                    filter(10,  _drawButtonIncomingDeliveryNote(10)),
+                    filter(11,  _drawDeliveryBackFromPartner),
+                    const SizedBox(height: 20),
+                    filter(11,  _drawButtonScanAndPrint),
+                    filter(3,   _drawButtonDeliveryNote),
+                    filter(4,   _drawButtonCheckStock),
+                    filter(5,   _drawButtonStockIn),
+                    filter(6,   _drawButtonInventory),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -212,6 +230,24 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
           child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonDeliveryOut))))
         ),
         Text((buttonDeliveryOut == ButtonState.loading)? 'Betöltés...' : menuList[7]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDeliveryOut)))
+      ])
+    ))
+  );
+
+  Widget get _drawDeliveryBackFromPartner => Padding(
+    padding:  const EdgeInsets.symmetric(vertical: 10),
+    child:    SizedBox(height: 40, width: _width, child: TextButton(          
+      style:      ButtonStyle(
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonDeliveryOut))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryOut))
+      ),
+      onPressed:  (buttonDeliveryOut == ButtonState.default0)? () => _buttonDeliveryOutPressed : null,          
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Visibility(
+          visible:  (buttonDeliveryOut == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonDeliveryOut))))
+        ),
+        Text((buttonDeliveryOut == ButtonState.loading)? 'Betöltés...' : menuList[11]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDeliveryOut)))
       ])
     ))
   );

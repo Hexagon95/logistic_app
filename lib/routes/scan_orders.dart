@@ -482,7 +482,7 @@ class ScanOrdersState extends State<ScanOrders>{
     ])
   )));
 
-  Widget get _drawButtonContinue => Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+  /*Widget get _drawButtonContinue => Row(mainAxisAlignment: MainAxisAlignment.end, children: [
     TextButton(
       onPressed:  () => (buttonContinue == ButtonState.default0)? _buttonContinuePressed : null,
       style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
@@ -501,7 +501,7 @@ class ScanOrdersState extends State<ScanOrders>{
         )
       ])
     )
-  ]);
+  ]);*/
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   @override
