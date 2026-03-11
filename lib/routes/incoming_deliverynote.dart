@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/global.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:logistic_app/routes/menu.dart';
 import 'package:masked_text/masked_text.dart';
 import 'package:flutter/material.dart';
 
@@ -106,7 +107,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
             case InDelNoteState.listSelectAddItemDeliveryNote:  return  'Abroncsok kiválasztása';
             case InDelNoteState.addItem:                        return  'Új cikk';
             case InDelNoteState.editItem:                       return  'Cikk módosítása';
-            default:                                            return  (work == Work.incomingDeliveryNote)? 'Bejövő szállítólevelek' : 'Helyszíni szerelések';
+            default:                                            return  (Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner)? MenuState.menuList[11]['megnevezes'].toString() : (work == Work.incomingDeliveryNote)? 'Bejövő szállítólevelek' : 'Helyszíni szerelések';
           }}()))),
           backgroundColor:  Global.getColorOfButton(ButtonState.default0),
           foregroundColor:  Global.getColorOfIcon(ButtonState.default0),
@@ -372,7 +373,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
   Future get _buttonAddPressed async{ switch(taskState){
 
-    case InDelNoteState.default0:
+    case InDelNoteState.default0:      
       await DataManager(quickCall: QuickCall.addNewDeliveryNote).beginQuickCall;
       setState((){
         buttonAdd = ButtonState.default0;
@@ -380,33 +381,45 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       });
       break;
 
-    case InDelNoteState.listItems:
+    case InDelNoteState.listItems:      
       String? varString = (['mezandmol'].contains(DataManager.customer))? await Global.showBarcodeScanDialog(context) : await Global.plateNuberDialog(context, title: 'Adja meg a Rendszámot.', content: 'Rendszám');
       if(work == Work.incomingDeliveryNote || varString != null){
         varString ??= '';
         setState(() => buttonAdd = ButtonState.loading);
         plateNumberTest = '';
-        await DataManager(quickCall: QuickCall.plateNumberCheck, input: {'rendszam': varString}).beginQuickCall;
-        switch(plateNumberTest){
+        if(Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner){
+          await DataManager(quickCall: QuickCall.addDeliveryNoteItem, input: {'rendszam': varString}).beginQuickCall;
+          if(DataManager.dataQuickCall[17] is List && DataManager.dataQuickCall[17].isNotEmpty) {await Global.showAlertDialog(
+            context,
+            title:    DataManager.dataQuickCall[17][0]['name'] ?? '',
+            content:  DataManager.dataQuickCall[17][0]['message'] ?? ''
+          );}
+          await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
+          setState(() => buttonAdd = ButtonState.default0);
+        }
+        else{
+          await DataManager(quickCall: QuickCall.plateNumberCheck, input: {'rendszam': varString}).beginQuickCall;
+          switch(plateNumberTest){
 
-          case 'NOK':
-            await DataManager(quickCall: QuickCall.addDeliveryNoteItem, input: {'rendszam': varString}).beginQuickCall;
-            setState((){
-              buttonAdd =       ButtonState.default0;
-              buttonContinue =  ButtonState.disabled;
-              taskState =       InDelNoteState.addItem;
-            });
-            break;
+            case 'NOK':
+              await DataManager(quickCall: QuickCall.addDeliveryNoteItem, input: {'rendszam': varString}).beginQuickCall;
+              setState((){
+                buttonAdd =       ButtonState.default0;
+                buttonContinue =  ButtonState.disabled;
+                taskState =       InDelNoteState.addItem;
+              });
+              break;
 
-          case 'OK':
-            await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
-            setState(() => buttonAdd = ButtonState.default0);
-            break;
+            case 'OK':
+              await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
+              setState(() => buttonAdd = ButtonState.default0);
+              break;
 
-          default:
-            if(plateNumberTest.isNotEmpty) await Global.showAlertDialog(context, title: 'Hiba', content: plateNumberTest);
-            setState(() => buttonAdd = ButtonState.default0);
-            break;
+            default:
+              if(plateNumberTest.isNotEmpty) await Global.showAlertDialog(context, title: 'Hiba', content: plateNumberTest);
+              setState(() => buttonAdd = ButtonState.default0);
+              break;
+          }          
         }
       }      
       break;

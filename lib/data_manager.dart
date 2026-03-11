@@ -25,7 +25,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.44b';
+  static String thisVersion =                             '1.45';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -39,8 +39,8 @@ class DataManager{
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
   static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
   //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test,5
-  static List<List<dynamic>> data =                       List<List<dynamic>>.empty(growable: true);
-  static List<List<dynamic>> dataQuickCall =              List<List<dynamic>>.empty(growable: true);
+  static List<dynamic> data =                             List<dynamic>.empty(growable: true);
+  static List<dynamic> dataQuickCall =                    List<dynamic>.empty(growable: true);
   static bool isServerAvailable =                         true;
   static int userId =                                     0;
 
@@ -454,23 +454,31 @@ class DataManager{
           break;
 
         case QuickCall.addNewDeliveryNote:
+          String address(){
+            if(Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner) {return 'add_new_from_partner.php';}
+            else {return (IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_new_delivery_note.php' : 'add_new_local_maintenance.php';}
+          }
           var queryParameters = {
             'customer':   customer,
             'raktar_id':  raktarId,
             'user_id':    userId
           };
-          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_new_delivery_note.php' : 'add_new_local_maintenance.php'}');
+          Uri uriUrl =              Uri.parse('$urlPath${address()}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(15)] =  await jsonDecode(response.body);
           break;
 
         case QuickCall.addNewDeliveryNoteFinished:
+          String address(){
+            if(Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner) {return 'add_new_from_partner_finish.php';}
+            else {return (IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_new_delivery_note_finish.php' : 'add_new_local_maintenance_finish.php';}
+          }
           var queryParameters = {
             'customer':   customer,
             'parameter':  json.encode(IncomingDeliveryNoteState.rawDataDataForm),
             'user_id':    userId,
           };
-          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_new_delivery_note_finish.php' : 'add_new_local_maintenance_finish.php'}');
+          Uri uriUrl =              Uri.parse('$urlPath${address()}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode){
             dev.log(response.body);
@@ -480,27 +488,42 @@ class DataManager{
           break;
 
         case QuickCall.askDeliveryNotesScan:
+          String address(){
+            if(Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner) {return 'ask_from_partner_goods.php';}
+            else {return (IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'ask_delivery_notes_scan.php' : 'ask_local_maintenance_scan.php';}
+          }
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
             'user_id':      userId
           };
-          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'ask_delivery_notes_scan.php' : 'ask_local_maintenance_scan.php'}');
+          Uri uriUrl =              Uri.parse('$urlPath${address()}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dynamic varDynamic = await jsonDecode(response.body)[0]['tetelek'];
           dataQuickCall[check(16)] =  (varDynamic == null)? [] : await jsonDecode(varDynamic);
           break;
 
         case QuickCall.addDeliveryNoteItem:
+          String address(){
+            if(Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner) {return 'add_new_item_from_partner.php';}
+            else {return (IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_delivery_note_item.php' : 'add_local_maintenance_item.php';}
+          }
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
             'rendszam':     input['rendszam'],
             'user_id':      userId
           };
-          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'add_delivery_note_item.php' : 'add_local_maintenance_item.php'}');
+          Uri uriUrl =                Uri.parse('$urlPath${address()}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-          dataQuickCall[check(17)] =  await jsonDecode(await jsonDecode(response.body)[0]['b'])['adatok'];
+          dynamic varDynamic;
+          try{
+            varDynamic = (Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner)? await jsonDecode(await jsonDecode(response.body)) : await jsonDecode(await jsonDecode(response.body)[0]['b'])['adatok'];
+          }
+          catch(_){
+            varDynamic = response.body;
+          }
+          dataQuickCall[check(17)] = varDynamic;
           if(kDebugMode){
             dev.log(dataQuickCall[17].toString());
           }
@@ -623,13 +646,17 @@ class DataManager{
           break;
 
         case QuickCall.removeDeliveryNoteItem:
+          String address(){
+            if(Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner) {return 'remove_item_from_partner.php';}
+            else {return (IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'remove_delivery_note_item.php' : 'remove_local_maintenance_item.php';}
+          }
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': IncomingDeliveryNoteState.rawDataListDeliveryNotes[IncomingDeliveryNoteState.getSelectedIndexDeliveryNote!]['id'].toString(),
             'tetel_id':     input['tetel_id']
           };
           if(kDebugMode)print(queryParameters);
-          Uri uriUrl =              Uri.parse('$urlPath${(IncomingDeliveryNoteState.work == Work.incomingDeliveryNote)? 'remove_delivery_note_item.php' : 'remove_local_maintenance_item.php'}');
+          Uri uriUrl =              Uri.parse('$urlPath${address()}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           dataQuickCall[check(26)] =  await jsonDecode(response.body);
           if(kDebugMode){
@@ -701,15 +728,16 @@ class DataManager{
           break;
 
         case QuickCall.saveDeliveryNoteItem:
-          String phpFileName() {switch(IncomingDeliveryNoteState.work){
-            case Work.localMaintenance: return 'save_helyszini_szereles.php';
-            default:                    return 'save_deliverynote_item.php';
-          }}          
+          String address(){
+            if(Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner) {return 'save_item_from_partner.php';}
+            else {return (IncomingDeliveryNoteState.work == Work.localMaintenance)? 'save_helyszini_szereles.php' : 'save_deliverynote_item.php';}
+          }         
           var queryParameters = {
             'customer':     customer,
             'bizonylat_id': input['bizonylat_id'],
+            'user_id':      (Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner)? userId : null
           };
-          Uri uriUrl =                Uri.parse('$urlPath${phpFileName()}');
+          Uri uriUrl =                Uri.parse('$urlPath${address()}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)print(response.body);
           dataQuickCall[check(35)] =  jsonDecode(response.body);
@@ -815,6 +843,24 @@ class DataManager{
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(1)] =          await jsonDecode(response.body);
           if(kDebugMode)print(data[1]);
+          break;
+
+        case NextRoute.deliveryBackFromPartner:
+          var queryParameters = {
+            'customer':       customer,
+            'raktar_id':      raktarId,
+            'user_id':        userId,
+            'delivery_type':  'deliveryBackFromPartner'
+          };
+          if(kDebugMode)print(queryParameters);
+          Uri uriUrl =              Uri.parse('${urlPath}list_delivery_out.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          data[check(1)] =          await jsonDecode(response.body);
+          if(kDebugMode)print(data[1]);
+          break;
+
+        case NextRoute.addDeliveryBackFromPartner:
+          
           break;
 
         case NextRoute.incomingDeliveryNote:
@@ -1191,6 +1237,7 @@ class DataManager{
         case QuickCall.editSelectedItemDeliveryNote:
         case QuickCall.addDeliveryNoteItem:
         case QuickCall.addNewDeliveryNote:
+          if(quickCall == QuickCall.addDeliveryNoteItem && Global.getRouteAt(2) == NextRoute.deliveryBackFromPartner) break;
           switch(quickCall){
             case QuickCall.editSelectedItemDeliveryNote:  IncomingDeliveryNoteState.rawDataDataForm =  jsonDecode(dataQuickCall[23][0]['b'])['adatok'];  break;
             case QuickCall.addNewDeliveryNote:            IncomingDeliveryNoteState.rawDataDataForm =  jsonDecode(dataQuickCall[15][0]['b'])['adatok'];  break;
@@ -1296,6 +1343,7 @@ class DataManager{
           ListOrdersState.rawData = data[1];
           break;
         
+        case NextRoute.deliveryBackFromPartner:
         case NextRoute.incomingDeliveryNote:
           IncomingDeliveryNoteState.rawDataListDeliveryNotes = data[1];
           break;

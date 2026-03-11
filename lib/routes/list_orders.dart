@@ -21,16 +21,18 @@ class ListOrdersState extends State<ListOrders>{
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   ButtonState buttonState = ButtonState.disabled;
   ButtonState buttonPrint = ButtonState.disabled;
+  ButtonState buttonAdd =   ButtonState.default0;
   int? _selectedIndex;
   set selectedIndex(int? value) {if(buttonState != ButtonState.loading){
     if(value == null) {buttonState = ButtonState.disabled; buttonPrint = ButtonState.disabled; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
     else if(rawData[value]['kesz'].toString() != '1') {buttonState = ButtonState.default0; buttonPrint = ButtonState.default0; _selectedIndex = value; getSelectedIndex = _selectedIndex;}
   }}
   String get title {switch(Global.currentRoute){
-    case NextRoute.pickUpList:    return 'Kiszedési lista';
-    case NextRoute.orderOutList:  return 'Bevételezés';
-    case NextRoute.deliveryOut:   return 'Kiszállítás';
-    case NextRoute.orderList:     return 'Kitárazás';
+    case NextRoute.pickUpList:              return 'Kiszedési lista';
+    case NextRoute.orderOutList:            return 'Bevételezés';
+    case NextRoute.deliveryOut:             return 'Kiszállítás';
+    case NextRoute.deliveryBackFromPartner: return 'Partnertől Visszaszállítás';
+    case NextRoute.orderList:               return 'Kitárazás';
     default: switch(Global.previousRoute){
       case NextRoute.pickUpList:    return 'Kiszedési lista';
       case NextRoute.orderOutList:  return 'Bevételezés';
@@ -87,8 +89,9 @@ class ListOrdersState extends State<ListOrders>{
 
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: () {switch(Global.currentRoute){
-      case NextRoute.orderOutList:  return [Container(), _drawButtonPrint, _drawButtonContinue];
-      default:                      return [Container(), _drawButtonContinue];
+      case NextRoute.orderOutList:            return [Container(),    _drawButtonPrint,     _drawButtonContinue];
+      case NextRoute.deliveryBackFromPartner: return [_drawButtonAdd, _drawButtonContinue];
+      default:                                return [Container(),    _drawButtonContinue];
     }}())
   );
 
@@ -123,13 +126,36 @@ class ListOrdersState extends State<ListOrders>{
     ])
   );
 
-   Widget get _drawButtonPrint => TextButton(
+  Widget get _drawButtonPrint => TextButton(
     onPressed:  () => (buttonPrint == ButtonState.default0)? _buttonPrintPressed : null,
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
       (buttonPrint == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonPrint)) : Container(),
       Icon(Icons.print, color: Global.getColorOfIcon(buttonPrint), size: 30)
     ]))
+  );
+
+  Widget get _drawButtonAdd => Padding(padding: const EdgeInsets.fromLTRB(5, 0, 5, 0), child: 
+    Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      TextButton(
+        onPressed:  () => (buttonAdd == ButtonState.default0)? _buttonAddPressed : null,
+        style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+        child:      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Visibility(
+            visible:  (buttonAdd == ButtonState.loading)? true : false,
+            child:    Padding(
+              padding:  const EdgeInsets.fromLTRB(0, 0, 10, 0),
+              child:    SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonAdd)))
+            )
+          ),
+          Icon(
+            Icons.add,
+            color: Global.getColorOfIcon(buttonAdd),
+            size:  30,
+          )
+        ])
+      )
+    ])
   );
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -200,6 +226,12 @@ class ListOrdersState extends State<ListOrders>{
     ).beginQuickCall;
     setState(() => buttonPrint = ButtonState.default0);
     await Global.showAlertDialog(context, content: 'Tételek nyomtatás alatt.', title: 'Nyomtatás');
+  }
+
+  Future get _buttonAddPressed async{
+    setState(() => buttonAdd = ButtonState.loading);
+    Global.routeNext = NextRoute.addDeliveryBackFromPartner;
+    await DataManager().beginProcess;
   }
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------

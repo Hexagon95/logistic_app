@@ -22,20 +22,21 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   static String errorMessageBottomLine =  '';
   
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  MainMenuState mainMenuState =             MainMenuState.default0;
-  ButtonState buttonPickUpList =            ButtonState.default0;
-  ButtonState buttonDeliveryOut =           ButtonState.default0;
-  ButtonState buttonIncomingDeliveryNote =  ButtonState.default0;
-  ButtonState buttonLocalMaintenance =      ButtonState.default0;
-  ButtonState buttonListOrdersOut =         ButtonState.default0;
-  ButtonState buttonListOrders =            ButtonState.default0;
-  ButtonState buttonDeliveryNote =          ButtonState.default0;
-  ButtonState buttonRevenue =               ButtonState.disabled;
-  ButtonState buttonScanAndPrint =          ButtonState.default0;
-  ButtonState buttonCheckStock =            ButtonState.default0;
-  ButtonState buttonStockIn =               ButtonState.default0;
-  ButtonState buttonInventory =             ButtonState.default0;
-  ButtonState buttonDone =                  ButtonState.disabled;
+  MainMenuState mainMenuState =               MainMenuState.default0;
+  ButtonState buttonPickUpList =              ButtonState.default0;
+  ButtonState buttonDeliveryOut =             ButtonState.default0;
+  ButtonState buttonDeliveryBackFromPartner = ButtonState.default0;
+  ButtonState buttonIncomingDeliveryNote =    ButtonState.default0;
+  ButtonState buttonLocalMaintenance =        ButtonState.default0;
+  ButtonState buttonListOrdersOut =           ButtonState.default0;
+  ButtonState buttonListOrders =              ButtonState.default0;
+  ButtonState buttonDeliveryNote =            ButtonState.default0;
+  ButtonState buttonRevenue =                 ButtonState.disabled;
+  ButtonState buttonScanAndPrint =            ButtonState.default0;
+  ButtonState buttonCheckStock =              ButtonState.default0;
+  ButtonState buttonStockIn =                 ButtonState.default0;
+  ButtonState buttonInventory =               ButtonState.default0;
+  ButtonState buttonDone =                    ButtonState.disabled;
   late double _width;
   BoxDecoration customBoxDecoration =       BoxDecoration(            
     border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
@@ -129,7 +130,7 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
                     filter(8,   _drawDeliveryOut),
                     filter(9,   _drawButtonIncomingDeliveryNote(9)),
                     filter(10,  _drawButtonIncomingDeliveryNote(10)),
-                    filter(11,  _drawDeliveryBackFromPartner),
+                    filter(12,  _drawButtonIncomingDeliveryNote(12)),
                     const SizedBox(height: 20),
                     filter(11,  _drawButtonScanAndPrint),
                     filter(3,   _drawButtonDeliveryNote),
@@ -234,40 +235,46 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     ))
   );
 
-  Widget get _drawDeliveryBackFromPartner => Padding(
+  /*Widget get _drawDeliveryBackFromPartner => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
       style:      ButtonStyle(
-        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonDeliveryOut))),
-        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryOut))
+        side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonDeliveryBackFromPartner))),
+        backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonDeliveryBackFromPartner))
       ),
-      onPressed:  (buttonDeliveryOut == ButtonState.default0)? () => _buttonDeliveryOutPressed : null,          
+      onPressed:  (buttonDeliveryBackFromPartner == ButtonState.default0)? () => _buttonDeliveryBackFromPartnerPressed : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
-          visible:  (buttonDeliveryOut == ButtonState.loading)? true : false,
-          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonDeliveryOut))))
+          visible:  (buttonDeliveryBackFromPartner == ButtonState.loading)? true : false,
+          child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(buttonDeliveryBackFromPartner))))
         ),
-        Text((buttonDeliveryOut == ButtonState.loading)? 'Betöltés...' : menuList[11]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDeliveryOut)))
+        Text((buttonDeliveryBackFromPartner == ButtonState.loading)? 'Betöltés...' : menuList[11]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(buttonDeliveryBackFromPartner)))
       ])
     ))
-  );
+  );*/
 
   Widget _drawButtonIncomingDeliveryNote(int menuNumber){
-    ButtonState getButton() => (menuNumber == 9)? buttonLocalMaintenance : buttonIncomingDeliveryNote;
+
+    ButtonState getButton(int menuNumber) {switch(menuNumber){
+      case 9:   return buttonLocalMaintenance;
+      case 10:  return buttonIncomingDeliveryNote;
+      case 12:  return buttonDeliveryBackFromPartner;
+      default:  throw Exception('Menu item not implemented yet!');
+    }}
     return Padding(
       padding:  const EdgeInsets.symmetric(vertical: 10),
       child:    SizedBox(height: 40, width: _width, child: TextButton(          
         style:      ButtonStyle(
-          side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(getButton()))),
-          backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(getButton()))
+          side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(getButton(menuNumber)))),
+          backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(getButton(menuNumber)))
         ),
-        onPressed:  (getButton() == ButtonState.default0)? () => _buttonIncomingDeliveryNotePressed(menuNumber) : null,
+        onPressed:  (getButton(menuNumber) == ButtonState.default0)? () => _buttonIncomingDeliveryNotePressed(menuNumber) : null,
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Visibility(
-            visible:  (getButton() == ButtonState.loading)? true : false,
-            child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(getButton()))))
+            visible:  (getButton(menuNumber) == ButtonState.loading)? true : false,
+            child:    Padding(padding: const EdgeInsets.fromLTRB(0, 0, 10, 0), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Global.getColorOfIcon(getButton(menuNumber)))))
           ),
-          Text((getButton() == ButtonState.loading)? 'Betöltés...' : menuList[menuNumber - 1]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(getButton())))
+          Text((getButton(menuNumber) == ButtonState.loading)? 'Betöltés...' : menuList[menuNumber - 1]['megnevezes'], style: TextStyle(fontSize: 18, color: Global.getColorOfIcon(getButton(menuNumber))))
         ])
       ))
     );
@@ -454,9 +461,10 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     buttonPickUpList =        ButtonState.default0;
     await Navigator.pushNamed(context, '/listOrders');
     setState((){});
-  }
+  }   
 
   Future _buttonIncomingDeliveryNotePressed(int menuNumber) async{
+    if(menuNumber == 12) {await _buttonDeliveryBackFromPartnerPressed; return;}
     switch(menuNumber){
       case 9:   setState(() => buttonLocalMaintenance = ButtonState.loading);     break;
       default:  setState(() => buttonIncomingDeliveryNote = ButtonState.loading); break;
@@ -582,6 +590,17 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
   }}
 
   // ---------- < Methods [2] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future get _buttonDeliveryBackFromPartnerPressed async{
+    setState(() => buttonDeliveryBackFromPartner = ButtonState.loading);
+      await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
+      if(LogInMenuState.updateNeeded) Restart.restartApp();
+    Global.routeNext = NextRoute.deliveryBackFromPartner;
+    await DataManager().beginProcess;
+    buttonDeliveryBackFromPartner = ButtonState.default0;
+    await Navigator.pushNamed(context, '/incomingDeliveryNote');
+    setState((){});
+  }
+
   Future<bool> get _isInventoryDate async{
     DataManager dataManager = DataManager(quickCall: QuickCall.askInventoryDate);
     await dataManager.beginQuickCall;

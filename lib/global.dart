@@ -9,7 +9,7 @@ import 'src/scanner_datawedge.dart';
 enum NextRoute{                 logIn,                      menu,                             orderList,                                orderOutList,
   pickUpList,                   deliveryNoteList,           checkStock,                       inventory,                                pickUpData, 
   default0,                     pickUpDataFinish,           scanTasks,                        finishTasks,                              dataFormMonetization,
-  dataFormGiveDatas,            deliveryOut,                incomingDeliveryNote,             scanAndPrint
+  dataFormGiveDatas,            deliveryOut,                incomingDeliveryNote,             scanAndPrint,                             deliveryBackFromPartner, addDeliveryBackFromPartner
 }
 enum ButtonState{               hidden,                     loading,                          disabled,                                 error,
   default0
@@ -40,30 +40,33 @@ enum Work{incomingDeliveryNote, localMaintenance}
 
 class Global{
   // ---------- < Variables [Static] > - ---------- ---------- ----------
-  static List<NextRoute> _routes =          List<NextRoute>.empty(growable: true);
-  static NextRoute get currentRoute =>      _routes.last;
-  static NextRoute get previousRoute =>     (_routes.length >= 2)? _routes[_routes.length - 2] : _routes.first;
-  static void get routeBack                 {_routes.removeLast(); _printRoutes;}
+  static List<NextRoute> _routes =            List<NextRoute>.empty(growable: true);
+  static NextRoute get currentRoute =>        _routes.last;
+  static NextRoute? getRouteAt(int input) =>  (_routes.length > input && input >= 0)? _routes[input] : null;
+  static NextRoute get previousRoute =>       (_routes.length >= 2)? _routes[_routes.length - 2] : _routes.first;
+  static void get routeBack                   {_routes.removeLast(); _printRoutes;}
   static set routeNext (NextRoute value){
     int check(int i)  {while(_routes.length > i){_routes.removeLast();} while(_routes.length <= i){_routes.add(NextRoute.default0);} return i; }
     switch (value) {
-      case NextRoute.logIn:                 _routes[check(0)] =   value;  break;
-      case NextRoute.menu:                  _routes[check(1)] =   value;  break;
-      case NextRoute.orderList:             _routes[check(2)] =   value;  break;
-      case NextRoute.deliveryOut:           _routes[check(2)] =   value;  break;
-      case NextRoute.incomingDeliveryNote:  _routes[check(2)] =   value;  break;
-      case NextRoute.orderOutList:          _routes[check(2)] =   value;  break;
-      case NextRoute.pickUpList:            _routes[check(2)] =   value;  break;
-      case NextRoute.deliveryNoteList:      _routes[check(2)] =   value;  break;
-      case NextRoute.checkStock:            _routes[check(2)] =   value;  break;
-      case NextRoute.inventory:             _routes[check(2)] =   value;  break;
-      case NextRoute.scanAndPrint:          _routes[check(2)] =   value;  break;
-      case NextRoute.pickUpData:            _routes[check(3)] =   value;  break;
-      case NextRoute.scanTasks:             _routes[check(3)] =   value;  break;
-      case NextRoute.finishTasks:           _routes[check(3)] =   value;  break;
-      case NextRoute.dataFormMonetization:  _routes[check(3)] =   value;  break;
-      case NextRoute.dataFormGiveDatas:     _routes[check(3)] =   value;  break;
-      case NextRoute.pickUpDataFinish:      _routes[check(4)] =   value;  break;
+      case NextRoute.logIn:                       _routes[check(0)] =   value;  break;
+      case NextRoute.menu:                        _routes[check(1)] =   value;  break;
+      case NextRoute.orderList:                   _routes[check(2)] =   value;  break;
+      case NextRoute.deliveryOut:                 _routes[check(2)] =   value;  break;
+      case NextRoute.deliveryBackFromPartner:     _routes[check(2)] =   value;  break;
+      case NextRoute.incomingDeliveryNote:        _routes[check(2)] =   value;  break;
+      case NextRoute.orderOutList:                _routes[check(2)] =   value;  break;
+      case NextRoute.pickUpList:                  _routes[check(2)] =   value;  break;
+      case NextRoute.deliveryNoteList:            _routes[check(2)] =   value;  break;
+      case NextRoute.checkStock:                  _routes[check(2)] =   value;  break;
+      case NextRoute.inventory:                   _routes[check(2)] =   value;  break;
+      case NextRoute.scanAndPrint:                _routes[check(2)] =   value;  break;
+      case NextRoute.pickUpData:                  _routes[check(3)] =   value;  break;
+      case NextRoute.scanTasks:                   _routes[check(3)] =   value;  break;
+      case NextRoute.finishTasks:                 _routes[check(3)] =   value;  break;
+      case NextRoute.dataFormMonetization:        _routes[check(3)] =   value;  break;
+      case NextRoute.dataFormGiveDatas:           _routes[check(3)] =   value;  break;
+      case NextRoute.addDeliveryBackFromPartner:  _routes[check(3)] =   value;  break;
+      case NextRoute.pickUpDataFinish:            _routes[check(4)] =   value;  break;
       default:  throw Exception('Default rout has been thrown!!!!');
     }
     _printRoutes;

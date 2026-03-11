@@ -12,6 +12,7 @@ class SqlCommand{
     public function select_tabletBevetelezesek()                        {return "SELECT * FROM [dbo].[Tablet_Bevetelezesek] ()";}
     public function select_tabletBevetelezesek1()                       {return "SELECT * FROM [dbo].[Tablet_Bevetelezesek] (:raktar_id, :user_id)";}
     public function select_tabletKiszallitasok()                        {return "SELECT * FROM [dbo].[Tablet_Kiszallitasok] (:raktar_id, :user_id)";}
+    public function select_tabletPartnertolVissza()                     {return "SELECT * FROM [dbo].[Tablet_PartnertolVissza] (:raktar_id, :user_id)";}
     public function select_tabletHelysziniszereles()                    {return "SELECT * FROM [dbo].[Tablet_Helysziniszereles] (:raktar_id, :user_id)";}
     public function select_tabletBejovoszallitolevel()                  {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel] (:raktar_id, :user_id)";}
     public function select_rendelesek()                                 {return "SELECT * FROM [dbo].[Tablet_Rendelesek] ()";}
@@ -26,6 +27,7 @@ class SqlCommand{
     public function select_rendelesTetelek()                            {return "SELECT * FROM [dbo].[Tablet_Rendeles_tetelek] (:bizonylat_id, :user_id)";}
     public function select_tabletHelysziniszerelesTetelek()             {return "SELECT * FROM [dbo].[Tablet_Helysziniszereles_tetelek] (:bizonylat_id, :user_id)";}
     public function select_tabletBejovoszallitolevelTetelek()           {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel_tetelek] (:bizonylat_id, :user_id)";}
+    public function select_tabletPartnertolVisszaTetelek()              {return "SELECT * FROM [dbo].[Tablet_PartnertolVissza_tetelek] (:bizonylat_id, :user_id)";}
     public function select_Tablet_Helysziniszereles_tetelek_uj()        {return "SELECT * FROM [dbo].[Tablet_Helysziniszereles_tetelek_uj] (:bizonylat_id, :rendszam, 0, :user_id)";}
     public function select_Tablet_Bejovoszallitolevel_tetelek_uj()      {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel_tetelek_uj] (:bizonylat_id, :rendszam, 0, :user_id)";}
     public function select_tabletKiszallitasTetelek()                   {return "SELECT * FROM [dbo].[Tablet_Kiszallitas_tetelek] (:bizonylat_id, :user_id)";}
@@ -34,6 +36,7 @@ class SqlCommand{
     public function select_tabletLeltarVan()                            {return "SELECT * FROM [dbo].[Tablet_LeltarVan] ()";}
     public function select_tabletHelysziniszerelesUj()                  {return "SELECT * FROM [dbo].[Tablet_Helysziniszereles_uj] (:raktar_id, :user_id)";}
     public function select_tabletBejovoszallitolevelUj()                {return "SELECT * FROM [dbo].[Tablet_Bejovoszallitolevel_uj] (:raktar_id, :user_id)";}
+    public function select_tabletPartnertolVisszaUj()                   {return "SELECT * FROM [dbo].[Tablet_PartnertolVissza_uj] (:raktar_id, :user_id)";}
     public function select_tabletCikkInfo()                             {return "SELECT * FROM [dbo].[Tablet_Cikk_info] (:id, :raktar_id)";}
     public function select_abroncs_reszletezo()                         {return "SELECT * FROM [local].[Abroncs_reszletezo] (:id, :user_id)";}
     public function select_abroncs_reszletezo1()                        {return "SELECT * FROM [local].[Abroncs_reszletezo1] (:id, :tarhely_id)";}
@@ -57,6 +60,9 @@ class SqlCommand{
     public function exec_bizonylatFuvarlevelszamFelvitele()             {return "EXEC [dbo].[BizonylatFuvarlevelszamFelvitele] :parameter";}
     public function exec_keszletmozgatasFelvitele()                     {return "EXEC [dbo].[KeszletmozgatasFelvitele] :parameter, :user_id";}
 	public function exec_bizonylatDokumentumFelvitele()                 {return "EXEC [dbo].[BizonylatDokumentumFelvitele] :parameter, :user_id";}
+    public function exec_tabletPartnertolVisszaUjTetelRendszam()        {return "EXEC [dbo].[Tablet_PartnertolVissza_uj_tetel_Rendszam] :rendszam, :bizonylat_id, :user_id, :output";}
+    public function exec_tabletPartnertolVisszaTetelTorles()            {return "EXEC [dbo].[Tablet_PartnertolVissza_tetel_torles] :bizonylat_id, :tetel_id, :output";}
+    public function exec_tabletPartnertolVisszaLezaras()                {return "EXEC [dbo].[Tablet_PartnertolVissza_lezaras] :bizonylat_id, :user_id, :output";}
     public function exec_abroncs_reszletezo_felvitele()                 {return "EXEC [local].[Abroncs_reszletezo_felvitele_temp] :parameter, :user_id";}
     public function exec_abroncs_reszletezo_felvitele1()                {return "EXEC [local].[Abroncs_reszletezo_felvitele_temp1] :parameter, :user_id";}
     public function exec_barcodePrintTarhelyCikkek()                    {return "EXEC [local].[Barcode_print_tarhely_cikkek] :tarhely, :idk";}
@@ -65,6 +71,7 @@ class SqlCommand{
 	public function exec_tabletBetarolasFelvitele()                     {return "EXEC [dbo].[Tablet_Betarolas_Felvitele] :parameter, :user_id, :kimenet";}
     public function exec_tabletHelysziniszerelesUjFelvitele()           {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjFelvitele()         {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :user_id, :output";}
+    public function exec_tabletPartnertolVisszaUjFelvitele()            {return "EXEC [dbo].[Tablet_PartnertolVissza_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletHelysziniszerelesUjTetelFelvitele()      {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_tetel_Felvitele] :bizonylat_id, :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelFelvitele()    {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :user_id, :output";}
     public function exec_tabletHelysziniszerelesTetelTorles()           {return "EXEC [dbo].[Tablet_Helysziniszereles_tetel_torles] :bizonylat_id, :tetel_id, :output";}

@@ -17,15 +17,11 @@ class Task{
     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
         $this->sqlCommand =         new SqlCommand();
-        $queryString = (isset($this->request['delivery_type']) && $this->request['delivery_type'] === 'deliveryBackFromPartner')
-            ? $this->sqlCommand->select_tabletPartnertolVissza()
-            : $this->sqlCommand->select_tabletKiszallitasok()
-        ;
-        $this->databaseManager = new DatabaseManager(
-            $queryString,
+        $this->databaseManager =    new DatabaseManager(
+            $this->sqlCommand->select_tabletPartnertolVisszaTetelek(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'user_id'   => $this->request['user_id']
+                'bizonylat_id' =>   $this->request['bizonylat_id'],
+                'user_id' =>        $this->request['user_id']
             ],
             $this->request['customer']
         );
