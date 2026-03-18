@@ -282,7 +282,8 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     for (var item in rawData[0].keys) {switch(item){
       case 'ip':            
       case 'Sorszám':
-      case 'Vevő':
+      //case 'Vevő':
+      case 'Telephely':
       case 'Kelte':
       case 'Pénznem':
       case 'Bruttó érték':  columns.add(DataColumn(label: Text(item))); break;
@@ -389,7 +390,8 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
     for (var item in row.keys) {switch(item){
       case 'ip':
       case 'Sorszám':
-      case 'Vevő':
+      //case 'Vevő':
+      case 'Telephely':
       case 'Kelte':
       case 'Pénznem':       cells.add(DataCell(Text(row[item].toString()))); break;
       case 'Bruttó érték':  cells.add(DataCell(Align(
