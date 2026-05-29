@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logistic_app/routes/incoming_deliverynote.dart';
 import 'package:logistic_app/routes/list_pick_up_details.dart';
+import 'package:logistic_app/routes/inventory_mezandmol.dart';
 import 'package:logistic_app/routes/list_delivery_note.dart';
 import 'package:logistic_app/routes/scan_check_stock.dart';
 import 'package:logistic_app/routes/confirm_product.dart';
@@ -31,6 +32,7 @@ void main() async{
         '/scanCheckStock':        (context) => const ScanCheckStock(),
         '/listDeliveryNote':      (context) => const ListDeliveryNote(),
         '/listPickUpDetails':     (context) => const ListPickUpDetails(),
+        '/inventoryMezAndMol':    (context) => const InventoryMezAndMol(),
         '/incomingDeliveryNote':  (context) => const IncomingDeliveryNote(),
       },
     )

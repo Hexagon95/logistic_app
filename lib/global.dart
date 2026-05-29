@@ -6,36 +6,17 @@ import 'package:flutter/foundation.dart';
 
 import 'src/scanner_datawedge.dart';
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
-enum NextRoute{                 logIn,                      menu,                             orderList,                                orderOutList,
-  pickUpList,                   deliveryNoteList,           checkStock,                       inventory,                                pickUpData, 
-  default0,                     pickUpDataFinish,           scanTasks,                        finishTasks,                              dataFormMonetization,
-  dataFormGiveDatas,            deliveryOut,                incomingDeliveryNote,             scanAndPrint,                             deliveryBackFromPartner, addDeliveryBackFromPartner
-}
-enum ButtonState{               hidden,                     loading,                          disabled,                                 error,
-  default0
-}
-enum TaskState{                 askStorage,                 scanStorage,                      askProduct,                               scanProduct,
-  barcodeManual,                inventory,                  listDeliveryNotes,                itemData,                                 default0,
-  wrongItem,                    handleProduct,              scanDestinationStorage,           showPDF,                                  signature,
-  dataForm,                     dataList
-}
-enum QuickCall{                 askBarcode,                 deleteItem,                       saveInventory,                            askInventoryDate,
-  checkCode,                    checkStock,                 addItem,                          saveSignature,                            savePdf,
-  giveDatas,                    chainGiveDatas,             finishGiveDatas,                  scanDestinationStorage,                   askAbroncs,
-  print,                        checkArticle,               newEntry,                         verzio,                                   tabletBelep,
-  addNewDeliveryNote,           addNewDeliveryNoteFinished, askDeliveryNotesScan,             addDeliveryNoteItem,                      chainGiveDatasDeliveryNote,
-  addItemFinished,              plateNumberCheck,           printBarcodeDeliveryNote,         selectAddItemDeliveryNote,                finishSelectAddItemDeliveryNote,
-  editSelectedItemDeliveryNote, askEditItemDeliveryNote,    finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword,
-  removeDeliveryNoteItem,       logInNamePassword,          changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll
-}
-enum InDelNoteState{            addItem,                    listItems,                        addNew,                                   listSelectEditItemDeliveryNote,
-  default0,                     editItem,                   listSelectAddItemDeliveryNote,
-}
-enum DialogResult{              cancel,                     back,                             mainMenu}
-enum StockState{                checkStock,                 stockIn,                          default0}
-enum ScannedCodeIs{             storage,                    article,                          unknown}
-enum MainMenuState{                  default0,                   editPassword}
+enum NextRoute{logIn, menu, orderList, orderOutList, pickUpList, deliveryNoteList, checkStock, inventory, pickUpData, default0, pickUpDataFinish, scanTasks, finishTasks, dataFormMonetization, dataFormGiveDatas, deliveryOut, incomingDeliveryNote, scanAndPrint, deliveryBackFromPartner, addDeliveryBackFromPartner, inventoryMezAndMol}
+enum ButtonState{hidden, loading, disabled, error, default0}
+enum TaskState{askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, listDeliveryNotes, itemData, default0, wrongItem, handleProduct, scanDestinationStorage, showPDF, signature, dataForm, dataList}
+enum QuickCall{askBarcode, deleteItem, saveInventory, askInventoryDate, checkCode, checkStock, addItem, saveSignature, savePdf, giveDatas, chainGiveDatas, finishGiveDatas, scanDestinationStorage, askAbroncs, print, checkArticle, newEntry, verzio, tabletBelep, addNewDeliveryNote, addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword, removeDeliveryNoteItem, logInNamePassword, changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll}
+enum InDelNoteState{addItem, listItems, addNew, listSelectEditItemDeliveryNote, default0, editItem, listSelectAddItemDeliveryNote}
+enum DialogResult{cancel, back, mainMenu}
+enum StockState{checkStock, stockIn, default0}
+enum ScannedCodeIs{storage, article, unknown}
+enum MainMenuState{default0, editPassword}
 enum Work{incomingDeliveryNote, localMaintenance}
+enum InventoryMState{scanSotrageCode, scanItemsInStorage}
 
 
 class Global{
@@ -59,6 +40,7 @@ class Global{
       case NextRoute.deliveryNoteList:            _routes[check(2)] =   value;  break;
       case NextRoute.checkStock:                  _routes[check(2)] =   value;  break;
       case NextRoute.inventory:                   _routes[check(2)] =   value;  break;
+      case NextRoute.inventoryMezAndMol:          _routes[check(2)] =   value;  break;
       case NextRoute.scanAndPrint:                _routes[check(2)] =   value;  break;
       case NextRoute.pickUpData:                  _routes[check(3)] =   value;  break;
       case NextRoute.scanTasks:                   _routes[check(3)] =   value;  break;

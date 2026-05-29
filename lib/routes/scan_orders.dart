@@ -235,8 +235,8 @@ class ScanOrdersState extends State<ScanOrders>{
         style: const TextStyle(fontSize: 16)
       ))))],
       headingRowHeight:   30,
-      dataRowMinHeight:   30,
-      dataRowMaxHeight:   70,
+      dataRowMinHeight:   60,
+      dataRowMaxHeight:   double.infinity,
       rows:               _generateRows,
       showCheckboxColumn: true,
       border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
@@ -380,7 +380,10 @@ class ScanOrdersState extends State<ScanOrders>{
   List<DataCell> _getCells(Map<String, dynamic> item) => [DataCell(Column(children: [
     Text(item['cikkszam'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
     Text(item['megnevezes']),
-    Text('(${item['cikk_id'].toString()})', style: const TextStyle(fontWeight: FontWeight.bold))
+    Text('(${item['cikk_id'].toString()})', style: const TextStyle(fontWeight: FontWeight.bold)),
+    if(['1', 1].contains(item['kell_mennyiseg'])) Row(children: [
+      Text('Mennyiség: ${item['mennyiseg']}')
+    ])
   ]))];
 
   Widget _progressIndicator(Color colorInput) => Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: SizedBox(
@@ -681,8 +684,19 @@ class ScanOrdersState extends State<ScanOrders>{
             noMatch = false;
             if(!completedTasks.contains(item)){
               completedTasks.add(item);
-              if(varRoute == NextRoute.orderList) {buttonContinue = (contains(completedTasks, pickUpList))? ButtonState.default0 : ButtonState.disabled;}
-              else {buttonContinue = (contains(completedTasks, rawData[0]['tetelek']))? ButtonState.default0 : ButtonState.disabled;}
+              if(['1', 1].contains(item['kell_mennyiseg'])){
+                await Global.showAlertDialog(
+                  context,
+                  title: 'Mennyiség',
+                  content: 'Helyezzen ${item['mennyiseg']}db ${item['cikkszam']} cikkszámú terméket a gyűjtőterületre.',
+                );
+              }
+              if(varRoute == NextRoute.orderList) {
+                buttonContinue = (contains(completedTasks, pickUpList))? ButtonState.default0 : ButtonState.disabled;
+              }
+              else {
+                buttonContinue = (contains(completedTasks, rawData[0]['tetelek']))? ButtonState.default0 : ButtonState.disabled;
+              }
               if(buttonContinue == ButtonState.default0) await _buttonContinuePressed;
               break;
             }

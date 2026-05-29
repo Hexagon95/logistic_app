@@ -136,7 +136,8 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
                     filter(3,   _drawButtonDeliveryNote),
                     filter(4,   _drawButtonCheckStock),
                     filter(5,   _drawButtonStockIn),
-                    filter(6,   _drawButtonInventory),
+                    filter(6,   _drawButtonInventory(6)),
+                    filter(13,  _drawButtonInventory(13))
                   ],
                 ),
               ),
@@ -403,14 +404,14 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     ))
   );
 
-  Widget get _drawButtonInventory => Padding(
+  Widget _drawButtonInventory(int index) => Padding(
     padding:  const EdgeInsets.symmetric(vertical: 10),
     child:    SizedBox(height: 40, width: _width, child: TextButton(          
       style:      ButtonStyle(
         side:            MaterialStateProperty.all(BorderSide(color: Global.getColorOfIcon(buttonInventory))),
         backgroundColor: MaterialStateProperty.all(Global.getColorOfButton(buttonInventory))
       ),
-      onPressed:  (buttonInventory == ButtonState.default0)? () => _buttonInventoryPressed : null,          
+      onPressed:  (buttonInventory == ButtonState.default0)? () => _buttonInventoryPressed(index) : null,          
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Visibility(
           visible:  (buttonInventory == ButtonState.loading)? true : false,
@@ -552,22 +553,35 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
     setState((){});
   }
 
-  Future get _buttonInventoryPressed async{
+  Future _buttonInventoryPressed(int index) async{
     setState(() => buttonInventory = ButtonState.loading);
     await DataManager(quickCall: QuickCall.verzio).beginQuickCall;
     if(LogInMenuState.updateNeeded) Restart.restartApp();
-    if(await _isInventoryDate){
-      Global.routeNext =  NextRoute.inventory;
-      buttonInventory =   ButtonState.default0;
-      await Navigator.pushNamed(context, '/scanInventory');
-      setState((){});
-    }
-    else{
-      setState(() => buttonInventory = ButtonState.default0);
-      await Global.showAlertDialog(context,
-        title:    "Leltár hiba",
-        content:  "A main napra nincs kiírva leltár."
-      );
+    switch(index){
+      // ---------- ---------- ---------- ---------- ---------- ----------
+      case 6:
+        if(await _isInventoryDate){
+          Global.routeNext =  NextRoute.inventory;
+          buttonInventory =   ButtonState.default0;
+          await Navigator.pushNamed(context, '/scanInventory');
+          setState((){});
+        }
+        else{
+          setState(() => buttonInventory = ButtonState.default0);
+          await Global.showAlertDialog(context, title: "Leltár hiba", content: "A main napra nincs kiírva leltár.");
+        }
+        break;
+      // ---------- ---------- ---------- ---------- ---------- ----------
+      case 13:
+        Global.routeNext =  NextRoute.inventoryMezAndMol;
+        buttonInventory =   ButtonState.default0;
+        await DataManager().beginProcess;
+        await Navigator.pushNamed(context, '/inventoryMezAndMol');
+        setState((){});
+        break;
+      // ---------- ---------- ---------- ---------- ---------- ----------      
+      default:
+        break;
     }
   }
 

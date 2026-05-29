@@ -19,6 +19,7 @@ class SqlCommand{
     public function select_rendelesek1()                                {return "SELECT * FROM [dbo].[Tablet_Rendelesek] (:raktar_id, :user_id)";}
     public function select_tarhely_Id()                                 {return "SELECT * FROM [dbo].[Tarhely_id] (:input)";}
     public function select_tarhely_Id1()                                {return "SELECT * FROM [dbo].[Tarhely_id] (:raktar_id, :input, :user_id)";}
+    public function select_tablet_leltar_tarhelyek()                    {return "SELECT * FROM [local].[Tablet_Leltar_tarhelyek] (:raktar_id, :user_id)";}
     public function select_tarhelyKeszlet()                             {return "SELECT * FROM [dbo].[Tarhely_keszlet] (0, :tarhely_id, :datum)";}
     public function select_tarhelyKeszletEllenorzes()                   {return "SELECT * FROM [dbo].[Tarhely_keszlet_ellenorzes] (:tarhely_id)";}
     public function select_tarhelyKeszletEllenorzes1()                  {return "SELECT * FROM [dbo].[Tarhely_keszlet_ellenorzes] (:raktar_id, :tarhely_id, :user_id)";}

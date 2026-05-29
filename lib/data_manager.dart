@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 import 'package:logistic_app/global.dart';
 import 'package:logistic_app/routes/incoming_deliverynote.dart';
+import 'package:logistic_app/routes/inventory_mezandmol.dart';
 import 'package:logistic_app/routes/menu.dart';
 import 'package:logistic_app/routes/log_in.dart';
 import 'package:logistic_app/routes/data_form.dart';
@@ -25,7 +26,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.45a';
+  static String thisVersion =                             '1.46';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -919,6 +920,18 @@ class DataManager{
           if(kDebugMode)print(varString);
           break;
 
+        case NextRoute.inventoryMezAndMol:
+          var queryParameters = {
+            'customer':   customer,
+            'raktar_id':  raktarId,
+            'user_id':    userId
+          };
+          Uri uriUrl =              Uri.parse('${urlPath}inventory_mezandmol.php');
+          http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
+          data[check(1)] =          await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
+          if(kDebugMode) dev.log(data[1].toString());
+          break;
+
         case NextRoute.pickUpData:
           var queryParameters = {
             'customer':     customer,
@@ -983,7 +996,7 @@ class DataManager{
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           data[check(3)] =          await jsonDecode(response.body);          
           if(kDebugMode) dev.log(data[3].toString());
-          break;
+          break;        
 
         default:break;
       }
@@ -1351,6 +1364,10 @@ class DataManager{
         case NextRoute.inventory:        
           var varJson =                 jsonDecode(data[1][0]['keszlet']);
           ScanInventoryState.rawData =  (varJson[0]['tetelek'] != null)? varJson[0]['tetelek'] : <dynamic>[];
+          break;
+
+        case NextRoute.inventoryMezAndMol:
+          InventoryMezAndMolState.rawData = data[1];
           break;
         
         case NextRoute.deliveryNoteList:
