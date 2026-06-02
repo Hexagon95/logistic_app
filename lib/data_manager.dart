@@ -770,6 +770,18 @@ class DataManager{
           await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
           break;
 
+        case QuickCall.inventoryMezAndMolSave:
+          var queryParameters = {
+            'customer':   customer,
+            'parameter':  jsonEncode(input['parameter']),
+            'user_id':    userId            
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}inventory_mezandmol_save.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
+          dataQuickCall[check(38)] =  await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
+          if(kDebugMode) dev.log(dataQuickCall[38].toString());
+          break;
+
         default:break;
       }
     }

@@ -73,6 +73,7 @@ class SqlCommand{
     public function exec_tabletHelysziniszerelesUjFelvitele()           {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjFelvitele()         {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletPartnertolVisszaUjFelvitele()            {return "EXEC [dbo].[Tablet_PartnertolVissza_uj_Felvitele] :parameter, :user_id, :output";}
+    public function exce_tabletLeltarTarhelyFelvitele()                 {return 'EXEC [local].[Tablet_Leltar_tarhely_Felvitele] :parameter, :user_id, :output';}
     public function exec_tabletHelysziniszerelesUjTetelFelvitele()      {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_tetel_Felvitele] :bizonylat_id, :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelFelvitele()    {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :user_id, :output";}
     public function exec_tabletHelysziniszerelesTetelTorles()           {return "EXEC [dbo].[Tablet_Helysziniszereles_tetel_torles] :bizonylat_id, :tetel_id, :output";}
