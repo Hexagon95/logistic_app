@@ -26,7 +26,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.46';
+  static String thisVersion =                             '1.47';
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -777,7 +777,8 @@ class DataManager{
             'user_id':    userId            
           };
           Uri uriUrl =                Uri.parse('${urlPath}inventory_mezandmol_save.php');
-          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)print(response.body);
           dataQuickCall[check(38)] =  await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
           if(kDebugMode) dev.log(dataQuickCall[38].toString());
           break;
