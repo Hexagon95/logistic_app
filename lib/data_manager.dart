@@ -12,7 +12,7 @@ import 'package:logistic_app/routes/list_orders.dart';
 import 'package:logistic_app/routes/scan_inventory.dart';
 import 'package:logistic_app/routes/scan_check_stock.dart';
 import 'package:logistic_app/routes/list_delivery_note.dart';
-import 'package:logistic_app/routes/list_pick_up_details.dart';
+import 'package:logistic_app/routes/list_pick_up_details.dart'; 
 import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
@@ -26,12 +26,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.47';
+  static String thisVersion =                             '1.47a';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
 
-  static int verzioTest =                                 0;      // anything other than 0 will draw "[Teszt #]" at the LogIn screen.
+  static int verzioTest =                                 0;            // <--- Anything other than 0 will draw "[Teszt #]" at the LogIn screen.
 
   static String raktarMegnevezes=                         '';
   static String raktarId =                                '';
@@ -39,7 +39,7 @@ class DataManager{
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
   static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
-  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test,5
+  //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
   static List<dynamic> data =                             List<dynamic>.empty(growable: true);
   static List<dynamic> dataQuickCall =                    List<dynamic>.empty(growable: true);
   static bool isServerAvailable =                         true;
@@ -1366,12 +1366,12 @@ class DataManager{
         case NextRoute.orderOutList:
         case NextRoute.deliveryOut:
         case NextRoute.orderList:
-          ListOrdersState.rawData = data[1];
+          ListOrdersState.rawData = data[1] ?? [];
           break;
         
         case NextRoute.deliveryBackFromPartner:
         case NextRoute.incomingDeliveryNote:
-          IncomingDeliveryNoteState.rawDataListDeliveryNotes = data[1];
+          IncomingDeliveryNoteState.rawDataListDeliveryNotes = data[1] ?? [];
           break;
 
         case NextRoute.inventory:        
@@ -1380,7 +1380,7 @@ class DataManager{
           break;
 
         case NextRoute.inventoryMezAndMol:
-          InventoryMezAndMolState.rawData = data[1];
+          InventoryMezAndMolState.rawData = data[1] ?? [];
           break;
         
         case NextRoute.deliveryNoteList:

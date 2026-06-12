@@ -25,14 +25,9 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   ValueNotifier<ScannerDatas>? scannerDatas;
   ScannerDatawedge? scannerDatawedge;
   // ---------- [complex variables] ---------- ---------- ---------- //
-  String get message {switch(inventoryMState){
+  String _message = ''; set message(String value) => _message = value; String get message {if(_message.isNotEmpty) {return _message;} switch(inventoryMState){
     case InventoryMState.scanStorageCode:             return 'Kérem olvassa be a tárhely QR-kódját!';
-    case InventoryMState.scanStorageCodeError:        return '⚠️ Helytelen tárhely!';
-    case InventoryMState.scanStorageCodeSuccess:      return '✅ Tárhely azonosítva!';
     case InventoryMState.scanItemsInStorage:          return 'Kérem olvasson be egy cikket a tárhelyen!';
-    case InventoryMState.scanItemsInStorageSuccess:   return '✅ Cikk sikeresen beolvasva!';
-    case InventoryMState.scanItemsInStorageDuplicate: return '⚠️ Cikk már van beolvasva!';
-    case InventoryMState.scanItemsInStorageError:     return '⚠️ A beolvasott kód érvénytelen!';
     default: return '';
   }}
   int _index = 0; int get index => _index; set index(int value){
@@ -49,6 +44,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   
   // ---------- < Constructor > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   InventoryMezAndMolState() {
+    if(rawData.isEmpty) _inventoryMState = InventoryMState.empty;
     scannerDatas =      ValueNotifier(ScannerDatas(scanData: ''));
     scannerDatawedge =  ScannerDatawedge(
       scannerDatas: scannerDatas!,
@@ -76,15 +72,9 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
               border:       Border.all(color: _getColorBasedOnState, width: 4),
             ),
             child: ((){switch(inventoryMState){
-              // ---------- [scan Storage] ---------- ---------- ---------- //
-              case InventoryMState.scanStorageCodeError:
-              case InventoryMState.scanStorageCodeSuccess:
               case InventoryMState.scanStorageCode:     return _drawScanStorageCode;            
-              // ---------- [scan Item] -- ---------- ---------- ---------- //
-              case InventoryMState.scanItemsInStorageDuplicate:
-              case InventoryMState.scanItemsInStorageError:
-              case InventoryMState.scanItemsInStorageSuccess:
               case InventoryMState.scanItemsInStorage:  return _drawScanItemsInStorage;
+              case InventoryMState.empty:               return _drawEmpty;
               default:                                  return Container();
             }})()
           ))),
@@ -97,7 +87,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   // ---------- < WidgetBuild [1] > ---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
     Container(),
-    (index < rawData.length - 1)? _drawButtonStorage : _drawButtonSave
+    if(inventoryMState != InventoryMState.empty) (index < rawData.length - 1)? _drawButtonStorage : _drawButtonSave
   ]));
   
   Widget get _drawScanStorageCode => Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: [Column(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -105,7 +95,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     Padding(padding: const EdgeInsets.all(10), child: Icon(Icons.shelves, size: 160, color: Global.getColorOfButton(ButtonState.default0))),
     Container(
       padding:    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: Color.fromARGB(255, 60, 60, 60), borderRadius: BorderRadius.circular(100)),
+      decoration: BoxDecoration(color: Color.fromARGB(255, 60, 60, 60), borderRadius: BorderRadius.circular(20)),
       child:      Text(message, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 14))
     )
   ])]);
@@ -115,7 +105,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     Padding(padding: const EdgeInsets.all(10), child: Icon(Icons.qr_code_scanner, size: 160, color: Global.getColorOfButton(ButtonState.loading))),
     Container(
       padding:    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: Color.fromARGB(255, 60, 60, 60), borderRadius: BorderRadius.circular(100)),
+      decoration: BoxDecoration(color: Color.fromARGB(255, 60, 60, 60), borderRadius: BorderRadius.circular(20)),
       child:      Text(message, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 14))
     ),
     Padding(padding: const EdgeInsets.all(5), child: Container(
@@ -126,6 +116,15 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
         Text(listOfItems[index].length.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))
       ])
     ))
+  ])]);
+
+  Widget get _drawEmpty => Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: [Column(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: [
+    Padding(padding: const EdgeInsets.all(10), child: Icon(Icons.done, size: 260, color: Global.getColorOfButton(ButtonState.disabled))),
+    Container(
+      padding:    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(color: Color.fromARGB(255, 60, 60, 60), borderRadius: BorderRadius.circular(20)),
+      child:      Text('✅ Nincs leltározási feladat!', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 14))
+    )
   ])]);
 
   // ---------- < WidgetBuild [2] > ---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
@@ -198,6 +197,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   }
 
   Future<bool> _handlePop() async {
+    if(inventoryMState == InventoryMState.empty) return true;
     bool result = (await Global.yesNoDialog(context, title: 'ℹ️ Leltár folymat félbeszakítása', content: 'Kívánja félbeszakítani a leltár folyamatát és visszalépni a főmenübe?\n\n💾 Az idáig beolvasott adatok elmentésre kerülnek.'));
     if(result){
       List<Map<String, dynamic>> parameter = [];
@@ -224,27 +224,29 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   Future<void> _triggerScan() async {switch(inventoryMState){
     case InventoryMState.scanStorageCode:
       String scanResult = scannerDatas!.value.scanData.trim();
-      setState(() => inventoryMState = (rawData[index]['barcode'].toString() == scanResult)? InventoryMState.scanStorageCodeSuccess : InventoryMState.scanStorageCodeError);
-      if(inventoryMState == InventoryMState.scanStorageCodeError) AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() => inventoryMState = (inventoryMState == InventoryMState.scanStorageCodeSuccess)? InventoryMState.scanItemsInStorage : InventoryMState.scanStorageCode);
+      if((rawData[index]['barcode'].toString() != scanResult)){
+        AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
+        setState(() => message = '⚠️ Helytelen tárhely kód!\n$scanResult');
+        Future.delayed(const Duration(seconds: 3), () => setState(() => message = ''));
+      }
+      else {setState(() => inventoryMState = InventoryMState.scanItemsInStorage);}
       break;
 
     case InventoryMState.scanItemsInStorage:
       String scanResult =     scannerDatas!.value.scanData.trim();
       if(!RegExp(r'^\d+$').hasMatch(scanResult)){
-        setState(() => inventoryMState = InventoryMState.scanItemsInStorageError);
+        setState(() => message = '⚠️ Érvénytelen vonalkód!\n$scanResult');
         AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
-        await Future.delayed(const Duration(seconds: 1));
-        setState(() => inventoryMState = InventoryMState.scanItemsInStorage);
+        Future.delayed(const Duration(seconds: 3), () => setState(() => message = ''));
         return; 
       }
-      bool alreadyContains =  (listOfItems[index].contains(scanResult));
-      setState(() => inventoryMState = (alreadyContains)? InventoryMState.scanItemsInStorageDuplicate : InventoryMState.scanItemsInStorageSuccess);
-      if(!alreadyContains) listOfItems[index].add(scanResult);
-      if(inventoryMState == InventoryMState.scanItemsInStorageDuplicate) AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() => inventoryMState = InventoryMState.scanItemsInStorage);
+      if(listOfItems[index].contains(scanResult)){
+        setState(() => message = '⚠️ Ez a vonalkód már be lett olvasva!\n$scanResult');
+        AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
+        Future.delayed(const Duration(seconds: 3), () => setState(() => message = ''));
+        return;
+      }
+      setState(() => listOfItems[index].add(scanResult));
       break;
 
     default: break;

@@ -16,7 +16,7 @@ enum StockState{checkStock, stockIn, default0}
 enum ScannedCodeIs{storage, article, unknown}
 enum MainMenuState{default0, editPassword}
 enum Work{incomingDeliveryNote, localMaintenance}
-enum InventoryMState{scanStorageCode, scanStorageCodeError, scanStorageCodeSuccess, scanItemsInStorage, scanItemsInStorageSuccess, scanItemsInStorageDuplicate, scanItemsInStorageError}
+enum InventoryMState{scanStorageCode, scanItemsInStorage, empty}
 
 
 class Global{
