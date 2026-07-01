@@ -20,8 +20,9 @@ class Task{
         $this->databaseManager =    new DatabaseManager(
             $this->sqlCommand->select_tablet_leltar_tarhelyek(),
             [
-                'raktar_id' =>  $this->request['raktar_id'],
-                'user_id' =>    $this->request['user_id']
+                'raktar_id' =>      $this->request['raktar_id'],
+                'bizonylat_id' =>   $this->request['bizonylat_id'],
+                'user_id' =>        $this->request['user_id']
             ],
             $this->request['customer']
         );

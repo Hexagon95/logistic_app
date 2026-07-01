@@ -19,7 +19,8 @@ class SqlCommand{
     public function select_rendelesek1()                                {return "SELECT * FROM [dbo].[Tablet_Rendelesek] (:raktar_id, :user_id)";}
     public function select_tarhely_Id()                                 {return "SELECT * FROM [dbo].[Tarhely_id] (:input)";}
     public function select_tarhely_Id1()                                {return "SELECT * FROM [dbo].[Tarhely_id] (:raktar_id, :input, :user_id)";}
-    public function select_tablet_leltar_tarhelyek()                    {return "SELECT * FROM [local].[Tablet_Leltar_tarhelyek] (:raktar_id, :user_id)";}
+    public function select_tablet_leltar_tarhelyek()                    {return "SELECT * FROM [local].[Tablet_Leltar_tarhelyek] (:raktar_id, :bizonylat_id, :user_id)";}
+    public function select_tablet_leltar_bizonylatok()                  {return "SELECT * FROM [local].[Tablet_Leltar_bizonylatok] (:raktar_id, :user_id)";}
     public function select_tarhelyKeszlet()                             {return "SELECT * FROM [dbo].[Tarhely_keszlet] (0, :tarhely_id, :datum)";}
     public function select_tarhelyKeszletEllenorzes()                   {return "SELECT * FROM [dbo].[Tarhely_keszlet_ellenorzes] (:tarhely_id)";}
     public function select_tarhelyKeszletEllenorzes1()                  {return "SELECT * FROM [dbo].[Tarhely_keszlet_ellenorzes] (:raktar_id, :tarhely_id, :user_id)";}
@@ -73,7 +74,7 @@ class SqlCommand{
     public function exec_tabletHelysziniszerelesUjFelvitele()           {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjFelvitele()         {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_Felvitele] :parameter, :user_id, :output";}
     public function exec_tabletPartnertolVisszaUjFelvitele()            {return "EXEC [dbo].[Tablet_PartnertolVissza_uj_Felvitele] :parameter, :user_id, :output";}
-    public function exce_tabletLeltarTarhelyFelvitele()                 {return 'EXEC [local].[Tablet_Leltar_tarhely_Felvitele] :parameter, :user_id, :output';}
+    public function exce_tabletLeltarTarhelyFelvitele()                 {return 'EXEC [local].[Tablet_Leltar_tarhely_Felvitele] :parameter, :user_id, :lezart, :output';}
     public function exec_tabletHelysziniszerelesUjTetelFelvitele()      {return "EXEC [dbo].[Tablet_Helysziniszereles_uj_tetel_Felvitele] :bizonylat_id, :parameter, :user_id, :output";}
     public function exec_tabletBejovoszallitolevelUjTetelFelvitele()    {return "EXEC [dbo].[Tablet_Bejovoszallitolevel_uj_tetel_Felvitele] :bizonylat_id, :parameter, :user_id, :output";}
     public function exec_tabletHelysziniszerelesTetelTorles()           {return "EXEC [dbo].[Tablet_Helysziniszereles_tetel_torles] :bizonylat_id, :tetel_id, :output";}

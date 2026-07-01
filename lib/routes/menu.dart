@@ -575,7 +575,7 @@ class MenuState extends State<Menu>{ //--------- ---------- ---------- ---------
       case 13:
         Global.routeNext =  NextRoute.inventoryMezAndMol;
         buttonInventory =   ButtonState.default0;
-        await DataManager().beginProcess;
+        await DataManager(quickCall: QuickCall.inventoryBizonylatok).beginQuickCall;
         await Navigator.pushNamed(context, '/inventoryMezAndMol');
         setState((){});
         break;

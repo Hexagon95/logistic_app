@@ -14,43 +14,52 @@ class InventoryMezAndMol extends StatefulWidget {
 }
 
 class InventoryMezAndMolState extends State<InventoryMezAndMol> {
-  // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
-  static List<dynamic> rawData = [];
-
   // ---------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
-  // ---------- [simple variables] ----------- ---------- ---------- //  
-  ButtonState buttonStorage =       ButtonState.disabled;
-  ButtonState buttonSave =          ButtonState.default0;
-  List<List<String>> listOfItems =  [];
-  ValueNotifier<ScannerDatas>? scannerDatas;
-  ScannerDatawedge? scannerDatawedge;
-  // ---------- [complex variables] ---------- ---------- ---------- //
-  String _message = ''; set message(String value) => _message = value; String get message {if(_message.isNotEmpty) {return _message;} switch(inventoryMState){
-    case InventoryMState.scanStorageCode:             return 'Kérem olvassa be a tárhely QR-kódját!';
-    case InventoryMState.scanItemsInStorage:          return 'Kérem olvasson be egy cikket a tárhelyen!';
-    default: return '';
-  }}
-  int _index = 0; int get index => _index; set index(int value){
-    if(value < rawData.length) _index = value;
-  }
-  InventoryMState _inventoryMState = InventoryMState.scanStorageCode; InventoryMState get inventoryMState => _inventoryMState; set inventoryMState(InventoryMState value){
-    ButtonState getButtonStateForButtonStorage() {switch(value){
-      case InventoryMState.scanItemsInStorage:  return (rawData.length > index + 1)? ButtonState.default0 : ButtonState.disabled;
-      default:                                  return ButtonState.disabled;
+
+    // ---------- [⚡️ static variables] --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    static List<dynamic> rawData =          [];
+    static List<dynamic> listBizonylatok =  [];
+
+    // ---------- [🌸 simple variables] --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    ButtonState buttonStorage =       ButtonState.disabled;
+    ButtonState buttonContinue =      ButtonState.disabled;
+    ButtonState buttonSave =          ButtonState.default0;
+    List<List<String>> listOfItems =  [];
+    ValueNotifier<ScannerDatas>? scannerDatas;
+    ScannerDatawedge? scannerDatawedge;
+    int? selectedBizonylat;
+
+    // ---------- [💎 complex variables] -- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    InventoryMState _inventoryMState = InventoryMState.inventoryPick; InventoryMState get inventoryMState => _inventoryMState; set inventoryMState(InventoryMState value){
+      ButtonState getButtonStateForButtonStorage() {switch(value){
+        case InventoryMState.scanItemsInStorage:  return (rawData.length > index + 1)? ButtonState.default0 : ButtonState.disabled;
+        default:                                  return ButtonState.disabled;
+      }}
+      buttonStorage =     getButtonStateForButtonStorage();
+      _inventoryMState =  value;
+    }
+    String _message = ''; set message(String value) => _message = value; String get message {if(_message.isNotEmpty) {return _message;} switch(inventoryMState){
+      case InventoryMState.scanStorageCode:             return 'Kérem olvassa be a tárhely QR-kódját!';
+      case InventoryMState.scanItemsInStorage:          return 'Kérem olvasson be egy cikket a tárhelyen!';
+      default: return '';
     }}
-    buttonStorage =     getButtonStateForButtonStorage();
-    _inventoryMState =  value;
-  }
+    int _index = 0; int get index => _index; set index(int value){
+      if(value < rawData.length) _index = value;
+    }
+    Color get colorBasedOnState {switch(inventoryMState){
+      case InventoryMState.scanStorageCode:     return Global.getColorOfButton(ButtonState.default0);
+      case InventoryMState.scanItemsInStorage:  return Global.getColorOfButton(ButtonState.loading);
+      default:                                  return Colors.transparent;
+    }}
   
   // ---------- < Constructor > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   InventoryMezAndMolState() {
-    if(rawData.isEmpty) _inventoryMState = InventoryMState.empty;
+    //if(rawData.isEmpty) _inventoryMState = InventoryMState.empty;
     scannerDatas =      ValueNotifier(ScannerDatas(scanData: ''));
     scannerDatawedge =  ScannerDatawedge(
       scannerDatas: scannerDatas!,
       profileName:  'InventoryMezAndMol'
     );
-    listOfItems = List.generate(rawData.length, (_) => []);
   }
 
   // ---------- < WidgetBuild [1] > ---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
@@ -65,21 +74,25 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
           backgroundColor: Global.getColorOfButton(ButtonState.default0),
           foregroundColor: Global.getColorOfIcon(ButtonState.default0),
         ),
-        body: Column(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Expanded(child: Padding(padding: const EdgeInsets.all(10), child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border:       Border.all(color: _getColorBasedOnState, width: 4),
-            ),
-            child: ((){switch(inventoryMState){
-              case InventoryMState.scanStorageCode:     return _drawScanStorageCode;            
-              case InventoryMState.scanItemsInStorage:  return _drawScanItemsInStorage;
-              case InventoryMState.empty:               return _drawEmpty;
-              default:                                  return Container();
-            }})()
-          ))),
-          _drawBottomBar
-        ])
+        body: GestureDetector(
+          onTap: _unselect,
+          child: Column(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Expanded(child: Padding(padding: const EdgeInsets.all(10), child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border:       Border.all(color: colorBasedOnState, width: 4),
+              ),
+              child: ((){switch(inventoryMState){
+                case InventoryMState.scanStorageCode:     return _drawScanStorageCode;            
+                case InventoryMState.scanItemsInStorage:  return _drawScanItemsInStorage;
+                case InventoryMState.inventoryPick:       return _drawListBizonylatok;
+                case InventoryMState.empty:               return _drawEmpty;
+                default:                                  return Container();
+              }})()
+            ))),
+            _drawBottomBar
+          ])
+        )
       )
     );
   }
@@ -87,7 +100,11 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   // ---------- < WidgetBuild [1] > ---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
     Container(),
-    if(inventoryMState != InventoryMState.empty) (index < rawData.length - 1)? _drawButtonStorage : _drawButtonSave
+    ((){switch(inventoryMState){
+      case InventoryMState.inventoryPick:       return _drawButtonContinue;
+      case InventoryMState.empty:               return Container();
+      default:                                  return (index < rawData.length - 1)? _drawButtonStorage : _drawButtonSave;
+    }})(),
   ]));
   
   Widget get _drawScanStorageCode => Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: [Column(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -113,10 +130,24 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), border: Border.all(color: Color.fromARGB(255, 60, 60, 60), width: 1)),
       child:      Column(children: [
         Text('Leolvasott termékek száma:', textAlign: TextAlign.center, style: TextStyle(fontSize: 14)),
-        Text(listOfItems[index].length.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))
+        Text((listOfItems.isNotEmpty)? listOfItems[index].length.toString() : '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))
       ])
     ))
   ])]);
+
+  Widget get _drawListBizonylatok => ListView.builder(
+    itemCount:    listBizonylatok.length,
+    itemBuilder:  (context, index) {
+      bool isSelected = (selectedBizonylat == index);
+      return Card(color: isSelected? Global.getColorOfButton(ButtonState.default0) : null, child: ListTile(
+        leading:  Icon(Icons.description, color: isSelected? Global.getColorOfIcon(ButtonState.default0) : null),
+        title:    Text(listBizonylatok[index]['sorszam'].toString(), style: TextStyle(color: isSelected? Global.getColorOfIcon(ButtonState.default0) : null, fontWeight: FontWeight.bold)),
+        subtitle: Text(listBizonylatok[index]['tarhely'].toString(), style: TextStyle(color: isSelected? Global.getColorOfIcon(ButtonState.default0) : null)),
+        trailing: isSelected? Icon(Icons.check_circle, color: Global.getColorOfIcon(ButtonState.default0)) : null,
+        onTap:    () => _onBizonylatSelected(index)
+      ));
+    },
+  );
 
   Widget get _drawEmpty => Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: [Column(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: [
     Padding(padding: const EdgeInsets.all(10), child: Icon(Icons.done, size: 260, color: Global.getColorOfButton(ButtonState.disabled))),
@@ -137,6 +168,15 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     ])
   );
 
+  Widget get _drawButtonContinue => TextButton(
+    onPressed:  (buttonContinue == ButtonState.default0)? buttonContinuePressed : null,
+    style:      ButtonStyle(foregroundColor: WidgetStatePropertyAll(Global.getColorOfIcon(buttonContinue))),
+    child:      Row(children: [
+      if(buttonContinue == ButtonState.loading) _progressIndicator,
+      Icon(Icons.arrow_forward, size: 36)
+    ])
+  );
+
   Widget get _drawButtonSave => TextButton(
     onPressed:  (buttonSave == ButtonState.default0)? buttonSavePressed : null,
     style:      ButtonStyle(foregroundColor: WidgetStatePropertyAll(Global.getColorOfIcon(buttonSave))),
@@ -154,22 +194,26 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   ));
 
   // ---------- < Methods [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+  void _onBizonylatSelected(int index) => (buttonContinue == ButtonState.disabled)? setState(() {selectedBizonylat = index; buttonContinue = ButtonState.default0;}) : null;
+  void _initListOfIems() => listOfItems = List.generate(rawData.length, (_) => []);
+
   @override
   void initState(){
     super.initState();
     scannerDatas!.addListener(_triggerScan);
-  }
+  }  
 
-  Color get _getColorBasedOnState {switch(inventoryMState){
-    // ---------- [scan Storage] ---------- ---------- ---------- //
-    case InventoryMState.scanStorageCode:
-      return Global.getColorOfButton(ButtonState.default0);
-    // ---------- [scan Item] -- ---------- ---------- ---------- //
-    case InventoryMState.scanItemsInStorage:
-      return Global.getColorOfButton(ButtonState.loading);
-    // ---------- [Default] ---- ---------- ---------- ---------- //
-    default: return Colors.transparent;
+  void _unselect() {switch(inventoryMState){
+    case InventoryMState.inventoryPick: return (buttonContinue == ButtonState.default0)? setState((){selectedBizonylat = null; buttonContinue = ButtonState.disabled;}) : null;
+    default:                            return;
   }}
+
+  Future buttonContinuePressed() async{
+    setState(() => buttonContinue = ButtonState.loading);
+    await DataManager(input: {'bizonylat_id': listBizonylatok[selectedBizonylat!]['bizonylat_id']}).beginProcess;
+    _initListOfIems();
+    setState(() => inventoryMState = InventoryMState.scanStorageCode);
+  }
 
   Future buttonStoragePressed() async {if(await Global.yesNoDialog(context, title: 'Következő tárhely: ${rawData[index + 1]['tarhely_megnevezes']}', content: 'Minden Cikket sikerült beolvasni?')){
     setState(() => buttonStorage = ButtonState.loading);
@@ -190,16 +234,16 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
           'tetelek':      listOfItems[i].map((e) => {'abroncs_id': e}).toList()
         });
       }
-      await DataManager(quickCall: QuickCall.inventoryMezAndMolSave, input: {'parameter': parameter}).beginQuickCall;
+      await DataManager(quickCall: QuickCall.inventoryMezAndMolSave, input: {'parameter': parameter, 'lezart': 1}).beginQuickCall;
       if(mounted) Navigator.pop(context);
     }
     if(mounted) setState(() => buttonSave = ButtonState.default0);
   }
 
   Future<bool> _handlePop() async {
-    if(inventoryMState == InventoryMState.empty) return true;
+    if([InventoryMState.empty, InventoryMState.inventoryPick].contains(inventoryMState)) return true;
     bool result = (await Global.yesNoDialog(context, title: 'ℹ️ Leltár folymat félbeszakítása', content: 'Kívánja félbeszakítani a leltár folyamatát és visszalépni a főmenübe?\n\n💾 Az idáig beolvasott adatok elmentésre kerülnek.'));
-    if(result){
+    if(result && listOfItems.isNotEmpty) {
       List<Map<String, dynamic>> parameter = [];
       for(int i = 0; i <= index; i++){
         parameter.add({
@@ -211,7 +255,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
       await DataManager(quickCall: QuickCall.inventoryMezAndMolSave, input: {'parameter': parameter}).beginQuickCall;
     }
     return result;
-  }
+  } 
 
   @override
   void dispose() {
@@ -234,7 +278,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
 
     case InventoryMState.scanItemsInStorage:
       String scanResult =     scannerDatas!.value.scanData.trim();
-      if(!RegExp(r'^\d+$').hasMatch(scanResult)){
+      if(!RegExp(r'^\d{6,7}$').hasMatch(scanResult)){
         setState(() => message = '⚠️ Érvénytelen vonalkód!\n$scanResult');
         AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
         Future.delayed(const Duration(seconds: 3), () => setState(() => message = ''));

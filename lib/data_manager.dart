@@ -26,7 +26,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.47a';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
+  static String thisVersion =                             '1.47d';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -771,16 +771,32 @@ class DataManager{
           break;
 
         case QuickCall.inventoryMezAndMolSave:
-          var queryParameters = {
+          final queryParameters = {
             'customer':   customer,
             'parameter':  jsonEncode(input['parameter']),
+            'user_id':    userId,
+            'lezart':     input['lezart'] ?? 0,
+          };
+          final response = await http.post(Uri.parse('${urlPath}inventory_mezandmol_save.php'), body: jsonEncode(queryParameters), headers: headers);
+          if (kDebugMode) print(response.body);
+          dynamic decoded = jsonDecode(response.body);
+          if(decoded is String) decoded = jsonDecode(decoded);
+          final b = (decoded is List && decoded.isNotEmpty && decoded.first is Map)? (decoded.first as Map)['b'] : null;
+          dataQuickCall[check(38)] = (b == null)? null : jsonDecode(b.toString());
+          if (kDebugMode) dev.log(dataQuickCall[38].toString());
+          break;
+
+        case QuickCall.inventoryBizonylatok:
+          var queryParameters = {
+            'customer':   customer,
+            'raktar_id':  raktarId,
             'user_id':    userId            
           };
-          Uri uriUrl =                Uri.parse('${urlPath}inventory_mezandmol_save.php');
+          Uri uriUrl =                Uri.parse('${urlPath}inventory_bizonylatok.php');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-          if(kDebugMode)print(response.body);
-          dataQuickCall[check(38)] =  await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
-          if(kDebugMode) dev.log(dataQuickCall[38].toString());
+          if(kDebugMode)dev.log(response.body);
+          dataQuickCall[check(39)] =  await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
+          if(kDebugMode) dev.log(dataQuickCall[39].toString());
           break;
 
         default:break;
@@ -935,9 +951,10 @@ class DataManager{
 
         case NextRoute.inventoryMezAndMol:
           var queryParameters = {
-            'customer':   customer,
-            'raktar_id':  raktarId,
-            'user_id':    userId
+            'customer':     customer,
+            'raktar_id':    raktarId,
+            'bizonylat_id': input['bizonylat_id'],
+            'user_id':      userId
           };
           Uri uriUrl =              Uri.parse('${urlPath}inventory_mezandmol.php');
           http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);          
@@ -1318,6 +1335,10 @@ class DataManager{
           LogInMenuState.forgottenPasswordMessage = '';
           if(dataQuickCall[32][0]['errors'].isEmpty) {for(dynamic item in dataQuickCall[32][0]['message']) {LogInMenuState.forgottenPasswordMessage += '${item['text']}\n';}}
           else {for(dynamic item in dataQuickCall[32][0]['errors']) {LogInMenuState.forgottenPasswordMessage += '${item['text']}\n';}}
+          break;
+
+        case QuickCall.inventoryBizonylatok:
+          InventoryMezAndMolState.listBizonylatok = dataQuickCall[39];
           break;
         
         default:break;

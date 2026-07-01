@@ -9,14 +9,14 @@ import 'src/scanner_datawedge.dart';
 enum NextRoute{logIn, menu, orderList, orderOutList, pickUpList, deliveryNoteList, checkStock, inventory, pickUpData, default0, pickUpDataFinish, scanTasks, finishTasks, dataFormMonetization, dataFormGiveDatas, deliveryOut, incomingDeliveryNote, scanAndPrint, deliveryBackFromPartner, addDeliveryBackFromPartner, inventoryMezAndMol, inventoryMezAndMolSave}
 enum ButtonState{hidden, loading, disabled, error, default0}
 enum TaskState{askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, listDeliveryNotes, itemData, default0, wrongItem, handleProduct, scanDestinationStorage, showPDF, signature, dataForm, dataList}
-enum QuickCall{askBarcode, deleteItem, saveInventory, askInventoryDate, checkCode, checkStock, addItem, saveSignature, savePdf, giveDatas, chainGiveDatas, finishGiveDatas, scanDestinationStorage, askAbroncs, print, checkArticle, newEntry, verzio, tabletBelep, addNewDeliveryNote, addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword, removeDeliveryNoteItem, logInNamePassword, changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll, inventoryMezAndMolSave}
+enum QuickCall{askBarcode, deleteItem, saveInventory, askInventoryDate, checkCode, checkStock, addItem, saveSignature, savePdf, giveDatas, chainGiveDatas, finishGiveDatas, scanDestinationStorage, askAbroncs, print, checkArticle, newEntry, verzio, tabletBelep, addNewDeliveryNote, addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword, removeDeliveryNoteItem, logInNamePassword, changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll, inventoryMezAndMolSave, inventoryBizonylatok}
 enum InDelNoteState{addItem, listItems, addNew, listSelectEditItemDeliveryNote, default0, editItem, listSelectAddItemDeliveryNote}
 enum DialogResult{cancel, back, mainMenu}
 enum StockState{checkStock, stockIn, default0}
 enum ScannedCodeIs{storage, article, unknown}
 enum MainMenuState{default0, editPassword}
 enum Work{incomingDeliveryNote, localMaintenance}
-enum InventoryMState{scanStorageCode, scanItemsInStorage, empty}
+enum InventoryMState{inventoryPick, scanStorageCode, scanItemsInStorage, empty}
 
 
 class Global{
