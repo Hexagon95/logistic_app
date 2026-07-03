@@ -26,7 +26,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.47d';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
+  static String thisVersion =                             '1.47e';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -43,6 +43,7 @@ class DataManager{
   static List<dynamic> data =                             List<dynamic>.empty(growable: true);
   static List<dynamic> dataQuickCall =                    List<dynamic>.empty(growable: true);
   static bool isServerAvailable =                         true;
+  static String userName =                                '';
   static int userId =                                     0;
 
   static final FlutterSecureStorage _sec =                const FlutterSecureStorage();
@@ -1328,6 +1329,7 @@ class DataManager{
         case QuickCall.logInNamePassword:
           LogInMenuState.logInNamePassword = dataQuickCall[31];
           userId =          (dataQuickCall[31].isNotEmpty)? int.parse(dataQuickCall[31][0]['id'].toString()) : -1;
+          userName =        (dataQuickCall[31].isNotEmpty)? dataQuickCall[31][0]['nev'].toString() : '';
           MenuState.email = (dataQuickCall[31].isNotEmpty)? dataQuickCall[31][0]['email'] : '';
           break;
 

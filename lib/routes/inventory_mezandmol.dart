@@ -2,9 +2,10 @@
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:logistic_app/src/scanner_datawedge.dart';
 import 'package:logistic_app/data_manager.dart';
 import 'package:logistic_app/global.dart';
-import 'package:logistic_app/src/scanner_datawedge.dart';
 
 class InventoryMezAndMol extends StatefulWidget {
   const InventoryMezAndMol({super.key});
@@ -24,7 +25,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     ButtonState buttonStorage =       ButtonState.disabled;
     ButtonState buttonContinue =      ButtonState.disabled;
     ButtonState buttonSave =          ButtonState.default0;
-    List<List<String>> listOfItems =  [];
+    List<List<dynamic>> listOfItems =  [];
     ValueNotifier<ScannerDatas>? scannerDatas;
     ScannerDatawedge? scannerDatawedge;
     int? selectedBizonylat;
@@ -231,7 +232,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
         parameter.add({
           'bizonylat_id': rawData[i]['bizonylat_id'],
           'tarhely_id':   rawData[i]['tarhely_id'],
-          'tetelek':      listOfItems[i].map((e) => {'abroncs_id': e}).toList()
+          'tetelek':      listOfItems[i]
         });
       }
       await DataManager(quickCall: QuickCall.inventoryMezAndMolSave, input: {'parameter': parameter, 'lezart': 1}).beginQuickCall;
@@ -249,7 +250,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
         parameter.add({
           'bizonylat_id': rawData[i]['bizonylat_id'],
           'tarhely_id':   rawData[i]['tarhely_id'],
-          'tetelek':      listOfItems[i].map((e) => {'abroncs_id': e}).toList()
+          'tetelek':      listOfItems[i]
         });
       }
       await DataManager(quickCall: QuickCall.inventoryMezAndMolSave, input: {'parameter': parameter}).beginQuickCall;
@@ -284,13 +285,18 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
         Future.delayed(const Duration(seconds: 3), () => setState(() => message = ''));
         return; 
       }
-      if(listOfItems[index].contains(scanResult)){
+      if(listOfItems[index].any((item) => item['abroncs_id'] == scanResult)){
         setState(() => message = '⚠️ Ez a vonalkód már be lett olvasva!\n$scanResult');
         AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
         Future.delayed(const Duration(seconds: 3), () => setState(() => message = ''));
         return;
       }
-      setState(() => listOfItems[index].add(scanResult));
+      setState(() => listOfItems[index].add({
+        'abroncs_id':   scanResult,
+        'dolgozo_kod':  DataManager.userId,
+        'dolgozo_nev':  DataManager.userName,
+        'datum':        DateFormat('yyyy.MM.dd H:mm').format(DateTime.now())
+      }));
       break;
 
     default: break;
