@@ -3,20 +3,21 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import 'src/scanner_datawedge.dart';
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
 enum NextRoute{logIn, menu, orderList, orderOutList, pickUpList, deliveryNoteList, checkStock, inventory, pickUpData, default0, pickUpDataFinish, scanTasks, finishTasks, dataFormMonetization, dataFormGiveDatas, deliveryOut, incomingDeliveryNote, scanAndPrint, deliveryBackFromPartner, addDeliveryBackFromPartner, inventoryMezAndMol, inventoryMezAndMolSave}
 enum ButtonState{hidden, loading, disabled, error, default0}
 enum TaskState{askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, listDeliveryNotes, itemData, default0, wrongItem, handleProduct, scanDestinationStorage, showPDF, signature, dataForm, dataList}
-enum QuickCall{askBarcode, deleteItem, saveInventory, askInventoryDate, checkCode, checkStock, addItem, saveSignature, savePdf, giveDatas, chainGiveDatas, finishGiveDatas, scanDestinationStorage, askAbroncs, print, checkArticle, newEntry, verzio, tabletBelep, addNewDeliveryNote, addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword, removeDeliveryNoteItem, logInNamePassword, changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll, inventoryMezAndMolSave, inventoryBizonylatok}
+enum QuickCall{askBarcode, deleteItem, saveInventory, askInventoryDate, checkCode, checkStock, addItem, saveSignature, savePdf, giveDatas, chainGiveDatas, finishGiveDatas, scanDestinationStorage, askAbroncs, print, checkArticle, newEntry, verzio, tabletBelep, addNewDeliveryNote, addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword, removeDeliveryNoteItem, logInNamePassword, changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll, inventoryMezAndMolSave, inventoryBizonylatok, inventoryMezAndMolEvaluate}
 enum InDelNoteState{addItem, listItems, addNew, listSelectEditItemDeliveryNote, default0, editItem, listSelectAddItemDeliveryNote}
 enum DialogResult{cancel, back, mainMenu}
 enum StockState{checkStock, stockIn, default0}
 enum ScannedCodeIs{storage, article, unknown}
 enum MainMenuState{default0, editPassword}
 enum Work{incomingDeliveryNote, localMaintenance}
-enum InventoryMState{inventoryPick, scanStorageCode, scanItemsInStorage, empty}
+enum InventoryMState{inventoryPick, scanStorageCode, scanItemsInStorage, empty, evaluate}
 
 
 class Global{
@@ -103,26 +104,21 @@ class Global{
   }
 
   static Future<int?> integerDialog(BuildContext context, {String title = '', String content = ''}) async{
-    // --------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
     int? varInt;
-    BoxDecoration customBoxDecoration =       BoxDecoration(            
+    BoxDecoration customBoxDecoration = BoxDecoration(
       border:       Border.all(color: const Color.fromARGB(130, 184, 184, 184), width: 1),
       color:        Colors.white,
       borderRadius: const BorderRadius.all(Radius.circular(8))
     );
-
-    // --------- < Widgets [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
-    Widget okButton = TextButton(child: const Text('Ok'),     onPressed: () => Navigator.pop(context, varInt));
+    Widget okButton = TextButton(child: const Text('Ok'), onPressed: () => Navigator.pop(context, varInt));
     Widget cancel =   TextButton(child: const Text('Mégsem'), onPressed: () => Navigator.pop(context, null));
-
-    // --------- < Methods [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
-
-    // --------- < Display > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
     AlertDialog infoRegistry = AlertDialog(
       title:    Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
       content:  Container(height: 55, decoration: customBoxDecoration, child: TextFormField(
-        onChanged:    (value) => varInt = double.parse(value).toInt(),
-        decoration:   InputDecoration(
+        autofocus:       true,
+        onChanged:       (value) => varInt = int.tryParse(value),
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration:      InputDecoration(
           contentPadding: const EdgeInsets.all(10),
           labelText:      content,
           border:         InputBorder.none,
@@ -130,10 +126,8 @@ class Global{
         style:        const TextStyle(color: Color.fromARGB(255, 51, 51, 51)),
         keyboardType: TextInputType.number,
       )),
-      actions:  [okButton, cancel]
+      actions: [okButton, cancel]
     );
-
-    // --------- < Return > ---- -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
     return await showDialog(
       context:            context,
       builder:            (BuildContext context) => infoRegistry,
@@ -267,7 +261,125 @@ class Global{
     );
   }
 
-  static Future<String?> showBarcodeScanDialog(BuildContext context) async {
+  
+  static Future<String?> showBarcodeScanDialog(BuildContext context) async{
+    final AudioPlayer player = AudioPlayer();
+    final TextEditingController manualController = TextEditingController();
+    bool manualMode = false;
+    BuildContext? activeDialogContext;
+    final tempScannerDatawedge = ScannerDatawedge(
+      scannerDatas: ValueNotifier(ScannerDatas(scanData: '')),
+      profileName: 'BarcodeDialog',
+    );
+    listener(){
+      if(manualMode) return;
+      final value = tempScannerDatawedge.scannerDatas.value.scanData.trim();
+      if(value.isNotEmpty && activeDialogContext != null){
+        player.play(AssetSource('sounds/okay.mp3'));
+        Navigator.of(activeDialogContext!).pop(value);
+      }
+    }
+    tempScannerDatawedge.scannerDatas.addListener(listener);
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext){
+        activeDialogContext = dialogContext;
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState){
+            return AlertDialog(
+              titlePadding:   const EdgeInsets.all(16),
+              contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              title: Row(children: [
+                Icon(
+                  manualMode? Icons.keyboard : Icons.qr_code_scanner,
+                  color: Global.getColorOfButton(ButtonState.default0)
+                ),
+                const SizedBox(width: 10),
+                Expanded(child: Text(
+                  manualMode? 'Vonalkód kézi megadása' : 'Vonalkód leolvasása',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                )),
+              ]),
+              content: Column(mainAxisSize: MainAxisSize.min, children: [
+                if(!manualMode) ...[
+                  Icon(
+                    Icons.barcode_reader,
+                    size: 100,
+                    color: Global.getColorOfButton(ButtonState.default0),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Kérem olvasson le egy terméket eszközével',
+                      style: TextStyle(fontSize: 14, color: Colors.black),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ]
+                else ...[
+                  TextFormField(
+                    controller:       manualController,
+                    autofocus:        true,
+                    keyboardType:     TextInputType.number,
+                    inputFormatters:  [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      labelText:  'Vonalkód',
+                      border:     OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.keyboard),
+                    ),
+                    onFieldSubmitted: (value){
+                      final String manualValue = value.trim();
+                      if(manualValue.isNotEmpty) Navigator.of(dialogContext).pop(manualValue);
+                    },
+                  ),
+                ]
+              ]),
+              actionsAlignment: MainAxisAlignment.spaceBetween,
+              actions: [
+                IconButton(
+                  tooltip: manualMode? 'Szkenner' : 'Kézi megadás',
+                  onPressed: (){
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    setDialogState((){
+                      manualMode = !manualMode;
+                      manualController.clear();
+                    });
+                  },
+                  icon: Icon(manualMode? Icons.qr_code_scanner : Icons.keyboard),
+                ),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  if(manualMode) TextButton(
+                    onPressed: (){
+                      final String manualValue = manualController.text.trim();
+                      if(manualValue.isNotEmpty) Navigator.of(dialogContext).pop(manualValue);
+                    },
+                    child: const Text('Ok'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(null),
+                    child: const Text('Mégse'),
+                  ),
+                ])
+              ],
+            );
+          }
+        );
+      },
+    );
+    tempScannerDatawedge.scannerDatas.removeListener(listener);
+    await player.dispose();
+    return result;
+  }
+
+  /*static Future<String?> showBarcodeScanDialog(BuildContext context) async {
     final ValueNotifier<String?> scanResult = ValueNotifier<String?>(null);
     final AudioPlayer player = AudioPlayer();
     final FocusNode focusNode = FocusNode();
@@ -366,7 +478,7 @@ class Global{
 
     tempScannerDatawedge.scannerDatas.removeListener(listener);
     return result;
-  }
+  }*/
 
   // ---------- < Global Methods > ----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   static Color invertColor(Color input) => Color.fromRGBO((input.red - 255).abs(), (input.green - 255).abs(), (input.blue - 255).abs(), 1.0);

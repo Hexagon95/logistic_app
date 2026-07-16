@@ -71,10 +71,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       buttonContinue =        ButtonState.default0;
       buttonPrint =           ButtonState.default0;
       buttonSave =            ButtonState.default0;
-      buttonEdit =            ButtonState.default0;
       buttonRemove =          ButtonState.default0;
       _selectedIndexItem =    value;
       getSelectedIndexItem =  _selectedIndexItem;
+      if(DataManager.customer != 'mezandmol') buttonEdit = ButtonState.default0;
     }
   }}
   int? get selectedIndexItem => _selectedIndexItem;
@@ -326,17 +326,20 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
 
   // ---------- < Methods [1] > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   List<DataColumn> _generateColumns(List<dynamic> rawData){
-    List<DataColumn> columns = List<DataColumn>.empty(growable: true);
-    for (var item in rawData[0].keys) {switch(item){
-      case 'cikkszam':
-      case 'sorszam':     columns.add(const DataColumn(label: Text('Azonosító')));    break;
-      case 'kesz':        columns.add(const DataColumn(label: Text('')));           break;
-      case 'vevo':
-      case 'megnevezes':
-      case 'szallito':    columns.add(const DataColumn(label: Text('Megnevezés'))); break;
-      default:                                                                      break;
-    }}
-    return columns; 
+    List<DataColumn> columns = [];
+    for (var item in rawData[0].keys) {
+      switch(item){
+        case 'cikkszam':
+        case 'sorszam':     columns.add(const DataColumn(label: Text('Azonosító')));  break;
+        case 'vevo':
+        case 'megnevezes':
+        case 'szallito':    columns.add(const DataColumn(label: Text('Megnevezés'))); break;
+        case 'mennyiseg':   columns.add(const DataColumn(label: Text('Mennyiség')));  break;
+        case 'kesz':        columns.add(const DataColumn(label: Text('')));           break;
+        default:                                                                      break;
+      }
+    }
+    return columns;
   }
 
   List<DataColumn> get _generateColumns2{
@@ -405,8 +408,8 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
               await DataManager(quickCall: QuickCall.addDeliveryNoteItem, input: {'rendszam': varString}).beginQuickCall;
               setState((){
                 buttonAdd =       ButtonState.default0;
-                buttonContinue =  ButtonState.disabled;
                 taskState =       InDelNoteState.addItem;
+                buttonContinue =  getButton;
               });
               break;
 
@@ -430,9 +433,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   Future get _buttonEditPressed async{
     setState(() => buttonEdit = ButtonState.loading);
     await DataManager(quickCall: QuickCall.editSelectedItemDeliveryNote).beginQuickCall;
-    setState(() {
-      buttonEdit =  ButtonState.default0;
-      taskState =   InDelNoteState.editItem;
+    setState((){
+      buttonEdit =      ButtonState.default0;
+      taskState =       InDelNoteState.editItem;
+      buttonContinue =  getButton;
     });
   }
 
@@ -720,34 +724,28 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
           )
         ));
 
-        default: return SizedBox(height: 55, width: getWidth(index), child: Focus(
-          onFocusChange:  (value) => setState(() {rawDataDataForm[index]['value'] = controller[index].text; _checkInteger(rawDataDataForm[index]['value'], input, index);}),
-          child:          TextFormField(
-            enabled:            editable,          
-            controller:         controller[index],
-            decoration:         InputDecoration(
-              contentPadding:     const EdgeInsets.all(10),
-              labelText:          input['name'],
-              border:             InputBorder.none,
-            ),
-            style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
-            keyboardType: TextInputType.number,
-          )
+        default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
+          enabled:      editable,
+          controller:   controller[index],
+          decoration:   InputDecoration(
+            contentPadding: const EdgeInsets.all(10),
+            labelText:      input['name'],
+            border:         InputBorder.none,
+          ),
+          onEditingComplete: () async{
+            await _checkInteger(controller[index].text, input, index);
+            setState(() => buttonContinue = getButton);
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          onTapOutside: (event) async{
+            await _checkInteger(controller[index].text, input, index);
+            setState(() => buttonContinue = getButton);
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+          keyboardType: TextInputType.number,
         ));
       }
-      /*case 'number':
-      case 'integer': return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
-        enabled:            editable,          
-        controller:         controller[index],
-        onChanged:          (value) => _checkInteger(value, input, index),
-        decoration:         InputDecoration(
-          contentPadding:     const EdgeInsets.all(10),
-          labelText:          input['name'],
-          border:             InputBorder.none,
-        ),
-        style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
-        keyboardType: TextInputType.number,
-      ));*/
 
       default: return Stack(children: [
         SizedBox(height: 55, width: getWidth(index), child: TextFormField(
@@ -773,8 +771,9 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       case 'sorszam':
       case 'megnevezes':
       case 'szallito':
-      case 'vevo':    cells.add(DataCell(Text(row[item].toString())));  break;
-      case 'kesz':    cells.add(DataCell((row[item].toString() == '1')
+      case 'vevo':        cells.add(DataCell(Text(row[item].toString())));  break;
+      case 'mennyiseg':   cells.add(DataCell(Text(row[item].toString())));  break;
+      case 'kesz':        cells.add(DataCell((row[item].toString() == '1')
         ? Icon(Icons.check_circle, color: Global.getColorOfButton(ButtonState.default0), size: 30)
         : Container()));                                                break;
       default:                                                          break;
@@ -819,23 +818,22 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     });
   }
 
-  void _checkInteger(String value, dynamic input, int index){ //Check if integer and is between 0 and limit.
-    if(input['limit'] == null) {setState(() {rawDataDataForm[index]['value'] = value; buttonContinue = getButton;}); return;}
-    int? varInt;
-    try{varInt = int.parse(value);}
-    // ignore: empty_catches
-    catch(e){}
-    finally{
-      if(varInt != null) {
-        if(varInt < 1) {controller[index].text = '1'; input['value'] = 1;}
-        else if(varInt > input['limit']) {
-          controller[index].text =  input['limit'].toString();
-          input['value'] =          input['limit'];
-        }
-        else {input['value'] = varInt;}
-      }
-      else if(value != '') {controller[index].text = input['value'].toString();}
+  Future _checkInteger(String value, dynamic input, int index) async{
+    final int? varInt =     int.tryParse(value);
+    final int minValue =    int.tryParse(input['min_value']?.toString() ?? '1') ?? 1;
+    final int? maxValue =   int.tryParse(input['max_value'].toString());
+    final bool outOfRange = varInt == null || varInt < minValue || (maxValue != null && varInt > maxValue);
+    if(outOfRange){
+      controller[index].text = '';
+      rawDataDataForm[index]['value'] = null;
+      await Global.showAlertDialog(
+        context,
+        title: '⚠️ Hibás érték',
+        content: '"${input['name']}" értéke $minValue és $maxValue között lehet.',
+      );
+      return;
     }
+    rawDataDataForm[index]['value'] = varInt;
   }
 
   void _replaceCommas(int index){

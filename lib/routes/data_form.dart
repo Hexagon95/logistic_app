@@ -351,19 +351,26 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
           )
         ));
 
-        default: return SizedBox(height: 55, width: getWidth(index), child: Focus(
-          onFocusChange:  (value) => setState(() {rawData[index]['value'] = controller[index].text; _checkInteger(rawData[index]['value'], input, index); buttonSave = setButtonSave;}),
-          child:          TextFormField(
-            enabled:            editable,          
-            controller:         controller[index],
-            decoration:         InputDecoration(
-              contentPadding:     const EdgeInsets.all(10),
-              labelText:          input['name'],
-              border:             InputBorder.none,
-            ),
-            style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
-            keyboardType: TextInputType.number,
-          )
+        default: return SizedBox(height: 55, width: getWidth(index), child: TextFormField(
+          enabled:      editable,
+          controller:   controller[index],
+          decoration:   InputDecoration(
+            contentPadding: const EdgeInsets.all(10),
+            labelText:      input['name'],
+            border:         InputBorder.none,
+          ),
+          onEditingComplete: () => setState((){
+            _checkInteger(controller[index].text, input, index);
+            FocusManager.instance.primaryFocus?.unfocus();
+            buttonSave = setButtonSave;
+          }),
+          onTapOutside: (PointerDownEvent event) => setState((){
+            _checkInteger(controller[index].text, input, index);
+            FocusManager.instance.primaryFocus?.unfocus();
+            buttonSave = setButtonSave;
+          }),
+          style:        TextStyle(color: (editable)? const Color.fromARGB(255, 51, 51, 51) : const Color.fromARGB(255, 153, 153, 153)),
+          keyboardType: TextInputType.number,
         ));
       }
 
@@ -481,23 +488,17 @@ class DataFormState extends State<DataForm> {//-- ---------- ---------- --------
     setState((){});
   }
 
-  void _checkInteger(String value, dynamic input, int index){ //Check if integer and is between 0 and limit.
-    if(input['limit'] == null) {setState(() {rawData[index]['value'] = value; buttonSave = setButtonSave;}); return;}
-    int? varInt;
-    try{varInt = int.parse(value);}
-    // ignore: empty_catches
-    catch(e){}
-    finally{
-      if(varInt != null) {
-        if(varInt < 1) {controller[index].text = '1'; input['value'] = 1;}
-        else if(varInt > input['limit']) {
-          controller[index].text =  input['limit'].toString();
-          input['value'] =          input['limit'];
-        }
-        else {input['value'] = varInt;}
-      }
-      else if(value != '') {controller[index].text = input['value'].toString();}
+  void _checkInteger(String value, dynamic input, int index){
+    final int? varInt = int.tryParse(value);
+    final int minValue = int.tryParse(input['min_value']?.toString() ?? '1') ?? 1;
+    final int? maxValue = int.tryParse(input['max_value'].toString());
+    final bool outOfRange = varInt == null || varInt < minValue || (maxValue != null && varInt > maxValue);
+    if(outOfRange){
+      controller[index].text = '';
+      rawData[index]['value'] = null;
+      return;
     }
+    rawData[index]['value'] = varInt;
   }
 
   Future _handleSelectChange(String? newValue, int index) async{ if(enableInteraction){

@@ -26,7 +26,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.47e';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
+  static String thisVersion =                             '1.48';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
   static String actualVersion =                           thisVersion;
   static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
@@ -741,7 +741,7 @@ class DataManager{
           };
           Uri uriUrl =                Uri.parse('$urlPath${address()}');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-          if(kDebugMode)print(response.body);
+          if(kDebugMode)dev.log(response.body);
           dataQuickCall[check(35)] =  jsonDecode(response.body);
           break;
 
@@ -798,6 +798,19 @@ class DataManager{
           if(kDebugMode)dev.log(response.body);
           dataQuickCall[check(39)] =  await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
           if(kDebugMode) dev.log(dataQuickCall[39].toString());
+          break;
+
+        case QuickCall.inventoryMezAndMolEvaluate:
+          var queryParameters = {
+            'customer':   customer,
+            'raktar_id':  raktarId,
+            'user_id':    userId            
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}inventory_mezandmol_evaluate.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)dev.log(response.body);
+          dataQuickCall[check(40)] =  await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
+          if(kDebugMode) dev.log(dataQuickCall[40].toString());
           break;
 
         default:break;
@@ -1341,6 +1354,10 @@ class DataManager{
 
         case QuickCall.inventoryBizonylatok:
           InventoryMezAndMolState.listBizonylatok = dataQuickCall[39];
+          break;
+
+        case QuickCall.inventoryMezAndMolEvaluate:
+          InventoryMezAndMolState.listEvaluate = dataQuickCall[40];
           break;
         
         default:break;
