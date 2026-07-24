@@ -27,21 +27,21 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class DataManager{
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   static String thisVersion =                             '1.48';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
+  static int verzioTest =                                 5;            // <--- Anything other than 0 will draw "[Teszt #]" at the LogIn screen.
   static String actualVersion =                           thisVersion;
-  static const String newEntryId =                        '0';
   static String customer =                                'mosaic';
-
-  static int verzioTest =                                 0;            // <--- Anything other than 0 will draw "[Teszt #]" at the LogIn screen.
 
   static String raktarMegnevezes=                         '';
   static String raktarId =                                '';
+  static const String newEntryId =                        '0';
   static String getPdfUrl(String id) =>                   "https://app.mosaic.hu/pdfgenerator/bizonylat.php?kategoria_id=3&id=$id&ceg=${data[0][1]['Ugyfel_id']}";
   static String get serverErrorText =>                    (isServerAvailable)? '' : 'Nincs kapcsolat!';
   static String get sqlUrlLink =>                         'https://app.mosaic.hu/sql/ExternalInputChangeSQL.php?ceg=mezandmol&SQL=';
   static const String urlPath =                           'https://app.mosaic.hu/android/logistic_app/';        // Live
   //static const String urlPath =                           'https://developer.mosaic.hu/android/logistic_app/';  // Test
-  static List<dynamic> data =                             List<dynamic>.empty(growable: true);
-  static List<dynamic> dataQuickCall =                    List<dynamic>.empty(growable: true);
+  static List<dynamic> data =                             [];
+  static List<dynamic> dataQuickCall =                    [];
+  static Map<ReturnCall, dynamic> dataReturnCall =        {};
   static bool isServerAvailable =                         true;
   static String userName =                                '';
   static int userId =                                     0;
@@ -54,10 +54,11 @@ class DataManager{
   final Map<String,String> headers = {'Content-Type': 'application/json'};
   dynamic input;
   QuickCall? quickCall;
+  ReturnCall? returnCall;
   
 
   // ---------- < Constructors > ------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  DataManager({this.quickCall, this.input});
+  DataManager({this.quickCall, this.returnCall, this.input});
 
   // ---------- < Methods [Static] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   static Future<void> get identitySQLite async {
@@ -139,6 +140,51 @@ class DataManager{
   }
   
   // ---------- < Methods [Public] > --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  Future<dynamic> get beginReturnCall async{
+    dataReturnCall[returnCall ?? ReturnCall.default0] = null;
+    try {isServerAvailable = true; switch(returnCall){
+
+      case ReturnCall.form:
+        var queryParameters = {
+          'customer':   customer,
+          'id':         input['id'],
+          'user_id':    userId
+        };
+        Uri uriUrl =                      Uri.parse('${urlPath}give_datas.php');
+        http.Response response =          await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+        dataReturnCall[ReturnCall.form] = await jsonDecode(await jsonDecode(response.body)[0]['b'])['adatok'];
+        if(kDebugMode) {dev.log(dataReturnCall[ReturnCall.form].toString());}
+        break;
+
+      case ReturnCall.lookupDatas:
+        final List<dynamic> rawData = input['rawData'];
+        final Map<String, dynamic> lookupDatas = {};
+        for (final item in rawData) {
+          if (!['select', 'search'].contains(item['input_field'])) {
+            continue;
+          }
+          lookupDatas[item['id'].toString()] = await _getLookupData(
+            input:      item['lookup_data'],
+            isPhp:      item['php'].toString() == '1',
+            something:  item
+          );
+        }
+        dataReturnCall[ReturnCall.lookupDatas] = lookupDatas;
+        break;
+
+      default: break;
+    }}
+    on SocketException{
+      AudioPlayer().play(AssetSource('sounds/error.mp3'));
+      isServerAvailable = false;
+      return;
+    }
+    catch(e) {
+      if(kDebugMode)print('$e, $quickCall');
+    }    
+    return dataReturnCall[returnCall];    
+  }
+
   Future get beginQuickCall async{
     int check (int index) {while(dataQuickCall.length < index + 1) {dataQuickCall.add(List<dynamic>.empty());} return index;}
     try {
@@ -410,9 +456,9 @@ class DataManager{
         case QuickCall.print:
           var queryParameters = {
             'customer': customer,
-            'tarhely':  ScanCheckStockState.storageId,
-            'idk':      jsonEncode(ScanCheckStockState.selectedIds),
-            'type':     (ScanCheckStockState.scannedCode == ScannedCodeIs.article)? 'article' : 'storage'
+            'tarhely':  input['tarhely'] ?? ScanCheckStockState.storageId,
+            'idk':      jsonEncode(input['idk'] ?? ScanCheckStockState.selectedIds),
+            'type':     input['type'] ?? ((ScanCheckStockState.scannedCode == ScannedCodeIs.article)? 'article' : 'storage')
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}print.php');
@@ -804,14 +850,27 @@ class DataManager{
           var queryParameters = {
             'customer':   customer,
             'raktar_id':  raktarId,
-            'user_id':    userId            
+            'user_id':    userId
           };
           Uri uriUrl =                Uri.parse('${urlPath}inventory_mezandmol_evaluate.php');
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
           if(kDebugMode)dev.log(response.body);
-          dataQuickCall[check(40)] =  await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
+          dataQuickCall[check(40)] = await jsonDecode((await jsonDecode(response.body)[0]['b']).toString());
           if(kDebugMode) dev.log(dataQuickCall[40].toString());
           break;
+
+        case QuickCall.tabletLeltarAttarolas:
+          var queryParameters = {
+            'customer':   customer,
+            'parameter':  jsonEncode(input),
+            'user_id':    userId            
+          };
+          Uri uriUrl =                Uri.parse('${urlPath}tablet_leltart_attarolas.php');
+          http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
+          if(kDebugMode)dev.log(response.body);
+          dataQuickCall[check(41)] =  await jsonDecode((await jsonDecode(response.body)).toString());
+          if(kDebugMode) dev.log(dataQuickCall[41].toString());
+          break;        
 
         default:break;
       }
@@ -1359,6 +1418,10 @@ class DataManager{
         case QuickCall.inventoryMezAndMolEvaluate:
           InventoryMezAndMolState.listEvaluate = dataQuickCall[40];
           break;
+
+        case QuickCall.tabletLeltarAttarolas:
+          InventoryMezAndMolState.errorMessage = (dataQuickCall[41].isEmpty)? null : dataQuickCall[41][0];
+          break;
         
         default:break;
       }
@@ -1468,8 +1531,12 @@ class DataManager{
     }
   }
 
-  // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Future<dynamic> _getLookupData({required String input, required bool isPhp}) async{
+  // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
+  // ignore: unused_element
+  Future<dynamic> _getLookupData({required String input, required bool isPhp, dynamic something}) async{
+    if(['id_11'].contains(something['id'].toString()) && kDebugMode){
+      print('STOP');
+    }
     String sqlCommand = input.replaceAll(
       "[id]",
       (ScanCheckStockState.scannedCode == ScannedCodeIs.storage && ScanCheckStockState.selectedIndex != null)
@@ -1477,6 +1544,7 @@ class DataManager{
         : ScanCheckStockState.storageId.toString()
       ,
     );
+    if(something != null) {sqlCommand = sqlCommand.replaceAll('[${something['id']?.toString() ?? ''}]', something['value']?.toString() ?? '');}
     try {
       for(var item in DataFormState.rawData){
         String pattern =  '[${item['id'].toString()}]';
@@ -1486,10 +1554,10 @@ class DataManager{
       }
       if(isPhp){
         Uri uriUrl =              Uri.parse(Uri.encodeFull('$sqlUrlLink$sqlCommand').replaceAll('+', '%2b'));
-        if(kDebugMode)print(uriUrl.toString());
+        if(kDebugMode)dev.log(uriUrl.toString());
         http.Response response =  await http.post(uriUrl);
         dynamic result =          await jsonDecode(response.body);
-        if(kDebugMode)print(result);
+        if(kDebugMode)dev.log(result.toString());
         return result;
       }
       else{
@@ -1498,12 +1566,12 @@ class DataManager{
           'customer': customer,
           'sql':      sqlCommand
         };
-        if(kDebugMode)print(sqlCommand);
+        if(kDebugMode)dev.log(sqlCommand);
         Uri uriUrl =              Uri.parse('${urlPath}select_sql.php');          
         http.Response response =  await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
-        if(kDebugMode)print(response.body);
+        if(kDebugMode)dev.log(response.body);
         dynamic result =          await jsonDecode(response.body)[0]['result'];
-        if(kDebugMode)print(result);
+        if(kDebugMode)dev.log(result.toString());
         return result;
       }
     }

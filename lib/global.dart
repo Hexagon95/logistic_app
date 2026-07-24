@@ -8,9 +8,10 @@ import 'package:flutter/services.dart';
 import 'src/scanner_datawedge.dart';
 // ---------- < Enums > --- ---------- ---------- ---------- ----------
 enum NextRoute{logIn, menu, orderList, orderOutList, pickUpList, deliveryNoteList, checkStock, inventory, pickUpData, default0, pickUpDataFinish, scanTasks, finishTasks, dataFormMonetization, dataFormGiveDatas, deliveryOut, incomingDeliveryNote, scanAndPrint, deliveryBackFromPartner, addDeliveryBackFromPartner, inventoryMezAndMol, inventoryMezAndMolSave}
+enum QuickCall{askBarcode, deleteItem, saveInventory, askInventoryDate, checkCode, checkStock, addItem, saveSignature, savePdf, giveDatas, chainGiveDatas, finishGiveDatas, scanDestinationStorage, askAbroncs, print, checkArticle, newEntry, verzio, tabletBelep, addNewDeliveryNote, addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword, removeDeliveryNoteItem, logInNamePassword, changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll, inventoryMezAndMolSave, inventoryBizonylatok, inventoryMezAndMolEvaluate, tabletLeltarAttarolas}
+enum ReturnCall{form, lookupDatas, default0}
 enum ButtonState{hidden, loading, disabled, error, default0}
 enum TaskState{askStorage, scanStorage, askProduct, scanProduct, barcodeManual, inventory, listDeliveryNotes, itemData, default0, wrongItem, handleProduct, scanDestinationStorage, showPDF, signature, dataForm, dataList}
-enum QuickCall{askBarcode, deleteItem, saveInventory, askInventoryDate, checkCode, checkStock, addItem, saveSignature, savePdf, giveDatas, chainGiveDatas, finishGiveDatas, scanDestinationStorage, askAbroncs, print, checkArticle, newEntry, verzio, tabletBelep, addNewDeliveryNote, addNewDeliveryNoteFinished, askDeliveryNotesScan, addDeliveryNoteItem, chainGiveDatasDeliveryNote, addItemFinished, plateNumberCheck, printBarcodeDeliveryNote, selectAddItemDeliveryNote, finishSelectAddItemDeliveryNote, editSelectedItemDeliveryNote, askEditItemDeliveryNote, finishSelectEditItemDeliveryNote, removeDeliveryNoteItemlogInNamePassword,  forgottenPassword, removeDeliveryNoteItem, logInNamePassword, changePassword, kiszedesFelviteleTarhely, logIn, saveDeliveryNoteItem, printScannedList, scanBarcodeForSticker, printAll, inventoryMezAndMolSave, inventoryBizonylatok, inventoryMezAndMolEvaluate}
 enum InDelNoteState{addItem, listItems, addNew, listSelectEditItemDeliveryNote, default0, editItem, listSelectAddItemDeliveryNote}
 enum DialogResult{cancel, back, mainMenu}
 enum StockState{checkStock, stockIn, default0}
@@ -18,6 +19,7 @@ enum ScannedCodeIs{storage, article, unknown}
 enum MainMenuState{default0, editPassword}
 enum Work{incomingDeliveryNote, localMaintenance}
 enum InventoryMState{inventoryPick, scanStorageCode, scanItemsInStorage, empty, evaluate}
+enum EvaluateState{scanQR, accept, empty}
 
 
 class Global{
@@ -173,6 +175,273 @@ class Global{
     );
   }
 
+  static Future<void> readOnlyFormDialog(BuildContext context, {required List<dynamic> rawData, required Map<String, dynamic> lookupDatas, String title = 'Információ'}) async {
+    // --------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    final ScrollController scrollController = ScrollController();
+    final Color primaryColor = Colors.blue.shade700;
+
+    BoxDecoration customBoxDecoration = BoxDecoration(
+      border: Border.all(
+        color: primaryColor.withOpacity(0.40),
+        width: 1,
+      ),
+      color: primaryColor.withOpacity(0.06),
+      borderRadius: const BorderRadius.all(
+        Radius.circular(8),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.06),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    );
+
+    // --------- < Methods [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    bool isVisible(dynamic item) =>
+        item['visible'] == null || item['visible'].toString() == '1';
+
+    int getMaxRow() {
+      int maxRow = 1;
+
+      for (dynamic item in rawData) {
+        final int? row = int.tryParse(
+          item['sor']?.toString() ?? '',
+        );
+
+        if (row != null && row > maxRow) {
+          maxRow = row;
+        }
+      }
+
+      return maxRow;
+    }
+
+    String getDisplayValue(dynamic item) {
+      final String value = item['value']?.toString() ?? '';
+      if (!['select', 'search'].contains(item['input_field'])) {return value;}
+      final List<dynamic>? lookupData = lookupDatas[item['id'].toString()];
+      if (lookupData == null) {return value;}
+      for (final lookupItem in lookupData) {
+        final String id = lookupItem['id']?.toString() ?? '';
+        final String name =lookupItem['megnevezes']?.toString() ?? id;
+        if (id == value || name == value) {return name;}
+      }
+      return value;
+    }
+
+    // --------- < Widgets [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    Widget drawReadOnlyField(dynamic item) => Container(
+          decoration: customBoxDecoration,
+          child: TextFormField(
+            initialValue: getDisplayValue(item),
+            readOnly: true,
+            enableInteractiveSelection: true,
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 7,
+              ),
+              labelText: item['name']?.toString() ?? '',
+              labelStyle: TextStyle(
+                color: primaryColor,
+                fontSize: 11,
+              ),
+              floatingLabelStyle: TextStyle(
+                color: primaryColor,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+              border: InputBorder.none,
+            ),
+            style: const TextStyle(
+              color: Color.fromARGB(255, 40, 40, 40),
+              fontSize: 14,
+            ),
+            maxLines: null,
+          ),
+        );
+
+    List<Widget> drawFields() {
+      List<Widget> fields = List<Widget>.empty(
+        growable: true,
+      );
+
+      if (rawData.isEmpty) {
+        return [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Nincs megjeleníthető adat.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ];
+      }
+
+      if (rawData.first['sor'] == null) {
+        for (dynamic item in rawData) {
+          if (isVisible(item)) {
+            fields.add(
+              Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 4,
+                ),
+                child: drawReadOnlyField(item),
+              ),
+            );
+          }
+        }
+
+        return fields;
+      }
+
+      for (
+        int rowIndex = 1;
+        rowIndex <= getMaxRow();
+        rowIndex++
+      ) {
+        List<dynamic> rowItems = rawData
+            .where(
+              (item) =>
+                  item['sor']?.toString() ==
+                      rowIndex.toString() &&
+                  isVisible(item),
+            )
+            .toList();
+
+        if (rowItems.isEmpty) continue;
+
+        fields.add(
+          Padding(
+            padding: const EdgeInsets.only(
+              bottom: 4,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (
+                  int i = 0;
+                  i < rowItems.length;
+                  i++
+                ) ...[
+                  Expanded(
+                    child: drawReadOnlyField(
+                      rowItems[i],
+                    ),
+                  ),
+                  if (i < rowItems.length - 1)
+                    const SizedBox(width: 4),
+                ],
+              ],
+            ),
+          ),
+        );
+      }
+
+      return fields;
+    }
+
+    // --------- < Widgets [2] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    Widget okButton = TextButton(
+      onPressed: () => Navigator.pop(context),
+      child: const Text(
+        'Ok',
+        style: TextStyle(
+          fontSize: 13,
+        ),
+      ),
+    );
+
+    // --------- < Display > ------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    AlertDialog infoRegistry = AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 20,
+      ),
+      titlePadding: const EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        6,
+      ),
+      contentPadding: const EdgeInsets.fromLTRB(
+        16,
+        6,
+        10,
+        4,
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(
+        8,
+        0,
+        8,
+        4,
+      ),
+      title: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: primaryColor,
+            size: 20,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: SizedBox(
+        width: 700,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight:
+                MediaQuery.of(context).size.height *
+                    0.70,
+          ),
+          child: Scrollbar(
+            controller: scrollController,
+            thumbVisibility: true,
+            trackVisibility: true,
+            thickness: 6,
+            radius: const Radius.circular(10),
+            child: SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.only(
+                right: 10,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: drawFields(),
+              ),
+            ),
+          ),
+        ),
+      ),
+      actions: [okButton],
+    );
+
+    // --------- < Return > ------------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) =>
+          infoRegistry,
+      barrierDismissible: false,
+    );
+
+    scrollController.dispose();
+  }
+
   static Future<dynamic> logInDialog(BuildContext context, {String? userNameInput}) async{
     // --------- < Variables > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
     String userName =                     (kDebugMode)? 'mosaic'  : (userNameInput != null)? userNameInput : '';
@@ -260,7 +529,6 @@ class Global{
       barrierDismissible: false
     );
   }
-
   
   static Future<String?> showBarcodeScanDialog(BuildContext context) async{
     final AudioPlayer player = AudioPlayer();
@@ -379,106 +647,7 @@ class Global{
     return result;
   }
 
-  /*static Future<String?> showBarcodeScanDialog(BuildContext context) async {
-    final ValueNotifier<String?> scanResult = ValueNotifier<String?>(null);
-    final AudioPlayer player = AudioPlayer();
-    final FocusNode focusNode = FocusNode();
-
-    final tempScannerDatawedge = ScannerDatawedge(
-      scannerDatas: ValueNotifier(ScannerDatas(scanData: '')),
-      profileName: 'BarcodeDialog',
-    );
-
-    listener() {
-      final value = tempScannerDatawedge.scannerDatas.value.scanData.trim();
-      if (value.isNotEmpty) {
-        player.play(AssetSource('sounds/okay.mp3'));
-        scanResult.value = value;
-        Navigator.of(context).pop(value);
-      }
-    }
-
-    tempScannerDatawedge.scannerDatas.addListener(listener);
-
-    final result = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(16),
-          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Row(
-            children: [
-              Icon(Icons.qr_code_scanner, color: Global.getColorOfButton(ButtonState.default0)),
-              const SizedBox(width: 10),
-              const Text(
-                'Vonalkód leolvasása',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.barcode_reader,
-                size: 100,
-                color: Global.getColorOfButton(ButtonState.default0),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'Kérem olvasson le egy terméket eszközével',
-                  style: TextStyle(fontSize: 14, color: Colors.black),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Keeps focus without showing keyboard
-              Focus(
-                focusNode: focusNode,
-                child: Builder(builder: (context) {
-                  FocusScope.of(context).requestFocus(focusNode);
-                  return const TextField(
-                    readOnly: true,
-                    showCursor: false,
-                    enableInteractiveSelection: false,
-                    style: TextStyle(color: Colors.transparent),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                    ),
-                  );
-                }),
-              ),
-
-              // Mégse button aligned bottom-right
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(null),
-                  child: const Text(
-                    'Mégse',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    tempScannerDatawedge.scannerDatas.removeListener(listener);
-    return result;
-  }*/
+  
 
   // ---------- < Global Methods > ----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   static Color invertColor(Color input) => Color.fromRGBO((input.red - 255).abs(), (input.green - 255).abs(), (input.blue - 255).abs(), 1.0);

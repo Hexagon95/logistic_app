@@ -11,7 +11,8 @@ class Evaluate{
   late ButtonState info;
   late ButtonState print;
   late ButtonState missing;
-  Evaluate({required this.info, required this.print, required this.missing});
+  late ButtonState trash;
+  Evaluate({required this.info, required this.print, required this.missing, required this.trash});
 }
 
 class InventoryMezAndMol extends StatefulWidget {
@@ -28,6 +29,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     static List<dynamic> rawData =          [];
     static List<dynamic> listBizonylatok =  [];
     static List<dynamic> listEvaluate =     [];
+    static dynamic errorMessage;
 
     // ---------- [🌸 simple variables] --- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
     ButtonState buttonStorage =         ButtonState.disabled;
@@ -35,6 +37,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     ButtonState buttonEvaluate =        ButtonState.default0;
     ButtonState buttonSave =            ButtonState.default0;
     List<List<dynamic>> listOfItems =   [];
+    EvaluateState evaluateState =       EvaluateState.scanQR;
     ValueNotifier<ScannerDatas>? scannerDatas;
     ScannerDatawedge? scannerDatawedge;
     int? selectedBizonylat;
@@ -59,12 +62,18 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     Evaluate evaluateButton = Evaluate(
       info:     ButtonState.default0,
       missing:  ButtonState.default0,
+      trash:    ButtonState.default0,
       print:    ButtonState.default0
     );
     Color get colorBasedOnState {switch(inventoryMState){
       case InventoryMState.scanStorageCode:     return Global.getColorOfButton(ButtonState.default0);
       case InventoryMState.scanItemsInStorage:  return Global.getColorOfButton(ButtonState.loading);
       default:                                  return Colors.transparent;
+    }}
+    String get _getEvaluateTaskText {switch(evaluateState){
+      case EvaluateState.scanQR: return 'Kérem olvassa le a megfelelő tárhely kódot.';
+      case EvaluateState.accept: return '✅ Kiértélekés végrehajtva.';
+      default: return ' ⚠️ ${errorMessage['name']}  ';
     }}
   
   // ---------- < Constructor > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
@@ -85,7 +94,10 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
       onPopInvokedWithResult: (didPop, result) async {if(didPop) return; if(await _handlePop()) {if(mounted) {Navigator.pop(context);}}},
       child:                  Scaffold(
         appBar: AppBar(
-          title: const Center(child: Text('Leltár')),
+          title: Center(child: Text(((){switch(inventoryMState){
+            case InventoryMState.evaluate:  return 'Kiértékelés';
+            default:                        return 'Leltár';
+          }})())),
           backgroundColor: Global.getColorOfButton(ButtonState.default0),
           foregroundColor: Global.getColorOfIcon(ButtonState.default0),
         ),
@@ -116,7 +128,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   // ---------- < WidgetBuild [1] > ---- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
   Widget get _drawBottomBar => Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: (() {switch(inventoryMState){
     case InventoryMState.inventoryPick: return <Widget>[_drawButtonEvaluate, Container(), _drawButtonContinue];
-    case InventoryMState.evaluate:      return <Widget>[_drawButtonInfo, _drawButtonPrint, _drawButtonMissing];
+    case InventoryMState.evaluate:      return <Widget>[_drawButtonInfo, _drawButtonPrint, _drawButtonTrash, _drawButtonMissing];
     case InventoryMState.empty:         return <Widget>[];
     default:                            return <Widget>[Container(), (index < rawData.length - 1)? _drawButtonStorage : _drawButtonSave];
   }})()));
@@ -172,7 +184,8 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
         ),
       );
     }
-    final item =            listEvaluate.first;
+    final item =        listEvaluate.first;
+    final int remain =  listEvaluate.map((e) => e['abroncs_azonosíto']).toSet().length;
     Widget storageDisplay({
       required String title,
       required dynamic value,
@@ -252,54 +265,150 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
         ),
       );
     }
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 170,
-                child:  Row(
-                  children: [
-                    storageDisplay(
-                      title:        'Tárhely\nnyilvántartás szerint',
-                      value:        item['tarhely1'],
-                      icon:         Icons.inventory_2_outlined,
-                      primaryColor: (item['tarhely1'].isNotEmpty)? Global.getColorOfButton(ButtonState.default0) : Colors.grey,
-                      textStyle:    const TextStyle(fontSize: 14, color: Colors.black)
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 700),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 170,
+                    child: Row(
+                      children: [
+                        storageDisplay(
+                          title:        'Tárhely\nnyilvántartás szerint',
+                          value:        item['tarhely1'],
+                          icon:         Icons.inventory_2_outlined,
+                          primaryColor: item['tarhely1'].isNotEmpty
+                              ? Global.getColorOfButton(ButtonState.default0)
+                              : Colors.grey,
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        storageDisplay(
+                          title:        'Tárhely\nleltár szerint',
+                          value:        item['tarhely2'],
+                          icon:         Icons.qr_code_scanner,
+                          primaryColor: item['tarhely2'].isNotEmpty
+                              ? Colors.red.shade900
+                              : Colors.grey,
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    storageDisplay(
-                      title:        'Tárhely\nleltár szerint',
-                      value:        item['tarhely2'],
-                      icon:         Icons.qr_code_scanner,
-                      primaryColor: (item['tarhely2'].isNotEmpty)? Global.getColorOfButton(ButtonState.default0) : Colors.grey,
-                      textStyle:    const TextStyle(fontSize: 14, color: Colors.black)
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 14),
+                  informationBlock(
+                    title: 'Abroncs azonosító',
+                    value: item['abroncs_azonosíto'],
+                    icon: Icons.tire_repair,
+                    primaryColor:
+                        Global.getColorOfButton(ButtonState.default0),
+                  ),
+                  const SizedBox(height: 10),
+                  informationBlock(
+                    title: 'Megjegyzés',
+                    value: item['statusz'],
+                    icon: Icons.info_outline,
+                    primaryColor:
+                        Global.getColorOfButton(ButtonState.default0),
+                  ),
+                ],
               ),
-              const SizedBox(height: 14),
-              informationBlock(
-                title: 'Abroncs azonosító',
-                value: item['abroncs_azonosíto'],
-                icon: Icons.tire_repair,
-                primaryColor: Global.getColorOfButton(ButtonState.default0),
-              ),
-              const SizedBox(height: 10),
-              informationBlock(
-                title: 'Megjegyzés',
-                value: item['statusz'],
-                icon: Icons.info_outline,
-                primaryColor: Global.getColorOfButton(ButtonState.default0),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+        Positioned(
+          left:   0,
+          right:  0,
+          bottom: 0,
+          child:  Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 800),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 5,
+                vertical: 14,
+              ),
+              decoration: BoxDecoration(
+                color: ((){switch(evaluateState){
+                  case EvaluateState.accept: return Colors.green.shade800.withOpacity(0.5);
+                  case EvaluateState.empty: return Colors.red.shade800.withOpacity(0.5);
+                  default: return Colors.black.withOpacity(0.5);
+                }})(),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black38,
+                    blurRadius: 14,
+                    spreadRadius: 2,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Text(
+                _getEvaluateTaskText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 10,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black38,
+                  blurRadius: 14,
+                  spreadRadius: 2,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.format_list_numbered,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Hátralévő: $remain',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -350,8 +459,17 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     ])
   );
 
+  Widget get _drawButtonTrash => TextButton(
+    onPressed:  (evaluateButton.trash == ButtonState.default0)? buttonTrashPressed : null,
+    style:      ButtonStyle(foregroundColor: WidgetStatePropertyAll(Global.getColorOfIcon(evaluateButton.trash))),
+    child:      Row(children: [
+      if(evaluateButton.trash == ButtonState.loading) _progressIndicator,
+      Icon(Icons.delete, size: 36)
+    ])
+  );
+
   Widget get _drawButtonMissing => TextButton(
-    onPressed:  (evaluateButton.missing == ButtonState.default0)? ButtonMissingPressed : null,
+    onPressed:  (evaluateButton.missing == ButtonState.default0)? buttonMissingPressed : null,
     style:      ButtonStyle(foregroundColor: WidgetStatePropertyAll(Global.getColorOfIcon(evaluateButton.missing))),
     child:      Row(children: [
       if(evaluateButton.missing == ButtonState.loading) _progressIndicator,
@@ -406,19 +524,101 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
   Future buttonEvaluatePressed() async{
     setState(() => buttonEvaluate = ButtonState.loading);
     await DataManager(quickCall: QuickCall.inventoryMezAndMolEvaluate).beginQuickCall;
-    setState(() {buttonEvaluate = ButtonState.default0; inventoryMState = InventoryMState.evaluate;});
+    if(listEvaluate.isNotEmpty) {setState(() => inventoryMState = InventoryMState.evaluate);}
+    else {await Global.showAlertDialog(context, title: 'Üres lista!', content: '✅ Nincs több végrehajtandó kiértékelés.');}
+    setState(() => buttonEvaluate = ButtonState.default0);
   }
 
   Future buttonInfoPressed() async{
-
+    dynamic rawData =   await DataManager(returnCall: ReturnCall.form, input: {'id': listEvaluate.first['abroncs_azonosíto']}).beginReturnCall;
+    final lookupDatas = await DataManager(returnCall: ReturnCall.lookupDatas, input: {'rawData': rawData}).beginReturnCall;
+    await Global.readOnlyFormDialog(context, rawData: rawData, lookupDatas: lookupDatas, title: 'Abroncs adatai');
   }
 
   Future buttonPrintPressed() async{
-
+    setState(() {
+      evaluateButton.info =     ButtonState.disabled;
+      evaluateButton.missing =  ButtonState.disabled;
+      evaluateButton.print =    ButtonState.loading;
+      evaluateButton.trash =    ButtonState.disabled;
+    });
+    await DataManager(quickCall: QuickCall.print, input: {
+      'tarhely':  listEvaluate.first['abroncs_azonosíto'],
+      'idk':      [],
+      'type':     'article'
+    }).beginQuickCall;
+    setState(() {
+      evaluateButton.info =     ButtonState.default0;
+      evaluateButton.missing =  ButtonState.default0;
+      evaluateButton.print =    ButtonState.default0;
+      evaluateButton.trash =    ButtonState.default0;
+    });
   }
 
-  Future ButtonMissingPressed() async{
+  Future buttonTrashPressed() async{
+    setState(() {
+      evaluateButton.info =     ButtonState.disabled;
+      evaluateButton.missing =  ButtonState.disabled;
+      evaluateButton.print =    ButtonState.disabled;
+      evaluateButton.trash =    ButtonState.loading;
+    });
+    await DataManager(quickCall: QuickCall.tabletLeltarAttarolas, input: {
+      'raktar_id':          DataManager.raktarId,
+      "tarhely_honnan":     listEvaluate.first['tarhely1'],
+      "tarhely_hova":       'LELTARIV_ELTAVOLITAS',
+      "abroncs_azonosito":  listEvaluate.first['abroncs_azonosíto']
+    }).beginQuickCall;
+    if(errorMessage == null) {
+      setState(() => evaluateState = EvaluateState.accept);
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() => evaluateState = EvaluateState.scanQR);
+      final azonosito = listEvaluate.first['abroncs_azonosíto'];
+      listEvaluate.removeWhere((item) => item['abroncs_azonosíto'] == azonosito);
+      if(listEvaluate.isEmpty){
+        await Global.showAlertDialog(context, title: 'Üres lista!', content: '✅ Nincs több végrehajtandó kiértékelés.');
+        setState(() => inventoryMState = InventoryMState.inventoryPick);
+      }
+    }
+    else{await Global.showAlertDialog(context, title: '⚠️ ${errorMessage['name'] ?? ''}', content: errorMessage['message'] ?? ''); errorMessage = null;}
+    setState(() {
+      evaluateButton.info =     ButtonState.default0;
+      evaluateButton.missing =  ButtonState.default0;
+      evaluateButton.print =    ButtonState.default0;
+      evaluateButton.trash =    ButtonState.default0;
+    });
+  }
 
+  Future buttonMissingPressed() async{
+    setState(() {
+      evaluateButton.info =     ButtonState.disabled;
+      evaluateButton.missing =  ButtonState.loading;
+      evaluateButton.print =    ButtonState.disabled;
+      evaluateButton.trash =    ButtonState.disabled;
+    });
+    await DataManager(quickCall: QuickCall.tabletLeltarAttarolas, input: {
+      'raktar_id':          DataManager.raktarId,
+      "tarhely_honnan":     listEvaluate.first['tarhely1'],
+      "tarhely_hova":       'LTHIANY',
+      "abroncs_azonosito":  listEvaluate.first['abroncs_azonosíto']
+    }).beginQuickCall;
+    if(errorMessage == null) {
+      setState(() => evaluateState = EvaluateState.accept);
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() => evaluateState = EvaluateState.scanQR);
+      final azonosito = listEvaluate.first['abroncs_azonosíto'];
+      listEvaluate.removeWhere((item) => item['abroncs_azonosíto'] == azonosito);
+      if(listEvaluate.isEmpty){
+        await Global.showAlertDialog(context, title: 'Üres lista!', content: '✅ Nincs több végrehajtandó kiértékelés.');
+        setState(() => inventoryMState = InventoryMState.inventoryPick);
+      }
+    }
+    else{await Global.showAlertDialog(context, title: '⚠️ ${errorMessage['name'] ?? ''}', content: errorMessage['message'] ?? ''); errorMessage = null;}
+    setState(() {
+      evaluateButton.info =     ButtonState.default0;
+      evaluateButton.missing =  ButtonState.default0;
+      evaluateButton.print =    ButtonState.default0;
+      evaluateButton.trash =    ButtonState.default0;
+    });
   }
 
   Future buttonContinuePressed() async{
@@ -511,6 +711,33 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
       }));
       break;
 
+    case InventoryMState.evaluate:
+      String scanResult =     scannerDatas!.value.scanData.trim();      
+      await DataManager(quickCall: QuickCall.tabletLeltarAttarolas, input: {
+        'raktar_id':          DataManager.raktarId,
+        "tarhely_honnan":     listEvaluate.first['tarhely1'],
+        "tarhely_hova":       scanResult,
+        "abroncs_azonosito":  listEvaluate.first['abroncs_azonosíto']
+      }).beginQuickCall;
+      if(DataManager.isServerAvailable){
+        setState(() => evaluateState = EvaluateState.empty);
+        if(errorMessage == null) {
+          setState(() => evaluateState = EvaluateState.accept);
+          await Future.delayed(const Duration(seconds: 1));
+          final azonosito = listEvaluate.first['abroncs_azonosíto'];
+          listEvaluate.removeWhere((item) => item['abroncs_azonosíto'] == azonosito);
+          if(listEvaluate.isEmpty){
+            await Global.showAlertDialog(context, title: 'Üres lista!', content: '✅ Nincs több végrehajtandó kiértékelés.');
+            setState(() => inventoryMState = InventoryMState.inventoryPick);
+          }
+        }
+        else{await Global.showAlertDialog(context, title: '⚠️ ${errorMessage['name'] ?? ''}', content: errorMessage['message'] ?? ''); errorMessage = null;}
+      }
+      setState(() => evaluateState = EvaluateState.scanQR);
+      break;
+
     default: break;
   }}
+
+  // ---------- < Methods [3] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- //
 }

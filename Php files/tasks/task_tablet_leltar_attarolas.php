@@ -2,6 +2,7 @@
 class Task{
     // ---------- <Variables [1]> ----- ---------- ---------- ---------- ---------- ---------- ---------- ----------    
     private $sqlCommand;
+    private $sqlQuery;
     private $databaseManager;
     private $request;
     private $result;
@@ -14,13 +15,13 @@ class Task{
     }
 
     // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-    private function _inizialite(){
+     private function _inizialite(){
         $this->request =            json_decode(file_get_contents('php://input'), true);
         $this->sqlCommand =         new SqlCommand();
         $this->databaseManager =    new DatabaseManager(
-            $this->sqlCommand->exec_tablet_leltar_kiertekeles(),
+            $this->sqlCommand->exec_tablet_leltar_attarolas(),
             [
-                'raktar_id' =>  $this->request['raktar_id'],
+                'parameter' =>  $this->request['parameter'],
                 'user_id' =>    $this->request['user_id']
             ],
             $this->request['customer']
