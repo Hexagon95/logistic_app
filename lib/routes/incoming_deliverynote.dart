@@ -140,6 +140,8 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
         SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
           columns:            _generateColumns(rawData),
           rows:               _generateRows(rawData),
+          columnSpacing:      12,
+          horizontalMargin:   8,
           showCheckboxColumn: false,
           border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
         ))
@@ -174,7 +176,10 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
           padding:  const EdgeInsets.fromLTRB(5, 5, 5, 0),
           child:    Container(
             decoration: (_isItemAcceptable(i))? customBoxDecoration : customMandatoryBoxDecoration,
-            child:      Padding(padding: const EdgeInsets.all(5), child: _getWidget(rawDataDataForm[i], i))
+            child: Padding(
+              padding:  const EdgeInsets.all(5),
+              child:    Focus(onFocusChange: (hasFocus) {if (hasFocus) {setState(() => buttonContinue = getButton);}}, child: _getWidget(rawDataDataForm[i], i))
+            )
           )
         ));}
       }}
@@ -193,11 +198,11 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
       : [_drawButtonAdd, _drawButtonPrint, _drawButtonContinue])
     ;
     case InDelNoteState.editItem:
-    case InDelNoteState.addNew:                         return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
-    case InDelNoteState.listItems:                      return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:  [_drawButtonEdit, _drawButtonAdd, _drawButtonRemove]);
-    case InDelNoteState.addItem:                        return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
+    case InDelNoteState.addNew:                         return  Row(mainAxisAlignment: MainAxisAlignment.end,           children: [_drawButtonContinue]);
+    case InDelNoteState.listItems:                      return  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,  children: [_drawButtonEdit, _drawButtonPrint, _drawButtonAdd, _drawButtonRemove]);
+    case InDelNoteState.addItem:                        return  Row(mainAxisAlignment: MainAxisAlignment.end,           children: [_drawButtonContinue]);
     case InDelNoteState.listSelectEditItemDeliveryNote:
-    case InDelNoteState.listSelectAddItemDeliveryNote:  return  Row(mainAxisAlignment: MainAxisAlignment.end, children:           [_drawButtonContinue]);
+    case InDelNoteState.listSelectAddItemDeliveryNote:  return  Row(mainAxisAlignment: MainAxisAlignment.end,           children: [_drawButtonContinue]);
     default:                                            return  Container();
   }}());
 
@@ -300,11 +305,17 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   );
 
   Widget get _drawButtonPrint => TextButton(
-    onPressed:  () => (buttonPrint == ButtonState.default0)? _buttonPrintPressed : null,
+    onPressed:  (() {switch(taskState){
+      case InDelNoteState.listItems:  return (buttonPrint == ButtonState.default0 && rawDataListItems.any((e) => e['print'] == 0))? _buttonPrintPressed : null;
+      default:                        return (buttonPrint == ButtonState.default0)?                                                 _buttonPrintPressed : null;
+    }})(),
     style:      ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
     child:      Padding(padding: const EdgeInsets.all(5), child: Row(children: [
       (buttonPrint == ButtonState.loading)? _progressIndicator(Global.getColorOfIcon(buttonPrint)) : Container(),
-      Icon(Icons.print, color: Global.getColorOfIcon(buttonPrint), size: 30)
+      Icon(Icons.print, color: Global.getColorOfIcon(((){switch(taskState){
+        case InDelNoteState.listItems:  return (rawDataListItems.any((e) => e['print'] == 0))? buttonPrint : ButtonState.disabled;
+        default:                        return buttonPrint;
+      }})()), size: 30)
     ]))
   );
 
@@ -329,6 +340,7 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     List<DataColumn> columns = [];
     for (var item in rawData[0].keys) {
       switch(item){
+        case 'print':       columns.insert(0, const DataColumn(label: Text('')));           break;
         case 'cikkszam':
         case 'sorszam':     columns.add(const DataColumn(label: Text('Azonosító')));  break;
         case 'vevo':
@@ -542,15 +554,21 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
     default: break;
   }}
 
-  Future get _buttonPrintPressed async{
+  Future _buttonPrintPressed() async{
+    taskState;
     setState(() => buttonPrint = ButtonState.loading);
     await DataManager(
       quickCall:  QuickCall.printBarcodeDeliveryNote,
-      input:      (taskState == InDelNoteState.default0)
-        ? {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexDeliveryNote!]['id'].toString())}
-        : {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexItem!]['id'].toString())}
-      ,
+      input:      (() {switch(taskState){
+        case InDelNoteState.listItems:  return {
+          'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexDeliveryNote!]['id'].toString()),
+          'idk' :         rawDataListItems.where((e) => e['print'] == 0).map((e) => {'id': int.parse(e['cikk_id'].toString())}).toList(),
+        };
+        case InDelNoteState.default0:   return {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexDeliveryNote!]['id'].toString())};
+        default:                        return {'bizonylat_id': int.parse(rawDataListDeliveryNotes[getSelectedIndexItem!]['id'].toString())};
+      }})()
     ).beginQuickCall;
+    await DataManager(quickCall: QuickCall.askDeliveryNotesScan).beginQuickCall;
     setState(() => buttonPrint = ButtonState.default0);
     await Global.showAlertDialog(context, content: 'Tételek nyomtatás alatt.', title: 'Nyomtatás');
   }
@@ -767,12 +785,20 @@ class IncomingDeliveryNoteState extends State<IncomingDeliveryNote>{
   List<DataCell> _getCells(Map<String, dynamic> row){
     List<DataCell> cells = List<DataCell>.empty(growable: true);
     for (var item in row.keys) {switch(item){
+
+      case 'print':
+        cells.insert(0, DataCell((row[item].toString() == '0')
+          ? Icon(Icons.print_disabled, color: Global.getColorOfIcon(ButtonState.disabled))
+          : Text('')
+        ));
+        break;
+
       case 'cikkszam':
       case 'sorszam':
       case 'megnevezes':
       case 'szallito':
       case 'vevo':        cells.add(DataCell(Text(row[item].toString())));  break;
-      case 'mennyiseg':   cells.add(DataCell(Text(row[item].toString())));  break;
+      case 'mennyiseg':   cells.add(DataCell(Text('  ${row[item].toString()}')));  break;
       case 'kesz':        cells.add(DataCell((row[item].toString() == '1')
         ? Icon(Icons.check_circle, color: Global.getColorOfButton(ButtonState.default0), size: 30)
         : Container()));                                                break;

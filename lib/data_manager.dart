@@ -25,9 +25,13 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DataManager{
+  // ---------- < Bookmarks > ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  // Select a method / getter, than perss F12 to jump there
+  void get bookmarks {beginReturnCall; beginQuickCall; _decisionQuickCall; beginProcess; _decision;}
+
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.48';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
-  static int verzioTest =                                 5;            // <--- Anything other than 0 will draw "[Teszt #]" at the LogIn screen.
+  static String thisVersion =                             '1.49d';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
+  static int verzioTest =                                 0;            // <--- Anything other than 0 will draw "[Teszt #]" at the LogIn screen.
   static String actualVersion =                           thisVersion;
   static String customer =                                'mosaic';
 
@@ -607,6 +611,7 @@ class DataManager{
             'customer':     customer,
             'bizonylat_id': input['bizonylat_id'],
             'raktar_id':    int.parse(raktarId.toString()),
+            'idk':          jsonEncode(input['idk'])
           };
           Uri uriUrl =                Uri.parse('${urlPath}print_barcode_delivery_note.php');          
           http.Response response =    await http.post(uriUrl, body: json.encode(queryParameters), headers: headers);
@@ -887,8 +892,8 @@ class DataManager{
     finally{
       await _decisionQuickCall;
     }
-  }
-
+  }  
+  
   Future get beginProcess async{
     int check(int index) {while(data.length < index + 1) {data.add(List<dynamic>.empty());} return index;}
     try {
@@ -1173,9 +1178,16 @@ class DataManager{
           DataFormState.listOfLookupDatas = <String, dynamic>{};
           for(dynamic item in DataFormState.rawData){
             if(!['select','search'].contains(item['input_field'])) continue;
-            DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));
+            try {DataFormState.listOfLookupDatas[item['id']] = await _getLookupData(input: item['lookup_data'], isPhp: (item['php'].toString() == '1'));}
+            catch(e){
+              if(kDebugMode){
+                dev.log('########## ########## ########## ########## ##########\nError: ${e.toString()}');
+                dev.log('Rerturn value: ${DataFormState.listOfLookupDatas[item['id']].toString()}');
+              }
+
+            }
           }
-          if(kDebugMode)print(DataFormState.listOfLookupDatas);
+          if(kDebugMode) {dev.log(DataFormState.listOfLookupDatas.toString());}
           break;
         
         case QuickCall.chainGiveDatas:
@@ -1534,7 +1546,7 @@ class DataManager{
   // ---------- < Methods [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------  
   // ignore: unused_element
   Future<dynamic> _getLookupData({required String input, required bool isPhp, dynamic something}) async{
-    if(['id_11'].contains(something['id'].toString()) && kDebugMode){
+    if(something != null && ['id_11'].contains(something['id'].toString()) && kDebugMode){
       print('STOP');
     }
     String sqlCommand = input.replaceAll(

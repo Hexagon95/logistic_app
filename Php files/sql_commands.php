@@ -80,7 +80,7 @@ class SqlCommand{
     public function exec_tabletHelysziniszerelesLezaras()               {return "EXEC [dbo].[Tablet_Helysziniszereles_lezaras] :bizonylat_id, :output";}
     public function exec_tabletBelep()                                  {return "EXEC [mosaic].[dbo].[TabletBelep] :eszkoz_id, :verzio";}
     public function exec_barcodePrintCikkek()                           {return "EXEC [local].[Barcode_print_cikkek] :raktar_id, :list";}
-    public function exec_barcodePrintBizonylatCikkek()                  {return "EXEC [local].[Barcode_print_bizonylat_cikkek] :bizonylat_id, :raktar_id, '[]'";}
+    public function exec_barcodePrintBizonylatCikkek()                  {return "EXEC [local].[Barcode_print_bizonylat_cikkek] :bizonylat_id, :raktar_id, :idk";}
     public function exec_abroncs_reszletezo_felvitele()                 {return "EXEC [local].[Abroncs_reszletezo_felvitele_temp] :parameter, :user_id";}
     public function exec_abroncs_reszletezo_felvitele1()                {return "EXEC [local].[Abroncs_reszletezo_felvitele_temp1] :parameter, :user_id";}
     public function exec_barcodePrintTarhelyCikkek()                    {return "EXEC [local].[Barcode_print_tarhely_cikkek] :tarhely, :idk";}

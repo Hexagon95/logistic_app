@@ -22,7 +22,8 @@ class Task{
                 $this->sqlCommand->exec_barcodePrintBizonylatCikkek(),
                 [
                     'bizonylat_id' =>   $this->request['bizonylat_id'],
-                    'raktar_id' =>      $this->request['raktar_id']
+                    'raktar_id' =>      $this->request['raktar_id'],
+                    'idk' =>            ($this->request['idk'] ?? null) === null || $this->request['idk'] === 'null'? '[]' : $this->request['idk']
                 ],
                 $this->request['customer']
             );

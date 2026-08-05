@@ -51,7 +51,7 @@ dependencies:
   audioplayers: ^6.1.0
   device_info_plus: ^10.1.0
   icons_launcher: ^3.0.0
-  flutter_datawedge: ^3.0.0
+  flutter_datawedge: 3.0.0
   masked_text: ^1.1.2
   flutter_secure_storage: ^9.2.4
 
