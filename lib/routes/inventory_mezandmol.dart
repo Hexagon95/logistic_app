@@ -555,7 +555,10 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
     });
   }
 
-  Future buttonTrashPressed() async{
+  Future buttonTrashPressed() async {if(await Global.yesNoDialog(context,
+    title:    '⚠️ Leltárív Eltávolítása',
+    content:  'Kívánja eltávolítani a leltárívet?'
+  )){
     setState(() {
       evaluateButton.info =     ButtonState.disabled;
       evaluateButton.missing =  ButtonState.disabled;
@@ -586,9 +589,12 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
       evaluateButton.print =    ButtonState.default0;
       evaluateButton.trash =    ButtonState.default0;
     });
-  }
+  }}
 
-  Future buttonMissingPressed() async{
+  Future buttonMissingPressed() async {if(await Global.yesNoDialog(context,
+    title:    '❓ Leltárhiány',
+    content:  'Megerősíti a leltárcikk hiányát?'
+  )){
     setState(() {
       evaluateButton.info =     ButtonState.disabled;
       evaluateButton.missing =  ButtonState.loading;
@@ -619,7 +625,7 @@ class InventoryMezAndMolState extends State<InventoryMezAndMol> {
       evaluateButton.print =    ButtonState.default0;
       evaluateButton.trash =    ButtonState.default0;
     });
-  }
+  }}
 
   Future buttonContinuePressed() async{
     setState(() => buttonContinue = ButtonState.loading);

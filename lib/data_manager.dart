@@ -9,7 +9,7 @@ import 'package:logistic_app/routes/log_in.dart';
 import 'package:logistic_app/routes/data_form.dart';
 import 'package:logistic_app/routes/scan_orders.dart';
 import 'package:logistic_app/routes/list_orders.dart';
-import 'package:logistic_app/routes/scan_inventory.dart';
+import 'package:logistic_app/routes/scan_inventory.dart';  
 import 'package:logistic_app/routes/scan_check_stock.dart';
 import 'package:logistic_app/routes/list_delivery_note.dart';
 import 'package:logistic_app/routes/list_pick_up_details.dart'; 
@@ -30,7 +30,7 @@ class DataManager{
   void get bookmarks {beginReturnCall; beginQuickCall; _decisionQuickCall; beginProcess; _decision;}
 
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.49d';       // <--- Don't forget to update the 🍎 IOS version as well!!! 
+  static String thisVersion =                             '1.50';       //1.50 <--- Don't forget to update the 🍎 IOS version as well!!! 
   static int verzioTest =                                 0;            // <--- Anything other than 0 will draw "[Teszt #]" at the LogIn screen.
   static String actualVersion =                           thisVersion;
   static String customer =                                'mosaic';
@@ -460,9 +460,9 @@ class DataManager{
         case QuickCall.print:
           var queryParameters = {
             'customer': customer,
-            'tarhely':  input['tarhely'] ?? ScanCheckStockState.storageId,
-            'idk':      jsonEncode(input['idk'] ?? ScanCheckStockState.selectedIds),
-            'type':     input['type'] ?? ((ScanCheckStockState.scannedCode == ScannedCodeIs.article)? 'article' : 'storage')
+            'tarhely':  input?['tarhely'] ?? ScanCheckStockState.storageId,
+            'idk':      jsonEncode(input?['idk'] ?? ScanCheckStockState.selectedIds),
+            'type':     input?['type'] ?? ((ScanCheckStockState.scannedCode == ScannedCodeIs.article)? 'article' : 'storage')
           };
           if(kDebugMode)print(queryParameters);
           Uri uriUrl =              Uri.parse('${urlPath}print.php');
@@ -1009,7 +1009,7 @@ class DataManager{
           data[check(1)] =          await jsonDecode(response.body);
           if(kDebugMode){
             String varString = data[1].toString();
-            print(varString);
+            dev.log(varString);
           }
           break;
 

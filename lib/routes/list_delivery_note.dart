@@ -137,7 +137,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
   );
 
 // ---------- < WidgetBuild [3] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  Widget get _drawDataTable => (rawData.isNotEmpty)
+  /*Widget get _drawDataTable => (rawData.isNotEmpty)
   ? Expanded(child: SingleChildScrollView(scrollDirection: Axis.vertical, child:
     SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
       columns:            _generateColumns,
@@ -146,7 +146,205 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       border:             const TableBorder(bottom: BorderSide(color: Color.fromARGB(255, 200, 200, 200))),                
     ))
   ))
-  : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));
+  : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));*/
+
+  Widget get _drawDataTable => Expanded(
+    child: ListView.builder(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 10,
+      ),
+      itemCount: rawData.length,
+      itemBuilder: (context, i) {
+        final item = rawData[i];
+        final bool selected = selectedIndex == i;
+        final Color primaryColor =
+            Global.getColorOfButton(ButtonState.default0);
+        Widget info({
+          required IconData icon,
+          required String title,
+          required dynamic value,
+          bool bold = false,
+        }) {
+          final String text = value?.toString() ?? '';
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 17,
+                  color: primaryColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.black45,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      text.isEmpty ? '—' : text,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black87,
+                        fontWeight:
+                            bold ? FontWeight.bold : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+        return GestureDetector(
+          onTap: () => setState(() => selectedIndex = i),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: selected
+                  ? primaryColor.withOpacity(0.08)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: selected
+                    ? primaryColor
+                    : Colors.black.withOpacity(0.12),
+                width: selected ? 2 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(
+                    selected ? 0.12 : 0.06,
+                  ),
+                  blurRadius: selected ? 8 : 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // ---------- Sorszám ----------
+                Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: primaryColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.description_outlined,
+                        color: primaryColor,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Szállítólevél sorszáma',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.black45,
+                            ),
+                          ),
+                          Text(
+                            item['Sorszám']?.toString() ?? '—',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (selected)
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.check,
+                          size: 18,
+                          color: Global.getColorOfIcon(
+                            ButtonState.default0,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Divider(
+                  height: 1,
+                  color: Colors.black.withOpacity(0.08),
+                ),
+                const SizedBox(height: 10),
+                // ---------- Telephely + Kelte + Db ----------
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: info(
+                        icon: Icons.location_on_outlined,
+                        title: 'Telephely',
+                        value: item['Telephely'],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: info(
+                        icon: Icons.calendar_month_outlined,
+                        title: 'Kelte',
+                        value: item['Kelte'],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 1,
+                      child: info(
+                        icon: Icons.inventory_2_outlined,
+                        title: 'Db',
+                        value: item['Db'],
+                        bold: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  );
 
   Widget get _drawTextInput => Padding(padding: const EdgeInsets.all(5), child: Container(
       decoration: customBoxDecoration,
@@ -285,6 +483,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       //case 'Vevő':
       case 'Telephely':
       case 'Kelte':
+      case 'Db':
       case 'Pénznem':
       case 'Bruttó érték':  columns.add(DataColumn(label: Text(item))); break;
       default:break;
@@ -393,6 +592,7 @@ class ListDeliveryNoteState extends State<ListDeliveryNote>{
       //case 'Vevő':
       case 'Telephely':
       case 'Kelte':
+      case 'Db':
       case 'Pénznem':       cells.add(DataCell(Text(row[item].toString()))); break;
       case 'Bruttó érték':  cells.add(DataCell(Align(
         alignment:  Alignment.centerRight,
