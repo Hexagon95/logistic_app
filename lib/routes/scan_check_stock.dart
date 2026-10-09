@@ -44,7 +44,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   static List<dynamic>? barcodeResult;
   static TaskState? taskState;
   static String? result;
- 
   // ---------- < Variables [1] > -------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   final GlobalKey qrKey =             GlobalKey(debugLabel: 'QR');
   TextStyle formTextStyle =           const TextStyle(fontSize: 14);
@@ -105,7 +104,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       }}()      
     );
   }
-  
   // ---------- < WidgetBuild [2] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget get _drawQrScanRouteProduct => Stack(children: [
     Scaffold(
@@ -233,7 +231,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         ))
       ))
       : const Expanded(child: Center(child: Text('Üres', style: TextStyle(fontSize: 20))));  
-    
     case ScannedCodeIs.article:
       List<Widget> dataRows = List<Widget>.empty(growable: true);
       for(dynamic item in rawData){
@@ -293,10 +290,14 @@ class ScanCheckStockState extends State<ScanCheckStock>{
   )
   : Icon(Icons.barcode_reader, size: 200, color: Global.getColorOfButton(ButtonState.default0));
 
-  Widget get _drawBarcodeManualForm => Expanded(child: Center(child: Padding(padding: const EdgeInsets.all(5), child: TextFormField(
+  Widget get _drawBarcodeManualForm => Expanded(child: Center(child: Padding(padding: const EdgeInsets.all(15), child: TextFormField(
     enabled:      true,
     initialValue: '',
     onChanged:    (String? newValue) => setState(() {result = newValue!;}),
+    decoration:   const InputDecoration(
+      labelText: 'Tárhely kód vagy rendszám megadása',
+      border: OutlineInputBorder()
+    ),
     style:        const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     textAlign:    TextAlign.center,
   ))));
@@ -333,7 +334,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
           const SizedBox(height: 1)
         ])
       );
-      
       case TaskState.barcodeManual: return Container(height: 50, color: Global.getColorOfButton(ButtonState.default0), child:
         Row(mainAxisAlignment: MainAxisAlignment.end, children: [        
           _drawButtonOk
@@ -383,7 +383,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     scanProductMessage,
     style: const TextStyle(color: Colors.white, fontSize: 16),
   )));
-  
   // ---------- < WidgetBuild [5] > ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
   Widget _progressIndicator(Color colorInput) => Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: SizedBox(
     width:  20,
@@ -533,7 +532,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
     }
     if(!Global.isScannerDevice) controller!.resumeCamera();
   }
-  
   List<DataColumn> get _generateColumns{
     List<DataColumn> columns = List<DataColumn>.empty(growable: true);
     for(var item in rawData[0]['oszlop']) {columns.add(DataColumn(label: Text(item['text'])));}
@@ -724,13 +722,11 @@ class ScanCheckStockState extends State<ScanCheckStock>{
       case TaskState.scanDestinationStorage:
         setState(() => taskState = TaskState.inventory);
         return false;
-      
       case TaskState.scanProduct:
         await DataManager(quickCall: QuickCall.checkStock).beginQuickCall;
         if(messageData.isNotEmpty) await Global.showAlertDialog(context, title: messageData['title'], content: messageData['content']);
         setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
         return false;
-      
       case TaskState.inventory: 
         if(scannedCode == ScannedCodeIs.storage) {switch(await customDialog(context,
           title:    '$storageId tárolóhely elhagyása?',
@@ -745,7 +741,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
           setState(() => taskState = TaskState.scanStorage);
           return false;
         }
-      
       case TaskState.barcodeManual:
         setState(() => taskState = TaskState.scanStorage);
         return false;
@@ -786,7 +781,6 @@ class ScanCheckStockState extends State<ScanCheckStock>{
         savedStorageId =  storageId;
         await dataManager.beginQuickCall;
         switch(scannedCode){
-          
           case ScannedCodeIs.storage:
             dataManager = DataManager(quickCall: QuickCall.checkStock);
             await dataManager.beginQuickCall;
@@ -935,20 +929,41 @@ class ScanCheckStockState extends State<ScanCheckStock>{
 
     case TaskState.scanStorage:
     case TaskState.barcodeManual:
-      DataManager dataManager = DataManager(quickCall: QuickCall.checkStock);
-      if(!Global.isScannerDevice) await controller!.pauseCamera(); 
+      DataManager dataManager = DataManager(quickCall: QuickCall.checkCode);
+      if(!Global.isScannerDevice) await controller!.pauseCamera();
       setState(() => isProcessIndicator = true);
       storageId =       result!.trim();
       savedStorageId =  storageId;
       await dataManager.beginQuickCall;
-      if(storageFromExist){
-        buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
-        buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
-        setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
-      }
-      else{
-        await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba');
-        setState(() {isProcessIndicator = false; if(!Global.isScannerDevice) controller!.resumeCamera(); taskState = TaskState.scanStorage;});
+      switch(scannedCode){
+        case ScannedCodeIs.storage:
+          dataManager = DataManager(quickCall: QuickCall.checkStock);
+          await dataManager.beginQuickCall;
+          if(storageFromExist){
+            buttonPreviousStorage = (rawData[0]['elozo_tarhely'].toString().isNotEmpty)?     ButtonState.default0 : ButtonState.disabled;
+            buttonNextStorage =     (rawData[0]['kovetkezo_tarhely'].toString().isNotEmpty)? ButtonState.default0 : ButtonState.disabled;
+            setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+          }
+          else{
+            AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
+            await Global.showAlertDialog(context, content: 'A megadott tárolóhely nem létezik!', title: 'Tárolóhely hiba!');
+            setState(() {isProcessIndicator = false; if(!Global.isScannerDevice) controller!.resumeCamera(); taskState = TaskState.scanStorage;});
+          }
+          break;
+
+        case ScannedCodeIs.article:
+          dataManager = DataManager(quickCall: QuickCall.checkArticle);
+          await dataManager.beginQuickCall;
+          setState(() {isProcessIndicator = false; taskState = TaskState.inventory;});
+          break;
+
+        case ScannedCodeIs.unknown:
+          AudioPlayer().play(AssetSource('sounds/buzzer.wav'));
+          await Global.showAlertDialog(context, content: 'Ismeretlen vonal/QR kód!', title: 'Hiba!');
+          setState(() {isProcessIndicator = false; if(!Global.isScannerDevice) controller!.resumeCamera(); taskState = TaskState.scanStorage;});
+          break;
+
+        default:break;
       }
       break;
 

@@ -30,7 +30,7 @@ class DataManager{
   void get bookmarks {beginReturnCall; beginQuickCall; _decisionQuickCall; beginProcess; _decision;}
 
   // ---------- < Variables [Static] > - ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  static String thisVersion =                             '1.50';       //1.50 <--- Don't forget to update the 🍎 IOS version as well!!! 
+  static String thisVersion =                             '1.51';       //1.50 <--- Don't forget to update the 🍎 IOS version as well!!! 
   static int verzioTest =                                 0;            // <--- Anything other than 0 will draw "[Teszt #]" at the LogIn screen.
   static String actualVersion =                           thisVersion;
   static String customer =                                'mosaic';
