@@ -1,8 +1,71 @@
 <?php
+
 header('Content-Type: application/json; charset=utf-8');
-include 'sql_commands.php';
-include 'database_manager.php';
-include 'tasks/task_list_order_items.php';
+
+require_once __DIR__ . '/sql/sql_commands.php';
+require_once __DIR__ . '/sql/database_manager.php';
+
+class Task {
+    // ---------- <Variables [1]> ----- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    private SqlCommand $sqlCommand;
+    private DatabaseManager $databaseManager;
+    private bool $success = true;
+    private string $errorMessage = '';
+    private array $request = [];
+    private array $result = [];
+
+    public function getResult(): array {
+        return $this->success ? $this->result : [[
+            'error' => 1,
+            'message' => $this->errorMessage
+        ]];
+    }
+
+    // ---------- <Constructors> ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    public function __construct() {
+        try {
+            $this->_initialize();
+            $this->_loadOrderItems();
+        }
+        catch(Throwable $th) {
+            $this->success = false;
+            $this->errorMessage = $th->getMessage();
+        }
+    }
+
+    // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    private function _initialize(): void {
+        $input = file_get_contents('php://input');
+        if($input === false) throw new RuntimeException('A kérés tartalma nem olvasható.');
+        $this->request = json_decode($input, true, 512, JSON_THROW_ON_ERROR);
+        if(!is_array($this->request)) throw new UnexpectedValueException('A kérés nem érvényes JSON objektum.');
+        $this->sqlCommand = new SqlCommand();
+    }
+
+    private function _loadOrderItems(): void {
+        $this->databaseManager = new DatabaseManager(
+            $this->sqlCommand->select_rendelesTetelek(),
+            [
+                'bizonylat_id' => $this->request['bizonylat_id'],
+                'user_id' => $this->request['user_id']
+            ],
+            $this->request['customer']
+        );
+        $this->result = $this->databaseManager->getData();
+        $this->_checkDatabaseResult();
+    }
+
+    private function _checkDatabaseResult(): void {
+        if(isset($this->result[0]['error'])) {
+            $this->success = false;
+            $this->errorMessage = $this->result[0]['message'] ?? (string)$this->result[0]['error'];
+        }
+    }
+}
 
 $taskListOrderItems = new Task();
-echo json_encode($taskListOrderItems->getResult());
+
+echo json_encode(
+    $taskListOrderItems->getResult(),
+    JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+);

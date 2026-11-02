@@ -1,8 +1,80 @@
 <?php
+
 header('Content-Type: application/json; charset=utf-8');
-include 'sql_commands.php';
-include 'database_manager.php';
-include 'tasks/task_upload_kiszedes_felvitele_tarhely.php';
+
+require_once __DIR__ . '/sql/sql_commands.php';
+require_once __DIR__ . '/sql/database_manager.php';
+
+class Task {
+    // ---------- <Variables [1]> ----- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    private SqlCommand $sqlCommand;
+    private DatabaseManager $databaseManager;
+    private array $request = [];
+    private array $result = [];
+    private bool $success = true;
+    private string $errorMessage = '';
+
+    public function isSuccess(): bool {
+        return $this->success;
+    }
+
+    public function getErrorMessage(): string {
+        return $this->errorMessage;
+    }
+
+    // ---------- <Constructors> ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    public function __construct() {
+        try {
+            $this->_initialize();
+            $this->_uploadStoragePickUp();
+        }
+        catch(Throwable $th) {
+            $this->success = false;
+            $this->errorMessage = $th->getMessage();
+        }
+    }
+
+    // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    private function _initialize(): void {
+        $input = file_get_contents('php://input');
+        if($input === false) throw new RuntimeException('A kérés tartalma nem olvasható.');
+        $this->request = json_decode($input, true, 512, JSON_THROW_ON_ERROR);
+        if(!is_array($this->request)) throw new UnexpectedValueException('A kérés nem érvényes JSON objektum.');
+        $this->sqlCommand = new SqlCommand();
+    }
+
+    private function _uploadStoragePickUp(): void {
+        $this->databaseManager = new DatabaseManager(
+            $this->sqlCommand->exec_tabletKiszedesFelviteleTarhely(),
+            [
+                'kiszedesi_lista' => $this->request['kiszedesi_lista'],
+                'user_id' => $this->request['user_id']
+            ],
+            $this->request['customer']
+        );
+        $this->result = $this->databaseManager->getData();
+        $this->_checkDatabaseResult();
+    }
+
+    private function _checkDatabaseResult(): void {
+        if(isset($this->result[0]['error'])) {
+            $this->success = false;
+            $this->errorMessage = $this->result[0]['message'] ?? (string)$this->result[0]['error'];
+        }
+    }
+}
 
 $taskUploadKiszedesFelviteleTarhely = new Task();
-echo json_encode(array(['success' => 1]));
+
+$response = $taskUploadKiszedesFelviteleTarhely->isSuccess()
+    ? [['success' => 1]]
+    : [[
+        'success' => 0,
+        'error' => 1,
+        'message' => $taskUploadKiszedesFelviteleTarhely->getErrorMessage()
+    ]];
+
+echo json_encode(
+    $response,
+    JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+);

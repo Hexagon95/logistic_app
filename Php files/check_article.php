@@ -1,8 +1,63 @@
 <?php
+
 header('Content-Type: application/json; charset=utf-8');
-include 'sql_commands.php';
-include 'database_manager.php';
-include 'tasks/task_check_article.php';
+
+require_once __DIR__ . '/sql/sql_commands.php';
+require_once __DIR__ . '/sql/database_manager.php';
+
+class Task {
+    // ---------- <Variables [1]> ----- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    private SqlCommand $sqlCommand;
+    private DatabaseManager $databaseManager;
+    private bool $success = true;
+    private string $errorMessage = '';
+    private array $request = [];
+    private array $result = [];
+
+    public function getResult(): array {
+        return $this->success ? $this->result : [[
+            'error' => 1,
+            'message' => $this->errorMessage
+        ]];
+    }
+
+    // ---------- <Constructors> ------ ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    public function __construct() {
+        try {
+            $this->_initialize();
+            $this->_checkArticle();
+        }
+        catch(Throwable $th) {
+            $this->success = false;
+            $this->errorMessage = $th->getMessage();
+        }
+    }
+
+    // ---------- <Methods [1]> ------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+    private function _initialize(): void {
+        $input = file_get_contents('php://input');
+        if($input === false) throw new RuntimeException('A kérés tartalma nem olvasható.');
+        $this->request = json_decode($input, true, 512, JSON_THROW_ON_ERROR);
+        if(!is_array($this->request)) throw new UnexpectedValueException('A kérés nem érvényes JSON objektum.');
+        $this->sqlCommand = new SqlCommand();
+    }
+
+    private function _checkArticle(): void {
+        $this->databaseManager = new DatabaseManager(
+            $this->sqlCommand->select_tabletCikkInfo(),
+            [
+                'id' => $this->request['id'],
+                'raktar_id' => $this->request['raktar_id']
+            ],
+            $this->request['customer']
+        );
+        $this->result = $this->databaseManager->getData();
+    }
+}
 
 $taskCheckArticle = new Task();
-echo json_encode($taskCheckArticle->getResult());
+
+echo json_encode(
+    $taskCheckArticle->getResult(),
+    JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+);
