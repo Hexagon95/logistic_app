@@ -46,7 +46,7 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_tabletAbroncsInfo(),
             [
-                'code' => $this->request['code']
+                'code' => $this->request['code'] ?? null
             ],
             $this->request['customer']
         );

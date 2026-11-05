@@ -1467,7 +1467,7 @@ class DataManager{
               }
               break;
 
-            case 4:
+            case 4: 
               raktarMegnevezes =  data[4][1]['raktar_megnevezes'].toString();
               raktarId =          data[4][1]['raktar_id'].toString();
               if((data[4][1]['menu'] ?? '').isNotEmpty) MenuState.menuList = jsonDecode(data[4][1]['menu']);

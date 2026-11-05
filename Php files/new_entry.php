@@ -46,8 +46,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_abroncs_reszletezo1(),
             [
-                'id' => $this->request['id'],
-                'tarhely_id' => $this->request['tarhely_id']
+                'id' => $this->request['id'] ?? null,
+                'tarhely_id' => $this->request['tarhely_id'] ?? null
             ],
             $this->request['customer']
         );

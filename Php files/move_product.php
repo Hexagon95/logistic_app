@@ -51,9 +51,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_tarhely_Id1(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'input' => $this->request['storageFrom'],
-                'user_id' => $this->request['user_id']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'input' => $this->request['storageFrom'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );
@@ -65,9 +65,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_tarhely_Id1(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'input' => $this->request['storageTo'],
-                'user_id' => $this->request['user_id']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'input' => $this->request['storageTo'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );
@@ -90,7 +90,7 @@ class Task {
             $this->sqlCommand->exec_keszletmozgatasFelvitele(),
             [
                 'parameter' => $parameter,
-                'user_id' => $this->request['user_id']
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

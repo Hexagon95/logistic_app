@@ -48,9 +48,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_barcodePrintBizonylatCikkek(),
             [
-                'bizonylat_id' => $this->request['bizonylat_id'],
-                'raktar_id' => $this->request['raktar_id'],
-                'idk' => $idk
+                'bizonylat_id' => $this->request['bizonylat_id'] ?? null,
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'idk' => $idk ?? null
             ],
             $this->request['customer']
         );

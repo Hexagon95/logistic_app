@@ -42,7 +42,7 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_felhasznaloProfilModositas(),
             [
-                'parameter' => $this->request['parameter']
+                'parameter' => $this->request['parameter'] ?? null
             ],
             $this->request['customer']
         );

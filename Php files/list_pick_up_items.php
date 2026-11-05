@@ -46,7 +46,7 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_kiszedesTetelek(),
             [
-                'bizonylat_id' => $this->request['bizonylat_id']
+                'bizonylat_id' => $this->request['bizonylat_id'] ?? null
             ],
             $this->request['customer']
         );

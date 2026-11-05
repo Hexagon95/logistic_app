@@ -46,8 +46,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_barcodePrintCikkek(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'list' => $this->request['list']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'list' => $this->request['list'] ?? null
             ],
             $this->request['customer']
         );

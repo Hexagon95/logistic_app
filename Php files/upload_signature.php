@@ -59,9 +59,9 @@ class Task {
     private function _executeSignature(): void {
         $parameter = json_encode(
             [
-                'id' => $this->request['id'],
-                'alairas' => $this->request['alairas'],
-                'alairo' => $this->request['alairo']
+                'id' => $this->request['id'] ?? null,
+                'alairas' => $this->request['alairas'] ?? null,
+                'alairo' => $this->request['alairo'] ?? null
             ],
             JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR
         );
@@ -79,15 +79,15 @@ class Task {
     private function _executeDeliveryNote(): void {
         $parameter = json_encode(
             [
-                'id' => $this->request['id'],
-                'fuvarlevel' => $this->request['fuvarlevel']
+                'id' => $this->request['id'] ?? null,
+                'fuvarlevel' => $this->request['fuvarlevel'] ?? null
             ],
             JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR
         );
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_bizonylatFuvarlevelszamFelvitele(),
             [
-                'parameter' => $parameter
+                'parameter' => $parameter ?? null
             ],
             $this->request['customer']
         );

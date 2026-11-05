@@ -43,9 +43,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_tabletPartnertolVisszaUjTetelRendszam(),
             [
-                'rendszam' => $this->request['rendszam'],
-                'bizonylat_id' => $this->request['bizonylat_id'],
-                'user_id' => $this->request['user_id']
+                'rendszam' => $this->request['rendszam'] ?? null,
+                'bizonylat_id' => $this->request['bizonylat_id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

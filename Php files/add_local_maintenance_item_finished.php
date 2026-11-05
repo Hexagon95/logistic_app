@@ -33,9 +33,9 @@ class Task {
             $this->databaseManager = new DatabaseManager(
                 $this->sqlCommand->exec_tabletHelysziniszerelesUjTetelFelvitele(),
                 [
-                    'bizonylat_id' => $this->request['bizonylat_id'],
-                    'parameter' => $this->request['parameter'],
-                    'user_id' => $this->request['user_id']
+                    'bizonylat_id' => $this->request['bizonylat_id'] ?? null,
+                    'parameter' => $this->request['parameter'] ?? null,
+                    'user_id' => $this->request['user_id'] ?? null
                 ],
                 $this->request['customer']
             );

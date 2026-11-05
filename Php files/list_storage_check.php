@@ -47,9 +47,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_tarhely_Id1(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'input' => $this->request['tarhely_id'],
-                'user_id' => $this->request['user_id']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'input' => $this->request['tarhely_id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );
@@ -61,9 +61,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_tarhelyKeszletEllenorzes1(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'tarhely_id' => $this->request['tarhely_id'],
-                'user_id' => $this->request['user_id']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'tarhely_id' => $this->request['tarhely_id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

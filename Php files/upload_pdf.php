@@ -98,8 +98,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_bizonylatDokumentumFelvitele(),
             [
-                'parameter' => $parameter,
-                'user_id' => $this->request['user_id']
+                'parameter' => $parameter ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

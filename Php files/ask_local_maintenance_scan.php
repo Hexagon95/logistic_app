@@ -42,8 +42,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_tabletHelysziniszerelesTetelek(),
             [
-                'bizonylat_id' => $this->request['bizonylat_id'],
-                'user_id' => $this->request['user_id']
+                'bizonylat_id' => $this->request['bizonylat_id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

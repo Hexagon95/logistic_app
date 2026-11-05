@@ -46,9 +46,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_keszletellenorzesId1(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'code' => $this->request['code'],
-                'user_id' => $this->request['user_id']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'code' => $this->request['code'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

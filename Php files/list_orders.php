@@ -46,8 +46,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_rendelesek1(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'user_id' => $this->request['user_id']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

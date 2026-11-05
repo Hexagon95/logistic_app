@@ -32,9 +32,9 @@ class Task {
             $this->databaseManager = new DatabaseManager(
                 $this->sqlCommand->select_Tablet_Bejovoszallitolevel_tetelek_uj(),
                 [
-                    'bizonylat_id' => $this->request['bizonylat_id'],
+                    'bizonylat_id' => $this->request['bizonylat_id'] ?? null,
                     'rendszam' => $this->request['rendszam'] ?? '',
-                    'user_id' => $this->request['user_id']
+                    'user_id' => $this->request['user_id'] ?? null
                 ],
                 $this->request['customer']
             );

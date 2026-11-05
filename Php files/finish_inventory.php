@@ -54,8 +54,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_finishInventory(),
             [
-                'input' => $inventoryInput,
-                'user_id' => $this->request['user_id']
+                'input' => $inventoryInput ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

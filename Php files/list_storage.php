@@ -46,8 +46,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_tarhelyKeszlet(),
             [
-                'tarhely_id' => $this->request['tarhely_id'],
-                'datum' => $this->request['datum']
+                'tarhely_id' => $this->request['tarhely_id'] ?? null,
+                'datum' => $this->request['datum'] ?? null
             ],
             $this->request['customer']
         );

@@ -28,17 +28,17 @@ class Task {
             $this->sqlCommand = new SqlCommand();
             $parameter = json_encode(
                 [
-                    'tarhely_id' => $this->request['tarhely_id'],
-                    'cikk_id' => $this->request['cikk_id'],
-                    'mennyiseg' => $this->request['mennyiseg']
+                    'tarhely_id' => $this->request['tarhely_id'] ?? null,
+                    'cikk_id' => $this->request['cikk_id'] ?? null,
+                    'mennyiseg' => $this->request['mennyiseg'] ?? null
                 ],
                 JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR
             );
             $this->databaseManager = new DatabaseManager(
                 $this->sqlCommand->exec_tabletBetarolasFelvitele(),
                 [
-                    'parameter' => $parameter,
-                    'user_id' => $this->request['user_id']
+                    'parameter' => $parameter ?? null,
+                    'user_id' => $this->request['user_id'] ?? null
                 ],
                 $this->request['customer']
             );

@@ -46,8 +46,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_tabletBelep(),
             [
-                'eszkoz_id' => $this->request['eszkoz_id'],
-                'verzio' => $this->request['verzio']
+                'eszkoz_id' => $this->request['eszkoz_id'] ?? null,
+                'verzio' => $this->request['verzio'] ?? null
             ],
             $this->request['customer']
         );

@@ -46,8 +46,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_tabletCikkInfo(),
             [
-                'id' => $this->request['id'],
-                'raktar_id' => $this->request['raktar_id']
+                'id' => $this->request['id'] ?? null,
+                'raktar_id' => $this->request['raktar_id'] ?? null
             ],
             $this->request['customer']
         );

@@ -46,8 +46,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_tabletBejovoSzallitolevelTetelTorles(),
             [
-                'bizonylat_id' => $this->request['bizonylat_id'],
-                'tetel_id' => $this->request['tetel_id']
+                'bizonylat_id' => $this->request['bizonylat_id'] ?? null,
+                'tetel_id' => $this->request['tetel_id'] ?? null
             ],
             $this->request['customer']
         );

@@ -54,7 +54,7 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_bizonylatDataTableDetails(),
             [
-                'parameter' => $parameter
+                'parameter' => $parameter ?? null
             ],
             $this->request['customer']
         );

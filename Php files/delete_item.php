@@ -42,9 +42,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_deleteItem(),
             [
-                'cikk_id' => $this->request['cikk_id'],
-                'raktar_id' => $this->request['raktar_id'],
-                'user_id' => $this->request['user_id']
+                'cikk_id' => $this->request['cikk_id'] ?? null,
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

@@ -43,8 +43,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_finishOrders(),
             [
-                'completed_orders' => $this->request['completed_tasks'],
-                'user_id' => $this->request['user_id']
+                'completed_orders' => $this->request['completed_tasks'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

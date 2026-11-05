@@ -42,8 +42,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_abroncsReszletezoPoziciokValasztas1(),
             [
-                'id' => $this->request['id'],
-                'user_id' => $this->request['user_id']
+                'id' => $this->request['id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

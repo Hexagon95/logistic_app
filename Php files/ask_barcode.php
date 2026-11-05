@@ -42,7 +42,7 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->select_vonalkod(),
             [
-                'vonalkod' => $this->request['vonalkod']
+                'vonalkod' => $this->request['vonalkod'] ?? null
             ],
             $this->request['customer']
         );

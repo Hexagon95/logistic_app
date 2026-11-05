@@ -42,8 +42,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_tabletPartnertolVisszaUjFelvitele(),
             [
-                'parameter' => $this->request['parameter'],
-                'user_id' => $this->request['user_id']
+                'parameter' => $this->request['parameter'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

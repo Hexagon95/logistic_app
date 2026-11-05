@@ -46,8 +46,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_tablet_leltar_kiertekeles(),
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'user_id' => $this->request['user_id']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

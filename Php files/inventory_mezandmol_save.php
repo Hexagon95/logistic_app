@@ -42,9 +42,9 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $this->sqlCommand->exec_tabletLeltarTarhelyFelvitele(),
             [
-                'parameter' => $this->request['parameter'],
-                'user_id' => $this->request['user_id'],
-                'lezart' => $this->request['lezart']
+                'parameter' => $this->request['parameter'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null,
+                'lezart' => $this->request['lezart'] ?? null
             ],
             $this->request['customer']
         );

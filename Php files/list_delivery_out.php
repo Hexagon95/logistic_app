@@ -50,8 +50,8 @@ class Task {
         $this->databaseManager = new DatabaseManager(
             $queryString,
             [
-                'raktar_id' => $this->request['raktar_id'],
-                'user_id' => $this->request['user_id']
+                'raktar_id' => $this->request['raktar_id'] ?? null,
+                'user_id' => $this->request['user_id'] ?? null
             ],
             $this->request['customer']
         );

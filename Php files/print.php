@@ -51,11 +51,11 @@ class Task {
 
         $parameters = $isStorage
             ? [
-                'tarhely' => $this->request['tarhely'],
-                'idk' => $this->request['idk']
+                'tarhely' => $this->request['tarhely'] ?? null,
+                'idk' => $this->request['idk'] ?? null
             ]
             : [
-                'tarhely' => $this->request['tarhely']
+                'tarhely' => $this->request['tarhely'] ?? null
             ];
 
         $this->databaseManager = new DatabaseManager(
